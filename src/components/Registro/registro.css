@@ -1,0 +1,57 @@
+* {
+    color: white;
+    font-family: 'Poppins';
+}
+
+.registro {
+    width: 38%;
+    height: 80vh;
+    border-radius: 30px;
+    background-color: #6CAEE5;
+    display: flex-row;
+    justify-content: center;
+    align-items: center;
+}
+
+.registro img {
+    max-width: 100%;
+    background-size: cover;
+
+}
+
+.registro h1 {
+    text-align: center;
+    font-size: 40px;
+    margin-top: 5%;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.registro input {
+    width: 90%;
+    height: 45px;
+    color: #000000;
+    background-color: #ffffff;
+    border: 1px solid #2783D0;
+    border-radius: 18px;
+    padding-left: 10px;
+}
+
+.registro h3 {
+    font-size: 20px;
+    text-align: left;
+    padding-left: 10px;
+    margin-bottom: 0px;
+
+}
+
+.registro button {
+    width: 120px;
+    height: 45px;
+    background-color: #00457F;
+    margin-top: 35px;
+    border: none;
+    border-radius: 15px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
