@@ -1,0 +1,21 @@
+{
+    "0":{
+        "nombre_empresa": "nombre de la empresa",
+        "rubro":"rubro",
+        "ubicacion":{
+            "zona":"zona",
+            "departamento":"dpto",
+            "localidad":"loc",
+            "calle":"siempre viva",
+            "numero":123
+        },
+        "descripcion":"esto es una descripcion breve de la empresa",
+        "correo_empresa":"empresa@falsa.com",
+        "redes":{
+            "numero_contacto":"+000000000",
+            "facebook":"faceboock",
+            "instagram":"instagram",
+            "pagina_web":"falsa.com"
+        }
+    }
+}

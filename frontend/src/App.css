@@ -1,0 +1,99 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #0f172a; /* Azul noche oscuro, ideal para descansar la vista */
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #0f172a;
+}
+
+/* Tarjeta celeste del login */
+.login-container {
+  background-color: #5fa4e1;
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 24px;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Sombra adaptada a fondos oscuros */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-container h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.login-container form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 16px;
+  background-color: #ffffff;
+  color: #2f6592;
+  font-size: 15px;
+  outline: none;
+}
+
+.form-group input::placeholder {
+  color: #8bb2d6;
+}
+
+.btn-submit {
+  width: 100%;
+  max-width: 180px;
+  margin: 12px auto 0 auto;
+  padding: 12px;
+  background-color: #003e73;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit:hover {
+  background-color: #00284d;
+}
