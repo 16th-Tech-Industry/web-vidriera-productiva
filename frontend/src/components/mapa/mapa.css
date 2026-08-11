@@ -1,0 +1,147 @@
+.mapaWrapper {
+  height: calc(100vh - 80px);
+  width: 100%;
+  max-width: 1000px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mapaLeaflet {
+  height: 100%;
+  width: 100%;
+  background-color: #f8fafc;
+}
+
+/* Botón Restaurar Vista */
+.btnRestaurar {
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  z-index: 1000;
+  background: #ffffff;
+  color: #2b463c;
+  border: 1px solid #cbd5e1;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnRestaurar:hover {
+  background: #f8fafc;
+}
+
+/* Selector y Leyenda */
+.panelFiltros {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
+  width: 200px;
+}
+
+.selectRubro {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background-color: #fff;
+  color: #334155;
+  font-weight: 500;
+}
+
+.leyenda {
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #475569;
+}
+
+.leyendaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dotAgroalimento {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #f39200;
+}
+
+.dotAgroindustria {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #00aeef;
+}
+
+.dotAgtech {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #9b5de5;
+}
+
+/* Estilos de Popup */
+.popupContainer {
+  font-family: 'Inter', sans-serif;
+  padding: 3px;
+}
+
+.popupImgContainer {
+  width: 100%;
+  height: 80px;
+  background-color: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f1f5f9;
+}
+
+.popupImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.popupTitulo {
+  color: #1e293b;
+  margin: 0 0 2px 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.popupLocalidad {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Marcador leaflet personalizado */
+.marcador-personalizado {
+  background: transparent;
+  border: none;
+}

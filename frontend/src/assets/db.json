@@ -1,0 +1,24 @@
+{
+  "productores": [
+    {
+      "id": 1,
+      "nombre": "AgroTech Córdoba",
+      "rubro": "AGTECH",
+      "localidad": "Río Cuarto",
+      "lat": -33.1232,
+      "lng": -64.3492,
+      "descripcion": "Maquinaria de precisión.",
+      "imagen": "/Agrotech.jpg"
+    },
+    {
+      "id": 2,
+      "nombre": "Sabores Serranos",
+      "rubro": "AGROALIMENTO",
+      "localidad": "Villa General Belgrano",
+      "lat": -31.9774,
+      "lng": -64.5559,
+      "descripcion": "Dulces artesanales.",
+      "imagen": "/SaboresSerranos.png"
+    }
+  ]
+}
