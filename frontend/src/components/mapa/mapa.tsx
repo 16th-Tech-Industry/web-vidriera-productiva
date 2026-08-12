@@ -5,7 +5,8 @@ import proj4 from 'proj4';
 import 'leaflet/dist/leaflet.css';
 import db from '../../assets/db.json';
 import mapaMetros from '../../assets/dataMap.json';
-import './Mapa.css'; // O import styles from './Mapa.module.css' si usás CSS Modules
+import './Mapa.css';
+import 'leaflet/dist/leaflet.css';
 
 interface Productor {
   id: string | number;

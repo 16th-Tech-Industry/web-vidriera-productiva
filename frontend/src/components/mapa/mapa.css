@@ -1,25 +1,33 @@
+/* Contenedor Principal (Marco) */
+.mapa-container,
 .mapaWrapper {
   height: calc(100vh - 80px);
   width: 100%;
   max-width: 1000px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   margin: 20px auto;
-  position: relative;
+  position: relative !important;
   border-radius: 12px;
   overflow: hidden;
+  display: block; /* Asegura el contexto de bloque estricto */
 }
 
-.mapaLeaflet {
-  height: 100%;
-  width: 100%;
-  background-color: #f8fafc;
+/* Forzar al contenedor de Leaflet a expandirse al 100% de la caja */
+.mapaLeaflet,
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
 /* Botón Restaurar Vista */
 .btnRestaurar {
   position: absolute;
-  bottom: 25px;
-  left: 25px;
+  bottom: 20px;
+  left: 20px;
   z-index: 1000;
   background: #ffffff;
   color: #2b463c;
@@ -40,16 +48,16 @@
   background: #f8fafc;
 }
 
-/* Selector y Leyenda */
+/* Panel de Filtros y Leyenda */
 .panelFiltros {
   position: absolute;
-  top: 25px;
-  right: 25px;
+  top: 20px;
+  right: 20px;
   z-index: 1000;
   background: rgba(255, 255, 255, 0.95);
-  padding: 15px;
+  padding: 12px 15px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
   backdrop-filter: blur(4px);
   width: 200px;
 }
@@ -60,7 +68,7 @@
   font-size: 0.85rem;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   background-color: #fff;
   color: #334155;
   font-weight: 500;
@@ -101,47 +109,8 @@
   background-color: #9b5de5;
 }
 
-/* Estilos de Popup */
-.popupContainer {
-  font-family: 'Inter', sans-serif;
-  padding: 3px;
-}
-
-.popupImgContainer {
-  width: 100%;
-  height: 80px;
-  background-color: #ffffff;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #f1f5f9;
-}
-
-.popupImg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 4px;
-}
-
-.popupTitulo {
-  color: #1e293b;
-  margin: 0 0 2px 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.popupLocalidad {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #64748b;
-}
-
-/* Marcador leaflet personalizado */
+/* Ajuste de marcadores Leaflet */
 .marcador-personalizado {
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
 }
