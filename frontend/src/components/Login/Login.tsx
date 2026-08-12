@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import logo from '../assets/ministerio+cba.svg';
-import './login.css';
+import logo from '../../assets/ministerio+cba.svg';
+import '../Login/login.css';
 
 interface LoginProps {
   onNavigateToRegister?: () => void;
