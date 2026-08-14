@@ -79,7 +79,7 @@ export const Mapa: React.FC = () => {
     
     layer.on({
       mouseover: (e: LeafletMouseEvent) => { 
-        (e.target as L.Path).setStyle({ fillColor: '#284b35', fillOpacity: 0.9 }); 
+        (e.target as L.Path).setStyle({ fillColor: '#00457F', fillOpacity: 0.9 }); 
       },
       mouseout: (e: LeafletMouseEvent) => { 
         (e.target as L.Path).setStyle(estiloDeptoBase); 
@@ -122,6 +122,7 @@ export const Mapa: React.FC = () => {
   };
 
   return (
+   <div className="mapa-page-wrapper">
     <div className="mapaWrapper">
       <button className="btnRestaurar" onClick={restaurarVistaProvincia}>
         🗺️ Ver Provincia Completa
@@ -189,5 +190,6 @@ export const Mapa: React.FC = () => {
         ))}
       </MapContainer>
     </div>
+   </div>
   );
 };

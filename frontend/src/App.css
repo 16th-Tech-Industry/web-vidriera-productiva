@@ -98,11 +98,3 @@ body {
   background-color: #00284d;
 }
 
-/* ==========================================================================
-   TABLERO MAPA DE CORDOBA
-   ========================================================================== */
-.map-container {
-  height: calc(100vh - 80px);
-  width: 100%;
-  border-bottom: 5px solid var(--azul-ministerio);
-}
