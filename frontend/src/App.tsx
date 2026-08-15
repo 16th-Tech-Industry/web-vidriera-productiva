@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Login } from './components/Login';
 import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
+import { CarruselNovedades } from './components/noticias/noticias';
 
 function App() {
   return (
@@ -19,17 +20,17 @@ function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '3.5rem',
-                padding: '2rem 1.5rem 4rem 1.5rem',
+                gap: '4rem',
+                padding: '2rem 1.5rem 5rem 1.5rem',
                 boxSizing: 'border-box'
               }}
             >
-              {/* Sección Mapa (ocupa el 100% del ancho) */}
+              {/* 1. MAPA */}
               <div style={{ width: '100%' }}>
                 <Mapa />
               </div>
 
-              {/* Sección Calendario (acotado y centrado) */}
+              {/* 2. CALENDARIO */}
               <div
                 style={{
                   width: '100%',
@@ -49,6 +50,27 @@ function App() {
                   </p>
                 </div>
                 <Calendario />
+              </div>
+
+              {/* 3. CALESITA / NOVEDADES */}
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '1.5rem'
+                }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                    Novedades y Destacados
+                  </h2>
+                  <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '0.35rem 0 0 0' }}>
+                    Actualidad del sector productivo provincial
+                  </p>
+                </div>
+                <CarruselNovedades />
               </div>
             </div>
           }
