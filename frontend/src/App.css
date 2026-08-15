@@ -7,31 +7,38 @@
 
 body {
   margin: 0;
-  background-color: #0f172a; /* Azul noche oscuro, ideal para descansar la vista */
+  background-color: #0f172a; /* Azul noche oscuro */
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  color: #ffffff;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+   LOGIN (Centrado en pantalla completa)
+   ========================================= */
+.login-page-wrapper {
+  flex: 1;
+  display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background-color: #0f172a;
+  min-height: 100vh;
 }
 
-/* Tarjeta celeste del login */
 .login-container {
   background-color: #5fa4e1;
   width: 100%;
   max-width: 380px;
   padding: 32px 24px;
   border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Sombra adaptada a fondos oscuros */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -98,3 +105,68 @@ body {
   background-color: #00284d;
 }
 
+/* =========================================
+   ESTRUCTURA DE PÁGINA: MAPA + CALENDARIO
+   ========================================= */
+.mapa-page-layout {
+  width: 100%;
+  max-width: 1200px; /* Ancho amplio para desktop */
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+/* 1. SECCIÓN MAPA */
+.seccion-mapa {
+  width: 100%;
+}
+
+.mapaWrapper {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.mapaLeaflet {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 2. SECCIÓN CALENDARIO */
+.seccion-calendario {
+  width: 100%;
+  max-width: 360px; /* Tamaño acotado para el calendario */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.calendario-header {
+  text-align: center;
+}
+
+.calendario-titulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.calendario-subtitulo {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin: 0.35rem 0 0 0;
+}
+
+.calendario-contenedor {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}

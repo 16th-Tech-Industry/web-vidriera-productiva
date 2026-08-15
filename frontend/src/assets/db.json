@@ -8,7 +8,7 @@
       "lat": -33.1232,
       "lng": -64.3492,
       "descripcion": "Maquinaria de precisión.",
-      "imagen": "/Agrotech.jpg"
+      "imagen": "src/assets/Agrotech.jpg"
     },
     {
       "id": 2,
@@ -18,7 +18,46 @@
       "lat": -31.9774,
       "lng": -64.5559,
       "descripcion": "Dulces artesanales.",
-      "imagen": "/SaboresSerranos.png"
+      "imagen": "src/assets/SaboresSerranos.png"
+    }
+  ],
+
+  "eventos": [
+    {
+      "id": 1,
+      "nombre": "Exposición Rural de Río Cuarto",
+      "categoria": "AGROINDUSTRIA",
+      "localidad": "Río Cuarto",
+      "fechaInicio": "2026-09-02",
+      "fechaFin": "2026-09-06",
+      "lat": -33.1245,
+      "lng": -64.3521,
+      "descripcion": "Muestra comercial, industrial y de servicios ganaderos.",
+      "imagen": "src/assets/RuralRIO4.png"
+    },
+    {
+      "id": 2,
+      "nombre": "Fiesta Nacional de la Cerveza (Oktoberfest)",
+      "categoria": "AGROALIMENTO",
+      "localidad": "Villa General Belgrano",
+      "fechaInicio": "2026-10-02",
+      "fechaFin": "2026-10-12",
+      "lat": -31.9768,
+      "lng": -64.5562,
+      "descripcion": "Tradicional celebración con productores gastronómicos y cerveceros.",
+      "imagen": "src/assets/OktoberFest.png"
+    },
+    {
+      "id": 3,
+      "nombre": "Congreso Internacional AgTech Córdoba",
+      "categoria": "AGTECH",
+      "localidad": "Córdoba Capital",
+      "fechaInicio": "2026-11-15",
+      "fechaFin": "2026-11-17",
+      "lat": -31.4201,
+      "lng": -64.1888,
+      "descripcion": "Encuentro de innovación y tecnologías aplicadas al agro.",
+      "imagen": "src/assets/AgtechCBA.png"
     }
   ]
 }
