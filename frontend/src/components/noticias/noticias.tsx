@@ -2,26 +2,26 @@ import React, { useRef } from 'react';
 import db from '../../assets/db.json';
 import styles from './noticias.module.css';
 
-interface NoticiaItem {
+export interface Noticias {
   id: number | string;
-  titulo?: string;
-  descripcion: string;
-  imagen?: string;
+  imagen: string;
+  epigrafe: string;
+  link: string;
 }
 
 interface CarruselProps {
-  items?: NoticiaItem[];
+  noticias?: Noticias[];
 }
 
-export const CarruselNovedades: React.FC<CarruselProps> = ({ items }) => {
+export const CarruselNovedades: React.FC<CarruselProps> = ({ noticias }) => {
   const trackRef = useRef<HTMLDivElement>(null);
-
-  // Si no le pasás items por props, usa los eventos o productores de tu db.json por defecto
-  const data: NoticiaItem[] = items || (db.eventos as any[]) || [];
+  
+  // Lee de props o directamente de la tabla novedades en db.json
+  const listaNovedades: Noticias[] = noticias || (db as any).noticias || [];
 
   const scroll = (direction: 'left' | 'right') => {
     if (trackRef.current) {
-      const scrollAmount = direction === 'left' ? -300 : 300;
+      const scrollAmount = direction === 'left' ? -320 : 320;
       trackRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -38,24 +38,30 @@ export const CarruselNovedades: React.FC<CarruselProps> = ({ items }) => {
       </button>
 
       <div className={styles.track} ref={trackRef}>
-        {data.map((item) => (
-          <div key={item.id} className={styles.card}>
+        {listaNovedades.map((item) => (
+          <a
+            key={item.id}
+            href={item.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.card}
+          >
             <div className={styles.imageWrapper}>
               <img
-                src={item.imagen || '/placeholder-news.jpg'}
-                alt={item.titulo || 'Noticia'}
+                src={item.imagen}
+                alt={item.epigrafe}
                 className={styles.image}
                 onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/300x180?text=Vidriera+Productiva';
+                  e.currentTarget.src = 'https://via.placeholder.com/300x165?text=Novedad';
                 }}
               />
             </div>
             <div className={styles.body}>
               <p className={styles.texto}>
-                {item.descripcion || item.titulo}
+                {item.epigrafe}
               </p>
             </div>
-          </div>
+          </a>
         ))}
       </div>
 

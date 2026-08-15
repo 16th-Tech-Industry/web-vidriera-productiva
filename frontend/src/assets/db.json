@@ -59,5 +59,25 @@
       "descripcion": "Encuentro de innovación y tecnologías aplicadas al agro.",
       "imagen": "src/assets/AgtechCBA.png"
     }
+  ],
+  "noticias": [
+    {
+      "id": 1,
+      "imagen": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=60",
+      "epigrafe": "Lanzamiento oficial del programa Córdoba Vidriera Productiva con autoridades provinciales.",
+      "link": "https://www.cba.gov.ar"
+    },
+    {
+      "id": 2,
+      "imagen": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=60",
+      "epigrafe": "Ronda de negocios y vinculación estratégica para empresas del sector agroindustrial y agtech.",
+      "link": "https://www.cba.gov.ar"
+    },
+    {
+      "id": 3,
+      "imagen": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=60",
+      "epigrafe": "Capacitación y apertura de nuevas líneas de financiamiento para proyectos de innovación local.",
+      "link": "https://www.cba.gov.ar"
+    }
   ]
 }
