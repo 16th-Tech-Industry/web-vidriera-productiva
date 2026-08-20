@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import logo from '../../assets/ministerio+cba.svg';
-import './recuperar-contraseña.css';
+import './recuperar-contrasena.css';
 
 interface ForgotPasswordProps {
   onNavigateToLogin?: () => void;

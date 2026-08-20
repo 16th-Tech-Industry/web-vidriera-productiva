@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Login } from './components/Login/Login';
-import { ForgotPassword } from './components/recuperacion_contraseña/recuperar-contraseña';
+import { ForgotPassword } from './components/recuperacion_contrasena/recuperar-contrasena';
 
 // Definimos las vistas disponibles
 type AuthView = 'login' | 'register' | 'forgot-password';
