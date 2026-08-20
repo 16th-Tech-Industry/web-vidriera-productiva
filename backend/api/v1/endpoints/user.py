@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from api.v1.schemas.user import UserCreate, UserUpdate, UserResponse
+from api.v1.schemas.users import UserCreate, UserUpdate, UserResponse
 
 """
 Los retornos con datos simulados (mocks) tienen tres objetivos técnicos en esta etapa de desarrollo:
