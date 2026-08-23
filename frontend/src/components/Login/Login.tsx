@@ -2,10 +2,23 @@ import { useState, type FormEvent } from 'react';
 import logo from '../../assets/ministerio+cba.svg';
 import '../Login/login.css';
 
+interface UserData {
+  id?: number;
+  name?: string;
+  email?: string;
+  role?: number;
+}
+
+interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: UserData;
+}
+
 interface LoginProps {
   onNavigateToRegister?: () => void;
   onNavigateToForgotPassword?: () => void;
-  onLoginSuccess?: (userData: any) => void;
+  onLoginSuccess?: (userData: LoginResponse) => void;
 }
 
 export function Login({ 
@@ -68,10 +81,14 @@ export function Login({
         const data = await response.json();
 
         if (!response.ok) {
-          const errorMsg = data.detail || 'El correo o la contraseña son incorrectos.';
-          setErrors({ 
-            general: typeof errorMsg === 'string' ? errorMsg : 'Datos inválidos proporcionados.' 
-          });
+          let errorMsg = 'El correo o la contraseña son incorrectos.';
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errorMsg = data.detail.map((err: { msg: string }) => err.msg).join(', ');
+          }
+          
+          setErrors({ general: errorMsg });
           return;
         }
 
@@ -88,7 +105,7 @@ export function Login({
         if (onLoginSuccess) {
           onLoginSuccess(data);
         }
-      } catch (err) {
+      } catch {
         setErrors({ 
           general: 'No se pudo conectar con el servidor backend (verifique si FastAPI está corriendo en el puerto 8000).' 
         });

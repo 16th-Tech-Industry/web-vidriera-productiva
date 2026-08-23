@@ -37,11 +37,24 @@ export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
     setIsLoading(true);
 
     try {
-      // Simulación de envío de correo de recuperación
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch('http://localhost:8000/api/v1/users/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.detail || 'Error al procesar la solicitud.');
+        return;
+      }
+
       setIsSubmitted(true);
     } catch {
-      setError('Error al enviar la solicitud. Intenta nuevamente.');
+      setError('No se pudo conectar con el servidor backend (FastAPI).');
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +90,7 @@ export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
             Ingresa tu correo electrónico registrado y te enviaremos instrucciones para restablecer tu contraseña.
           </p>
 
-          {error && !touched && <div className="alert-error">{error}</div>}
+          {error && <div className="alert-error">{error}</div>}
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
