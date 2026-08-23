@@ -40,6 +40,17 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     is_active: bool
-    
+
     class Config:
         from_attributes = True # Necesario si usas SQLAlchemy
+
+# Recuperación de contraseña
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+class MessageResponse(BaseModel):
+    message: str
