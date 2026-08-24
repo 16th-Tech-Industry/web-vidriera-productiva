@@ -20,6 +20,7 @@ router = APIRouter(prefix="/users", tags=["Login"])
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest):
+    """Valida email + password contra `representates` y devuelve un JWT de sesión."""
     rows = execute_query(
         "SELECT id_representante, contrasenia_representate, estado "
         "FROM representates WHERE email_representante = :email",
@@ -77,6 +78,7 @@ _RESET_TOKEN_TTL = timedelta(hours=1)  # tiempo de vida del token antes de vence
 
 @router.post("/forgot-password", response_model=MessageResponse)
 def forgot_password(payload: ForgotPasswordRequest):
+    """Genera un token de recuperación de un solo uso y lo entrega (hoy por consola, simulando el mail)."""
     # TODO: Buscar el representante por email_representante en la DB.
     # Igual generamos y devolvemos el mismo mensaje si no existe, para no
     # revelar si un email está registrado (evita user enumeration).
@@ -98,6 +100,7 @@ def forgot_password(payload: ForgotPasswordRequest):
 
 @router.post("/reset-password", response_model=MessageResponse)
 def reset_password(payload: ResetPasswordRequest):
+    """Valida el token de recuperación y actualiza la password hasheada del representante."""
     # Buscamos el token tal cual lo mandó el cliente. Si no está en el dict
     # (nunca existió, ya se usó, o el server se reinició) o si ya venció
     # la fecha de expiración, lo tratamos como inválido.

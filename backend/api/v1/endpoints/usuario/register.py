@@ -9,6 +9,7 @@ router = APIRouter(prefix="/register", tags=["Register"])
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate):
+    """Registra un representante nuevo: valida email único, hashea la password y la persiste en `representates`."""
     existe = execute_query(
         "SELECT id_representante FROM representates WHERE email_representante = :email",
         {"email": user.email},
