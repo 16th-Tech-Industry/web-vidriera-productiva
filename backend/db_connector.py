@@ -13,4 +13,5 @@ def execute_query(query: str, params=None, fetch=False):
             cursor.execute(query, params)
             if fetch:
                 return cursor.fetchall()
+            connection.commit()
             return None

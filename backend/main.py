@@ -1,9 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from api.v1.router import api_router_v1
 
 app = FastAPI(
     title="Mi API",
     openapi_url="/api/v1/openapi.json"  # Opcional: ajustar OpenAPI global
+)
+
+# Origen del frontend en desarrollo (Vite). Sin esto el navegador bloquea
+# las llamadas del frontend al backend por CORS.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Montaje de versiones
