@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import logo from '../../assets/ministerio+cba.svg';
 import '../Login/login.css';
+import '../registro_usuario/registrousuario.css';
 
 interface RegistroProps {
   onNavigateToLogin?: () => void;
@@ -17,6 +18,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -66,6 +68,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
       setErrors({});
+      setSuccessMessage('');
 
       try {
         const response = await fetch('http://localhost:8000/api/v1/register/', {
@@ -91,10 +94,16 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
           return;
         }
 
-        console.log('Registro exitoso:', data);
-        if (onRegisterSuccess) {
-          onRegisterSuccess(data);
-        }
+        setSuccessMessage('¡Usuario registrado con éxito!');
+
+        // Muestra el cartel verde por 2.5 segundos antes de avanzar
+        setTimeout(() => {
+          if (onRegisterSuccess) {
+            onRegisterSuccess(data);
+          } else if (onNavigateToLogin) {
+            onNavigateToLogin();
+          }
+        }, 2500);
       } catch {
         setErrors({
           general: 'No se pudo conectar con el servidor backend.',
@@ -116,7 +125,49 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
 
       <h2>Registra tu usuario</h2>
 
-      {errors.general && <div className="alert-error">{errors.general}</div>}
+      {errors.general && (
+        <div
+          className="alert-error"
+          style={{
+            backgroundColor: '#f8d7da',
+            color: '#842029',
+            border: '1px solid #f5c2c7',
+            padding: '0.6rem 1.2rem',
+            borderRadius: '6px',
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            textAlign: 'center',
+            margin: '0 auto 1.2rem auto',
+            width: 'fit-content',
+            display: 'block',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          {errors.general}
+        </div>
+      )}
+
+      {successMessage && (
+        <div
+          className="alert-success"
+          style={{
+            backgroundColor: '#d4edda',
+            color: '#155724',
+            border: '1px solid #c3e6cb',
+            padding: '0.6rem 1.2rem',
+            borderRadius: '6px',
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            textAlign: 'center',
+            margin: '0 auto 1.2rem auto',
+            width: 'fit-content',
+            display: 'block',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          {successMessage}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="form-group">
