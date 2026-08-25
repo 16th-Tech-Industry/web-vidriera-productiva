@@ -7,24 +7,20 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json"
 )
 
-# Permitir que el frontend (React/Vite) se comunique con el backend
+# Orígenes permitidos del frontend (React / Vite)
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Configuración única de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Origen del frontend en desarrollo (Vite). Sin esto el navegador bloquea
-# las llamadas del frontend al backend por CORS.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Montaje de versiones
+# Montaje de rutas de la versión 1
 app.include_router(api_router_v1, prefix="/api/v1")

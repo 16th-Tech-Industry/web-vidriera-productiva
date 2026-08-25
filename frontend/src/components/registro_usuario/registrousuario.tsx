@@ -13,6 +13,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
@@ -20,6 +21,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isPasswordValid = password.length >= 8;
+  const doPasswordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -33,6 +35,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
       email: true,
       telefono: true,
       password: true,
+      confirmPassword: true,
     });
 
     const newErrors: { [key: string]: string } = {};
@@ -52,6 +55,12 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
       newErrors.password = 'Debe tener al menos 8 caracteres.';
     }
 
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Debes confirmar la contraseña.';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden.';
+    }
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
@@ -59,14 +68,14 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
       setErrors({});
 
       try {
-        // Conexión al endpoint de creación de usuarios de Bauti
-        const response = await fetch('http://localhost:8000/api/v1/users/', {
+        const response = await fetch('http://localhost:8000/api/v1/register/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: `${nombre.trim()} ${apellido.trim()}`,
+            name: nombre.trim(),
+            apellido: apellido.trim(),
             email: email.trim(),
             password: password,
           }),
@@ -86,7 +95,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
         if (onRegisterSuccess) {
           onRegisterSuccess(data);
         }
-      } catch (err) {
+      } catch {
         setErrors({
           general: 'No se pudo conectar con el servidor backend.',
         });
@@ -159,7 +168,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
         </div>
 
         <div className="form-group">
-          <label htmlFor="telefono">Teléfono de contacto</label>
+          <label htmlFor="telefono">Teléfono de contacto (opcional)</label>
           <input
             id="telefono"
             type="tel"
@@ -184,6 +193,22 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
           />
           {touched.password && errors.password && (
             <span className="error-message">{errors.password}</span>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="confirmPassword">Confirmar contraseña</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={() => handleBlur('confirmPassword')}
+            className={getInputClass('confirmPassword', doPasswordsMatch)}
+            placeholder="••••••••"
+          />
+          {touched.confirmPassword && errors.confirmPassword && (
+            <span className="error-message">{errors.confirmPassword}</span>
           )}
         </div>
 
