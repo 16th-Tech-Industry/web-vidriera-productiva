@@ -1,82 +1,46 @@
-import secrets
-from datetime import datetime, timedelta, timezone
+from fastapi import APIRouter, status
 from typing import List
+from api.v1.schemas.users import UserUpdate, UserResponse
 
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
-from api.v1.schemas.users import (
-    UserCreate,
-    UserUpdate,
-    UserResponse,
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-    MessageResponse,
-)
+"""
+Los retornos con datos simulados (mocks) tienen tres objetivos técnicos en esta etapa de desarrollo:
 
-# Esquema para recibir las credenciales de Login
-class LoginRequest(BaseModel):
-    email: str
-    password: str
+    Cumplir con el contrato de Pydantic: Al definir response_model=UserResponse, FastAPI valida que la salida tenga exactamente esa estructura. Si devuelves algo distinto o vacío, la API fallará con un error 500 (Internal Server Error).
 
-# Se deja sin prefijo para evitar el doble /users/users
-router = APIRouter(tags=["Users"])
+    Desacoplar el desarrollo (API First): Permite que cualquier cliente (Postman, otro microservicio, o un equipo de UI) pueda integrar y probar los endpoints de inmediato, sin depender de que la base de datos esté configurada.
 
-_reset_tokens: dict[str, dict] = {}
-_RESET_TOKEN_TTL = timedelta(hours=1)
+    Preparar la integración del ORM: Funcionan como marcadores (placeholders). Cuando conectes tu base de datos, simplemente cambias ese diccionario por el objeto real (ej. return db_user).
+    FastAPI se encarga de serializarlo automáticamente al JSON esperado gracias a la configuración from_attributes = True del schema.
 
-@router.post("/login")
-def login(credentials: LoginRequest):
-    # TODO: Validar contra la base de datos de Oracle y verificar password con hash
-    if credentials.email and credentials.password:
-        return {
-            "access_token": "token-de-prueba-jwt-123456",
-            "token_type": "bearer",
-            "user": {
-                "email": credentials.email,
-                "name": "Usuario Demo"
-            }
-        }
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST, 
-        detail="Credenciales inválidas"
-    )
+"""
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user: UserCreate):
-    # TODO: Guardar en DB
-    return {"id": 1, "email": user.email, "name": user.name, "is_active": True}
 
-@router.post("/forgot-password", response_model=MessageResponse)
-def forgot_password(payload: ForgotPasswordRequest):
-    token = secrets.token_urlsafe(32)
-    _reset_tokens[token] = {
-        "email": payload.email,
-        "expira_en": datetime.now(timezone.utc) + _RESET_TOKEN_TTL,
-    }
-    print(f"[password-reset] link para {payload.email}: /reset-password?token={token}")
-    return {"message": "Si el email está registrado, enviamos instrucciones para recuperar la contraseña."}
+router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.post("/reset-password", response_model=MessageResponse)
-def reset_password(payload: ResetPasswordRequest):
-    data = _reset_tokens.get(payload.token)
-    if not data or data["expira_en"] < datetime.now(timezone.utc):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token inválido o expirado")
-    
-    del _reset_tokens[payload.token]
-    return {"message": "Contraseña actualizada correctamente"}
+# NOTA: el registro (create_user) vive en usuario/register.py y el login +
+# recuperación de contraseña en usuario/login.py. Este archivo queda
+# exclusivo para el CRUD de usuarios.
 
 @router.get("/", response_model=List[UserResponse])
 def get_users(skip: int = 0, limit: int = 100):
+    # TODO: db.query(User).offset(skip).limit(limit).all()
     return [{"id": 1, "email": "admin@mail.com", "name": "Admin", "is_active": True}]
 
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id: int):
+    # TODO: Buscar en DB
+    # if not db_user: raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return {"id": user_id, "email": "admin@mail.com", "name": "Admin", "is_active": True}
 
 @router.patch("/{user_id}", response_model=UserResponse)
 def update_user(user_id: int, user: UserUpdate):
+    # TODO: Buscar usuario en DB -> 404 si no existe
+    # TODO: Actualizar solo los campos enviados: user.model_dump(exclude_unset=True)
+    # TODO: Si envía password, hashearla antes de guardar
     return {"id": user_id, "email": "admin@mail.com", "name": "Admin", "is_active": True}
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int):
-    return None
+    # TODO: Buscar usuario -> 404 si no existe
+    # TODO: Eliminar de DB (o hacer soft delete seteando is_active=False)
+    return None # 204 no debe devolver body

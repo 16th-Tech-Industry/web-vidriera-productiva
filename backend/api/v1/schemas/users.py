@@ -28,6 +28,7 @@ class UserBase(BaseModel):
 
 # Entrada para crear
 class UserCreate(UserBase):
+    apellido: str = Field(..., min_length=2, max_length=150)
     password: str = Field(..., min_length=8)
 
 # Entrada para actualizar (PATCH - campos opcionales)
@@ -54,3 +55,12 @@ class ResetPasswordRequest(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+# Login
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
