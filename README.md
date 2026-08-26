@@ -46,24 +46,50 @@ El sistema sustituye los procesos manuales y descentralizados (Google Forms / Sh
 
 ## 🌿 Flujo y Sistema de Ramas (Git Branching)
 
-```text
-  [ Franco-dev ]   [ valen-dev ]   [ bauto_dev ]   [ lcanas-dev ]   [ guillermo_dev ]   [ heyme_dev ]
-        │                │               │               │                 │                  │
-        │                │               │               │                 │                  │
-        ▼                ▼               ▼               ▼                 ▼                  ▼
-   (Frontend/UI)    (Dashboard/QA)   (Backend/PM)  (Fullstack/Doc)      (DevOps)            (DBA)
-        │                │               │               │                 │                  │
-        └────────────────┴───────────────┴───────┬───────┴─────────────────┴──────────────────┘
-                                                 │
-                                                 ▼
-                                   =============================
-                                                dev
-                                   (Rama de integración / QA)
-                                   =============================
-                                                 │
-                                                 │ (Pull Request revisado y probado)
-                                                 ▼
-                                   =============================
-                                               main
-                                   (Rama principal / Producción)
-                                   =============================
+```mermaid
+flowchart TD
+    %% Nodos de desarrolladores
+    subgraph DEV_TEAM ["👥 Ramas Personales de Desarrollo"]
+        F["🌿 Franco-dev<br/><b>Frontend / UI</b>"]
+        V["🌿 valen-dev<br/><b>Dashboard / QA</b>"]
+        B["🌿 bauto_dev<br/><b>Backend / PM</b>"]
+        L["🌿 lcanas-dev<br/><b>Fullstack / Doc</b>"]
+        G["🌿 guillermo_dev<br/><b>DevOps / Docker</b>"]
+        H["🌿 heyme_dev<br/><b>Database / DBA</b>"]
+    end
+
+    %% Nodos principales
+    DEV["🚀 dev<br/><b>(Integración & QA)</b>"]
+    MAIN["⭐ main<br/><b>(Producción / Release Estable)</b>"]
+
+    %% Conexiones
+    F --> DEV
+    V --> DEV
+    B --> DEV
+    L --> DEV
+    G --> DEV
+    H --> DEV
+
+    DEV -- "Pull Request (Revisado y Testeado)" --> MAIN
+
+    %% Estilos de colores y resaltado
+    style DEV_TEAM fill:#f8f9fa,stroke:#cbd5e1,stroke-width:2px,stroke-dasharray: 4 4
+    style F fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    style V fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    style B fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    style L fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    style G fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    style H fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+
+    style DEV fill:#fef3c7,stroke:#d97706,stroke-width:3px,color:#92400e
+    style MAIN fill:#dcfce7,stroke:#16a34a,stroke-width:3px,color:#15803d
+```
+
+### Descripción de Niveles:
+
+1. **Ramas Personales de Desarrollo:**
+   - Cada integrante desarrolla sus características y tareas asignadas de manera aislada (`Franco-dev`, `valen-dev`, `bauto_dev`, `lcanas-dev`, `guillermo_dev`, `heyme_dev`).
+2. **Rama `dev` (Integración):**
+   - Recibe los cambios desde las ramas personales a través de Pull Requests para pruebas conjuntas e integración del sistema.
+3. **Rama `main` (Producción / Release):**
+   - Contiene únicamente las versiones finales, estables y completamente revisadas listas para entrega.
