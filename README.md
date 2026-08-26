@@ -48,19 +48,19 @@ El sistema sustituye los procesos manuales y descentralizados (Google Forms / Sh
 
 ```mermaid
 flowchart TD
-    %% Nodos de desarrolladores
+    %% Nodos de desarrolladores con nombres exactos de ramas
     subgraph DEV_TEAM ["👥 Ramas Personales de Desarrollo"]
-        F["🌿 Franco-dev<br/><b>Frontend / UI</b>"]
-        V["🌿 valen-dev<br/><b>Dashboard / QA</b>"]
-        B["🌿 bauto_dev<br/><b>Backend / PM</b>"]
-        L["🌿 lcanas-dev<br/><b>Fullstack / Doc</b>"]
-        G["🌿 guillermo_dev<br/><b>DevOps / Docker</b>"]
-        H["🌿 heyme_dev<br/><b>Database / DBA</b>"]
+        F["🌿 Franco-dev<br/>(Frontend)"]
+        V["🌿 valen-dev<br/>(Dashboard/QA)"]
+        B["🌿 bauti_dev<br/>(Backend/PM)"]
+        L["🌿 lcanas-dev<br/>(Fullstack/Doc)"]
+        G["🌿 guillermo_dev<br/>(DevOps/Docker)"]
+        H["🌿 heyme_dev<br/>(Database/DBA)"]
     end
 
     %% Nodos principales
-    DEV["🚀 dev<br/><b>(Integración & QA)</b>"]
-    MAIN["⭐ main<br/><b>(Producción / Release Estable)</b>"]
+    DEV["🚀 dev<br/>(Integración / QA)"]
+    MAIN["⭐ main<br/>(Producción)"]
 
     %% Conexiones
     F --> DEV
@@ -70,7 +70,7 @@ flowchart TD
     G --> DEV
     H --> DEV
 
-    DEV -- "Pull Request (Revisado y Testeado)" --> MAIN
+    DEV -- "Pull Request" --> MAIN
 
     %% Estilos de colores y resaltado
     style DEV_TEAM fill:#f8f9fa,stroke:#cbd5e1,stroke-width:2px,stroke-dasharray: 4 4
@@ -85,11 +85,26 @@ flowchart TD
     style MAIN fill:#dcfce7,stroke:#16a34a,stroke-width:3px,color:#15803d
 ```
 
-### Descripción de Niveles:
+### Descripción Detallada del Sistema de Ramas
 
-1. **Ramas Personales de Desarrollo:**
-   - Cada integrante desarrolla sus características y tareas asignadas de manera aislada (`Franco-dev`, `valen-dev`, `bauto_dev`, `lcanas-dev`, `guillermo_dev`, `heyme_dev`).
-2. **Rama `dev` (Integración):**
-   - Recibe los cambios desde las ramas personales a través de Pull Requests para pruebas conjuntas e integración del sistema.
-3. **Rama `main` (Producción / Release):**
-   - Contiene únicamente las versiones finales, estables y completamente revisadas listas para entrega.
+#### 1. ⭐ `main` (Rama Principal)
+*   **Propósito:** Contiene el código de producción completamente estable, revisado y listo para lanzamiento.
+*   **Regla:** Es una rama protegida. No se permite realizar `commits` directos.
+*   **Integración:** Solo recibe código de la rama `dev` a través de un Pull Request (PR) aprobado por el equipo, tras verificar que todos los tests pasen.
+
+#### 2. 🚀 `dev` (Rama de Integración y Desarrollo Central)
+*   **Propósito:** Punto de convergencia de todas las ramas personales para pruebas de integración y QA.
+*   **Regla:** Es la rama central de trabajo colaborativo.
+*   **Integración:** Recibe los cambios de los desarrolladores individuales a través de PRs.
+
+#### 3. 👥 Ramas Personales de Desarrollo
+*   **Propósito:** Trabajo aislado de cada desarrollador para implementar características y tareas específicas.
+*   **Regla:** El trabajo se desarrolla en la rama personal (ej. `guillermo_dev`).
+*   **Integración:** Una vez finalizada la tarea, el desarrollador debe abrir un PR hacia `dev`.
+*   **Ramas Personales:**
+    *   **🌿 Franco-dev:** Frontend / Interfaz de Usuario (UI) con React.
+    *   **🌿 valen-dev:** Dashboard de Administración y QA Testing.
+    *   **🌿 bauti_dev:** Backend API con FastAPI y Gestión de Proyecto.
+    *   **🌿 lcanas-dev:** Fullstack Development y Documentación Técnica (OpenAPI).
+    *   **🌿 guillermo_dev:** DevOps, Dockerización de Microservicios y Cloud Infrastructure.
+    *   **🌿 heyme_dev:** Database Administration (DBA), Modelado Relacional y Oracle SQL.
