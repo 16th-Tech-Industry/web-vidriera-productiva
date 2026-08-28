@@ -3,9 +3,10 @@ import './components/Login/login.css';
 import { Login } from './components/Login/Login';
 import { ForgotPassword } from './components/recuperacion_contrasena/recuperar-contrasena';
 import { Registro } from './components/registro_usuario/registrousuario';
+import { Dashboard } from './components/dashboard_admin/Dashboard';
 
 // Definimos las vistas disponibles
-type AuthView = 'login' | 'register-user' | 'forgot-password';
+type AuthView = 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin';
 
 function App() {
   const [currentView, setCurrentView] = useState<AuthView>('login');
@@ -38,6 +39,14 @@ function App() {
           onNavigateToLogin={() => setCurrentView('login')}
         />
       )}
+      {/* 4. Dashboard Administrador */}
+{currentView === 'dashboard-admin' && (
+  <Dashboard
+    userName="Nombre Real"
+    userInitials="NR"
+    onLogout={() => setCurrentView('login')}
+  />
+)}
     </main>
   );
 }

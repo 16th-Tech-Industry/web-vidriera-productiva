@@ -1,0 +1,113 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--topbar-bg, #5b9bd5);
+  padding: 14px 28px;
+  min-height: 56px;
+}
+
+.navbar-titles {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.navbar-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #10314f;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.navbar-subtitle {
+  font-weight: 600;
+  font-size: 13px;
+  color: #10314f;
+}
+
+.navbar-user {
+  position: relative;
+}
+
+.navbar-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.navbar-user-btn:hover,
+.navbar-user-btn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.navbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #3ac47d;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.navbar-username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #10314f;
+}
+
+.navbar-chevron {
+  color: #10314f;
+  transition: transform 0.15s ease;
+}
+
+.navbar-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.navbar-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(16, 49, 79, 0.18);
+  padding: 6px;
+  min-width: 180px;
+  z-index: 20;
+}
+
+.navbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.navbar-logout {
+  color: #e63946;
+}
+
+.navbar-logout:hover {
+  background: #fdeced;
+}
