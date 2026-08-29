@@ -3,11 +3,27 @@
   align-items: center;
   justify-content: space-between;
   background: var(--topbar-bg, #5b9bd5);
-  padding: 14px 28px;
+  padding: 14px 24px;
   min-height: 56px;
+  margin: 20px 24px 0;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(23, 56, 92, 0.14);
 }
 
 .navbar-titles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-logo {
+  height: 34px;
+  width: auto;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+}
+
+.navbar-titles-text {
   display: flex;
   flex-direction: column;
   line-height: 1.3;
@@ -29,6 +45,7 @@
 
 .navbar-user {
   position: relative;
+  flex-shrink: 0;
 }
 
 .navbar-user-btn {
@@ -41,6 +58,8 @@
   padding: 6px 10px;
   border-radius: 8px;
   transition: background 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .navbar-user-btn:hover,
@@ -110,4 +129,32 @@
 
 .navbar-logout:hover {
   background: #fdeced;
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    margin: 12px 12px 0;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .navbar-logo {
+    height: 26px;
+  }
+
+  .navbar-title {
+    font-size: 11px;
+  }
+
+  .navbar-subtitle {
+    display: none;
+  }
+
+  .navbar-username {
+    display: none;
+  }
+
+  .navbar-user-btn {
+    padding: 4px 6px;
+  }
 }

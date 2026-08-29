@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import "./navbar.css";
+import ministerioLogo from "../../assets/ministerio+cba.svg";
 
 export interface NavbarProps {
   title: string;
@@ -11,6 +12,8 @@ export interface NavbarProps {
 
 /**
  * Navbar del dashboard.
+ * Al hacer click en el usuario (avatar + nombre) se abre un
+ * desplegable con la opción de "Cerrar sesión".
  */
 export default function Navbar({
   title,
@@ -41,8 +44,11 @@ export default function Navbar({
   return (
     <header className="navbar">
       <div className="navbar-titles">
-        <span className="navbar-title">{title}</span>
-        <span className="navbar-subtitle">{subtitle}</span>
+        <img src={ministerioLogo} alt="Ministerio de Córdoba" className="navbar-logo" />
+        <div className="navbar-titles-text">
+          <span className="navbar-title">{title}</span>
+          <span className="navbar-subtitle">{subtitle}</span>
+        </div>
       </div>
 
       <div className="navbar-user" ref={menuRef}>

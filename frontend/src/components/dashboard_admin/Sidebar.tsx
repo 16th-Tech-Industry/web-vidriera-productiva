@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import "./sidebar.css";
+import logo from "../../assets/logo_cba_vp.png";
 
 export type SidebarItemKey =
   | "inicio"
@@ -11,6 +12,8 @@ export type SidebarItemKey =
 export interface SidebarProps {
   activeItem?: SidebarItemKey;
   onNavigate?: (key: SidebarItemKey) => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface NavItem {
@@ -28,15 +31,19 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Sidebar del dashboard 
+ * Sidebar del dashboard
  */
 export default function Sidebar({
   activeItem = "inicio",
   onNavigate,
+  collapsed = false,
+  onToggleCollapse,
 }: SidebarProps) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">Vidriera Productiva</div>
+    <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`}>
+      <div className="sidebar-brand">
+        <img src={logo} alt="Vidriera Productiva" className="sidebar-logo" />
+      </div>
 
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
@@ -45,12 +52,33 @@ export default function Sidebar({
             type="button"
             className={`sidebar-btn ${activeItem === key ? "is-active" : ""}`}
             onClick={() => onNavigate?.(key)}
+            title={collapsed ? label : undefined}
           >
             <Icon />
-            <span>{label}</span>
+            <span className="sidebar-btn-label">{label}</span>
           </button>
         ))}
       </nav>
+
+      <button
+        type="button"
+        className="sidebar-collapse-btn"
+        onClick={onToggleCollapse}
+        aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+        title={collapsed ? "Expandir menú" : "Colapsar menú"}
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          style={{ transform: collapsed ? "rotate(180deg)" : "none" }}
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
     </aside>
   );
 }

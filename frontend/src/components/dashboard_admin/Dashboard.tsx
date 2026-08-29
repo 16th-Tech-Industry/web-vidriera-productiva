@@ -5,6 +5,7 @@ import StatCard from "./StatCard";
 import NewsCard from "./NewsCard";
 import EventCard from "./EventCard";
 import "./dashboard.css";
+import fotoEjemplo from "../../assets/foto_ejemplo.png";
 
 // TODO: reemplazar por datos reales que vengan del backend (FastAPI)
 const STATS = [
@@ -16,15 +17,15 @@ const STATS = [
 
 const NEWS = [
   {
-    image: "/images/news-1.jpg",
+    image: fotoEjemplo,
     text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
   },
   {
-    image: "/images/news-2.jpg",
+    image: fotoEjemplo,
     text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
   },
   {
-    image: "/images/news-3.jpg",
+    image: fotoEjemplo,
     text: "There is no one who loves pain itself, who seeks after it and wants to have it, simply because it is pain...",
   },
 ];
@@ -78,6 +79,7 @@ export function Dashboard({
   onNavigate,
 }: DashboardProps) {
   const [activeItem, setActiveItem] = useState<SidebarItemKey>("inicio");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleNavigate = (key: SidebarItemKey) => {
     setActiveItem(key);
@@ -86,7 +88,12 @@ export function Dashboard({
 
   return (
     <div className="dashboard-layout">
-      <Sidebar activeItem={activeItem} onNavigate={handleNavigate} />
+      <Sidebar
+        activeItem={activeItem}
+        onNavigate={handleNavigate}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+      />
 
       <div className="dashboard-main">
         <Navbar
