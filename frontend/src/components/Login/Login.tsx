@@ -63,6 +63,32 @@ export function Login({
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
+      //HEYME_INICIO//
+      //credenciales provisorias para acceso a dash
+      const adminEmail= 'admin@admin.com'
+      const adminPass= 'Admin987654'
+
+      if(email.trim() === adminEmail  && password === adminPass){
+        const mockResponse: LoginResponse={
+          access_token: '',
+          token_type: 'bearer',
+          user:{
+            id:1,
+            name:'Administrador',
+            email: adminEmail,
+            role: 1,
+          },
+      };
+        localStorage.setItem('authToken', mockResponse.access_token);
+        localStorage.setItem('userData', JSON.stringify(mockResponse.user));
+        
+        if(onLoginSuccess){
+          onLoginSuccess(mockResponse);
+        }
+        setIsLoading(false);
+        return;
+      }//HEYME_FIN//
+
       setIsLoading(true);
       setErrors({});
 

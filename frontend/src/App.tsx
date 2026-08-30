@@ -18,7 +18,11 @@ function App() {
         <Login
           onNavigateToForgotPassword={() => setCurrentView('forgot-password')}
           onNavigateToRegister={() => setCurrentView('register-user')}
-          onLoginSuccess={(data: any) => console.log('Logueado:', data)}
+          //Agrega Heyme para iniciar dash después del logueo//
+          onLoginSuccess={(data: any) => {console.log('Logueado:', data);
+            setCurrentView('dashboard-admin');
+          }}
+          
         />
       )}
 
@@ -40,12 +44,12 @@ function App() {
         />
       )}
       {/* 4. Dashboard Administrador */}
-{currentView === 'dashboard-admin' && (
-  <Dashboard
-    userName="Nombre Real"
-    userInitials="NR"
-    onLogout={() => setCurrentView('login')}
-  />
+      {currentView === 'dashboard-admin' && (
+      <Dashboard
+        userName="Nombre Real"
+        userInitials="NR"
+        onLogout={() => setCurrentView('login')}
+      />
 )}
     </main>
   );

@@ -40,6 +40,8 @@ Al ingresar se mostrará la pantalla de **Login**. Para acceder con permisos adm
 > ⚠️ **Nota:** Estas credenciales son de uso provisorio y exclusivo para el entorno de desarrollo y testing local.
 
 ---
+# En esta entrega todos los cambios de código y vistas en general se encuentran en la rama "dev" ya que aún no se encuentran en estado de pasar a la rama "main"
+
 # 🌾 Córdoba Vidriera Productiva — Digitalización y Gestión Integral
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
