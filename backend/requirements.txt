@@ -1,0 +1,7 @@
+fastapi==0.141.1
+uvicorn==0.52.4
+pydantic[email]==2.13.4
+python-dotenv==1.2.3
+oracledb==4.0.2
+bcrypt==5.0.0
+PyJWT==2.13.0
