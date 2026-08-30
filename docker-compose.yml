@@ -1,30 +1,48 @@
 version: '3.8'
 services:
   db:
-    image: mysql:8.0
+    image: gvenzl/oracle-free:23-slim
+    container_name: vidriera_oracle_db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: vidriera_db
+      ORACLE_PASSWORD: root
+      APP_USER: vidriera_user
+      APP_USER_PASSWORD: vidriera123
     ports:
-      - "3306:3306"
+      - "1521:1521"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - oracle_data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   backend:
     build: ./backend
+    container_name: vidriera_backend
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./backend:/app
+    environment:
+      - DB_HOST=db
+      - DB_USER=vidriera_user
+      - DB_PASSWORD=vidriera123
+      - DB_NAME=FREEPDB1
 
   frontend:
     build: ./frontend
+    container_name: vidriera_frontend
     ports:
       - "5173:5173"
     depends_on:
       - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
-  mysql_data:
+  oracle_data:

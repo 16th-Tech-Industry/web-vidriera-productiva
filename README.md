@@ -1,5 +1,6 @@
 ## 🚀 Guía de Ejecución Local y Acceso a la Plataforma
 
+
 ### 1. Clonar el repositorio y sincronizar la rama `dev`
 ```bash
 # 1. Clonar el proyecto
@@ -149,3 +150,18 @@ flowchart TD
     *   **🌿 lcanas-dev:** Fullstack Development y Documentación Técnica (OpenAPI).
     *   **🌿 guillermo_dev:** DevOps, Dockerización de Microservicios y Cloud Infrastructure.
     *   **🌿 heyme_dev:** Database Administration (DBA), Modelado Relacional y Oracle SQL.
+
+
+### 🐳 Ejecución con Docker + Oracle
+Requisito: Docker Desktop
+
+Levantar:
+docker compose up --build
+
+Accesos:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8000
+- Oracle DB: localhost:1521 (FREEPDB1 / vidriera_user / vidriera123)
+
+Detener:
+docker compose down
