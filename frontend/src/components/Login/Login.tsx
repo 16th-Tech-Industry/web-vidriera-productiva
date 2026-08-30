@@ -1,13 +1,31 @@
 import { useState, type FormEvent } from 'react';
-import logo from '../assets/ministerio+cba.svg';
-import './login.css';
+import logo from '../../assets/ministerio+cba.svg';
+import '../Login/login.css';
+
+interface UserData {
+  id?: number;
+  name?: string;
+  email?: string;
+  role?: number;
+}
+
+interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: UserData;
+}
 
 interface LoginProps {
   onNavigateToRegister?: () => void;
   onNavigateToForgotPassword?: () => void;
+  onLoginSuccess?: (userData: LoginResponse) => void;
 }
 
-export function Login({ onNavigateToRegister, onNavigateToForgotPassword }: LoginProps) {
+export function Login({ 
+  onNavigateToRegister, 
+  onNavigateToForgotPassword, 
+  onLoginSuccess 
+}: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
@@ -49,16 +67,48 @@ export function Login({ onNavigateToRegister, onNavigateToForgotPassword }: Logi
       setErrors({});
 
       try {
-        // SIMULACIÓN DE CONSULTA AL BACKEND
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const response = await fetch('http://localhost:8000/api/v1/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+          }),
+        });
 
-        if (password !== '12345678') {
-          setErrors({ general: 'El correo o la contraseña son incorrectos.' });
-        } else {
-          console.log('Inicio de sesión exitoso');
+        const data = await response.json();
+
+        if (!response.ok) {
+          let errorMsg = 'El correo o la contraseña son incorrectos.';
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errorMsg = data.detail.map((err: { msg: string }) => err.msg).join(', ');
+          }
+          
+          setErrors({ general: errorMsg });
+          return;
+        }
+
+        // Almacenar token o sesión si el backend lo devuelve
+        if (data.access_token) {
+          localStorage.setItem('authToken', data.access_token);
+        }
+        if (data.user) {
+          localStorage.setItem('userData', JSON.stringify(data.user));
+        }
+
+        console.log('Inicio de sesión exitoso:', data);
+
+        if (onLoginSuccess) {
+          onLoginSuccess(data);
         }
       } catch {
-        setErrors({ general: 'Error al conectar con el servidor.' });
+        setErrors({ 
+          general: 'No se pudo conectar con el servidor backend (verifique si FastAPI está corriendo en el puerto 8000).' 
+        });
       } finally {
         setIsLoading(false);
       }
@@ -89,14 +139,16 @@ export function Login({ onNavigateToRegister, onNavigateToForgotPassword }: Logi
             onBlur={() => handleBlur('email')}
             className={getInputClass('email', isEmailValid)}
             placeholder="ej. usuario@correo.com"
+            autoComplete="email"
           />
-          {touched.email && errors.email && <span className="error-message">{errors.email}</span>}
+          {touched.email && errors.email && (
+            <span className="error-message">{errors.email}</span>
+          )}
         </div>
 
         <div className="form-group">
           <div className="password-label-wrapper">
             <label htmlFor="password">Contraseña</label>
-            {/* Opción "¿Olvidaste tu contraseña?" junto a la etiqueta o debajo */}
             <button
               type="button"
               className="link-button forgot-password-link"
@@ -114,16 +166,18 @@ export function Login({ onNavigateToRegister, onNavigateToForgotPassword }: Logi
             onBlur={() => handleBlur('password')}
             className={getInputClass('password', isPasswordValid)}
             placeholder="••••••••"
+            autoComplete="current-password"
           />
-          {touched.password && errors.password && <span className="error-message">{errors.password}</span>}
+          {touched.password && errors.password && (
+            <span className="error-message">{errors.password}</span>
+          )}
         </div>
 
         <button type="submit" className="btn-submit" disabled={isLoading}>
-          {isLoading ? 'Cargando...' : 'Continuar'}
+          {isLoading ? 'Iniciando sesión...' : 'Continuar'}
         </button>
       </form>
 
-      {/* Opción para Registrarse */}
       <div className="register-footer">
         <span>¿No tienes una cuenta? </span>
         <button
