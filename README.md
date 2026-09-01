@@ -1,5 +1,5 @@
 ## 🚀 Guía de Ejecución Local y Acceso a la Plataforma
-### Cabe destacar, que esto es para poder levantar el Frontend.
+### Cabe destacar que esto es para poder levantar el Frontend.
 El backend necesita de otro comando, otras dependencias pero que no se va a poder ejecutar ya que se necesita el acceso a la base de datos hosteada.
 
 ### 1. Clonar el repositorio y sincronizar la rama `dev`
