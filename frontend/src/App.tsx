@@ -14,7 +14,7 @@ type AuthView = 'mapa' |'login' | 'register-user' | 'forgot-password' | 'dashboa
 function App() {
   // Si la ruta en el navegador es /login, arranca en login; si no, en mapa
   const [currentView, setCurrentView] = useState<AuthView>(() => {
-    return window.location.pathname === '/login' ? 'login' : 'mapa';
+    return window.location.pathname === '/register-user' ? 'register-user' : 'register-user';//HEYME MODIFICA 07/09
   });
   // Helper para cambiar de vista y actualizar la URL sin recargar
   const navegar = (vista: AuthView, url: string) => {

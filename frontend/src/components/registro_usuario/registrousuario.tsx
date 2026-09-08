@@ -78,8 +78,9 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
           },
           body: JSON.stringify({
             name: nombre.trim(),
-            apellido: apellido.trim(),
+            apellido: apellido.trim(), 
             email: email.trim(),
+            telefono:telefono.trim(),//agrega telefono para bd
             password: password,
           }),
         });
