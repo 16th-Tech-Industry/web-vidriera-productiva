@@ -18,12 +18,14 @@ interface LoginResponse {
 interface LoginProps {
   onNavigateToRegister?: () => void;
   onNavigateToForgotPassword?: () => void;
+  onNavigateToHome?: () => void;
   onLoginSuccess?: (userData: LoginResponse) => void;
 }
 
 export function Login({ 
   onNavigateToRegister, 
   onNavigateToForgotPassword, 
+  onNavigateToHome, 
   onLoginSuccess 
 }: LoginProps) {
   const [email, setEmail] = useState('');
@@ -204,15 +206,35 @@ export function Login({
         </button>
       </form>
 
-      <div className="register-footer">
-        <span>¿No tienes una cuenta? </span>
-        <button
-          type="button"
-          className="link-button register-link"
-          onClick={onNavigateToRegister}
-        >
-          Regístrate aquí
-        </button>
+      {/* Pie de página con registro y el enlace discreto para volver al inicio */}
+      <div className="register-footer" style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', marginTop: '1.5rem' }}>
+        <div>
+          <span>¿No tienes una cuenta? </span>
+          <button
+            type="button"
+            className="link-button register-link"
+            onClick={onNavigateToRegister}
+          >
+            Regístrate aquí
+          </button>
+        </div>
+
+        {onNavigateToHome && (
+          <button
+            type="button"
+            onClick={onNavigateToHome}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '0.85rem',
+              color: '#64748b',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            ← Volver a la página principal
+          </button>
+        )}
       </div>
     </div>
   );
