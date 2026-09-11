@@ -1,0 +1,15 @@
+.custom-button{
+  width: 100%;
+  max-width: 180px;
+  margin: 18px auto;
+  padding: 12px;
+  background-color: #003e73;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
