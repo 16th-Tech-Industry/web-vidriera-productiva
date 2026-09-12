@@ -8,7 +8,7 @@ import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
 import { CarruselNovedades } from './components/noticias/noticias';
 
-// Importación de las nuevas vistas de usuario
+// Importación de las vistas de usuario
 import EmpresaView from './components/dash_usuario/EmpresaView';
 import ProductosView from './components/dash_usuario/ProductosView';
 
@@ -25,7 +25,7 @@ function App() {
   const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos'>('empresa');
   
   // Estado para guardar el nombre del usuario logueado
-  const [nombreUsuario, setNombreUsuario] = useState('');
+  const [nombreUsuario, setNombreUsuario] = useState('Usuario');
 
   // Helper para cambiar de vista y actualizar la URL sin recargar
   const navegar = (vista: AuthView, url: string) => {
@@ -129,18 +129,21 @@ function App() {
           onLoginSuccess={(data: any) => {
             console.log('--- DATOS QUE DEVUELVE EL LOGIN ---', data);
 
-            // Extraemos el nombre del objeto o, si no viene, lo sacamos del correo (ej: fran@... -> Fran)
-            const email = data?.user?.email || '';
-            let nombre = data?.user?.name;
+            // Extraemos el email y el nombre de manera flexible
+            const email = data?.user?.email || data?.email || '';
+            let nombre = data?.user?.name || data?.nombre;
 
-            if (!nombre && email) {
+            // Si es la cuenta de prueba de Don Campo o cualquier otra, adaptamos el saludo
+            if (email === 'doncampo@gmail.com') {
+              nombre = 'Franco'; 
+            } else if (!nombre && email) {
               const partesEmail = email.split('@')[0];
               nombre = partesEmail.charAt(0).toUpperCase() + partesEmail.slice(1);
             }
 
             setNombreUsuario(nombre || 'Usuario');
 
-            const rolUsuario = data?.user?.role;
+            const rolUsuario = data?.user?.role ?? data?.role;
             const emailUsuario = email;
 
             if (rolUsuario === 1 || emailUsuario === 'admin@admin.com') {
@@ -179,7 +182,7 @@ function App() {
         />
       )}
 
-      {/* 6. Dashboard Usuario / PyME */}
+      {/* 6. Dashboard Usuario / PyME (Formato original exacto) */}
       {currentView === 'dashboard-usuario' && (
         <div className="dashboard-layout">
           

@@ -1,5 +1,5 @@
 import { useState, useEffect, type JSX } from "react";
-import "./sidebar.css";
+import "../dashboard_admin/sidebar.css";
 import logo from "../../assets/logo_cba_vp.png";
 
 export type SidebarUsuarioItemKey = "mi-empresa" | "productos";
