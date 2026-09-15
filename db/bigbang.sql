@@ -67,9 +67,14 @@ CREATE TABLE localidades(
 
 
 
-/* Formas de filtrado 
+/* Formas de filtrado
  * SELECT nombre_departamento WHERE id_zona = 1 ORDER BY nombre_departamento;
- * 
- * 
- * 
+ *
+ *
+ *
  */
+
+-- Después de correr este script, correr también db/indices_empresas.sql:
+-- agrega los índices que necesita el filtrado público de `empresas`
+-- (rubro, zona, departamento) para que el mapa/dashboard respondan rápido.
+-- Justificación completa en db/README.md.

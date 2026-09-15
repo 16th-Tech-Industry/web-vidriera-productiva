@@ -1,6 +1,10 @@
 DB_USER=
 DB_CONNECTION=
 PASSWORD=
+# Pool de conexiones Oracle (opcionales, tienen default en db_connector.py)
+DB_POOL_MIN=2
+DB_POOL_MAX=10
+DB_POOL_INCREMENT=1
 JWT_SECRET_KEY=
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=60
