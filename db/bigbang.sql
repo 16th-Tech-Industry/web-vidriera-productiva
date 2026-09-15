@@ -74,7 +74,8 @@ CREATE TABLE localidades(
  *
  */
 
--- Después de correr este script, correr también db/indices_empresas.sql:
--- agrega los índices que necesita el filtrado público de `empresas`
--- (rubro, zona, departamento) para que el mapa/dashboard respondan rápido.
--- Justificación completa en db/README.md.
+-- Después de correr este script, correr también:
+--   db/indices_empresas.sql -> índices para el filtrado público de
+--     `empresas` (rubro, zona, departamento). Justificación en db/README.md.
+--   db/noticias.sql -> tabla `noticias` para el módulo de Gestión de
+--     Noticias del dashboard admin y la sección pública de Novedades.
