@@ -2,6 +2,9 @@
 
 recursos/
 
+# archivos locales para análisis (no versionar)
+facu/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
