@@ -38,6 +38,11 @@ Al ingresar se mostrará la pantalla de **Login**. Para acceder con permisos adm
 * **Email:** `admin@admin.com`
 * **Password:** `Admin987654`
 
+usuario:
+* **Email:** `francoavila9356@gmail.com`
+* **Password:** `Francolat22`
+
+
 > ⚠️ **Nota:** Estas credenciales son de uso provisorio y exclusivo para el entorno de desarrollo y testing local.
 
 ---
