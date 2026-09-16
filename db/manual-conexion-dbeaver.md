@@ -1,3 +1,5 @@
+https://datosestadistica.cba.gov.ar/dataset/conoce-cordoba
+
 # Manual de conexión a Oracle con DBeaver
 
 Guía para conectarse a la instancia Oracle Database Free 23ai del proyecto y volver a correr `bigbang.sql` desde cero si hace falta.
