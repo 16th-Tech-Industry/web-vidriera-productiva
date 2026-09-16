@@ -6,6 +6,7 @@ import { Registro } from './components/registro_usuario/registrousuario';
 import { Dashboard } from './components/dashboard_admin/Dashboard';
 import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
+import {Nav, Footer } from './components';
 import { CarruselNovedades } from './components/noticias/noticias';
 
 // Definimos las vistas disponibles
@@ -39,26 +40,10 @@ function App() {
             boxSizing: 'border-box',
           }}
         >
-          {/* Botón de Acceso Institucional / Login */}
-          <button
-            onClick={() => setCurrentView('login')}
-            style={{
-              alignSelf: 'flex-end',
-              padding: '10px 20px',
-              backgroundColor: '#00457F',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '14px',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(0, 69, 127, 0.3)',
-              transition: 'background-color 0.2s ease',
-            }}
-          >
-            🔒 Iniciar Sesión
-          </button>
-
+          {/* Navbar / Botón de Acceso Institucional / Login */}
+          <nav>
+            <Nav label="🔒 Iniciar Sesión" onLoginClick={() => setCurrentView('login')} />
+          </nav>
           {/* Sección Mapa */}
           <div style={{ width: '100%' }}>
             <Mapa />
@@ -106,8 +91,11 @@ function App() {
             </div>
             <CarruselNovedades />
           </div>
+          <footer><Footer /></footer>
         </div>
+      
       )}
+      
       
       {/* 1. Iniciar Sesión */}
       {currentView === 'login' && (
