@@ -1,6 +1,11 @@
-from fastapi import APIRouter
+import json
+from typing import List, Optional
 
+from fastapi import APIRouter, Query
+
+from api.v1.schemas.empresas import ESTADO_APROBADA, EmpresaPublicaResponse
 from api.v1.schemas.landing import EventoResponse, LandingResponse, ProductorResponse
+from db_connector import execute_query
 
 router = APIRouter(prefix="/landing", tags=["Landing"])
 
@@ -90,3 +95,46 @@ def listar_productores():
 @router.get("/eventos", response_model=list[EventoResponse])
 def listar_eventos():
     return _EVENTOS
+
+
+# --- Empresas reales (tabla `empresas`), a diferencia de _PRODUCTORES/_EVENTOS
+# que siguen siendo mock. Solo se muestran las aprobadas por un admin (ver
+# dashboard/empresas_revision.py); filtrables por rubro/categoría para el
+# mapa/listado público. El filtro usa la columna virtual `rubro_vc` (ver
+# db/indices_empresas.sql) en vez de repetir la expresión JSON_VALUE: así el
+# índice se usa siempre, sin depender de que el WHERE matchee la expresión
+# tal cual quedó definida (incluyendo el RETURNING) del lado de la columna.
+
+
+def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
+    id_empresa, razon_social, datos_publico = fila
+    datos = datos_publico if isinstance(datos_publico, dict) else json.loads(datos_publico)
+    return EmpresaPublicaResponse(
+        id_empresa=id_empresa,
+        razon_social=razon_social,
+        nombre_empresa=datos["nombre_empresa"],
+        rubro=datos["rubro"],
+        ubicacion=datos["ubicacion"],
+        descripcion=datos["descripcion"],
+        correo_empresa=datos["correo_empresa"],
+        redes=datos.get("redes", {}),
+    )
+
+
+@router.get("/empresas", response_model=List[EmpresaPublicaResponse])
+def listar_empresas_publicas(
+    rubro: Optional[str] = Query(None, description="Filtra por categoría/rubro de la empresa (ej: AGROALIMENTO)"),
+):
+    """Empresas aprobadas para la vidriera pública (mapa de la landing), opcionalmente
+    filtradas por categoría/rubro."""
+    query = (
+        "SELECT id_empresa, razon_social, datos_publico FROM empresas WHERE estado = :estado"
+    )
+    params = {"estado": ESTADO_APROBADA}
+    if rubro:
+        query += " AND rubro_vc = :rubro"
+        params["rubro"] = rubro
+    query += " ORDER BY id_empresa"
+
+    filas = execute_query(query, params, fetch=True)
+    return [_fila_a_empresa_publica(fila) for fila in filas]

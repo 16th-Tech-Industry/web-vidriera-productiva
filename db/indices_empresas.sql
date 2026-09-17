@@ -18,13 +18,17 @@
 -- Correr esto una sola vez, después de bigbang.sql, contra el
 -- esquema cba_vidriera.
 
+-- RETURNING VARCHAR2(150) es necesario: sin él, JSON_VALUE devuelve por
+-- default VARCHAR2(4000) para validar el tamaño de la columna virtual, y
+-- Oracle rechaza declararla como VARCHAR2(150) con ORA-12899 (aunque el
+-- dato real siempre sea corto).
 ALTER TABLE empresas ADD (
     rubro_vc         VARCHAR2(150)
-        GENERATED ALWAYS AS (JSON_VALUE(datos_publico, '$.rubro')) VIRTUAL,
+        GENERATED ALWAYS AS (JSON_VALUE(datos_publico, '$.rubro' RETURNING VARCHAR2(150))) VIRTUAL,
     zona_vc          VARCHAR2(150)
-        GENERATED ALWAYS AS (JSON_VALUE(datos_publico, '$.ubicacion.zona')) VIRTUAL,
+        GENERATED ALWAYS AS (JSON_VALUE(datos_publico, '$.ubicacion.zona' RETURNING VARCHAR2(150))) VIRTUAL,
     departamento_vc  VARCHAR2(150)
-        GENERATED ALWAYS AS (JSON_VALUE(datos_publico, '$.ubicacion.departamento')) VIRTUAL
+        GENERATED ALWAYS AS (JSON_VALUE(datos_publico, '$.ubicacion.departamento' RETURNING VARCHAR2(150))) VIRTUAL
 );
 
 CREATE INDEX idx_empresas_rubro         ON empresas (rubro_vc);
