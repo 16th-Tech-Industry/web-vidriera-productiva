@@ -8,19 +8,30 @@ import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
 import { CarruselNovedades } from './components/noticias/noticias';
 
-// Definimos las vistas disponibles
-type AuthView = 'mapa' |'login' | 'register-user' | 'forgot-password' | 'dashboard-admin';
+// Importación de las vistas de usuario
+import EmpresaView from './components/dash_usuario/EmpresaView';
+import ProductosView from './components/dash_usuario/ProductosView';
+
+// Definimos las vistas disponibles agregando 'dashboard-usuario'
+type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
 
 function App() {
   // Si la ruta en el navegador es /login, arranca en login; si no, en mapa
   const [currentView, setCurrentView] = useState<AuthView>(() => {
     return window.location.pathname === '/register-user' ? 'register-user' : 'register-user';//HEYME MODIFICA 07/09
   });
+
+  // Estado interno para saber qué pestaña está activa dentro del Dashboard de Usuario
+  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos'>('empresa');
+  
+  // Estado para guardar el nombre del usuario logueado
+  const [nombreUsuario, setNombreUsuario] = useState('Usuario');
+
   // Helper para cambiar de vista y actualizar la URL sin recargar
   const navegar = (vista: AuthView, url: string) => {
     setCurrentView(vista);
     window.history.pushState({}, '', url);
-  }
+  };
 
   return (
     <main className="app-container">
@@ -41,7 +52,7 @@ function App() {
         >
           {/* Botón de Acceso Institucional / Login */}
           <button
-            onClick={() => setCurrentView('login')}
+            onClick={() => navegar('login', '/login')}
             style={{
               alignSelf: 'flex-end',
               padding: '10px 20px',
@@ -109,20 +120,42 @@ function App() {
         </div>
       )}
       
-      {/* 1. Iniciar Sesión */}
+      {/* 2. Iniciar Sesión */}
       {currentView === 'login' && (
         <Login
           onNavigateToForgotPassword={() => setCurrentView('forgot-password')}
           onNavigateToRegister={() => setCurrentView('register-user')}
-          //Agrega Heyme para iniciar dash después del logueo//
-          onLoginSuccess={(data: any) => {console.log('Logueado:', data);
-            setCurrentView('dashboard-admin');
+          onNavigateToHome={() => navegar('mapa', '/')}
+          onLoginSuccess={(data: any) => {
+            console.log('--- DATOS QUE DEVUELVE EL LOGIN ---', data);
+
+            // Extraemos el email y el nombre de manera flexible
+            const email = data?.user?.email || data?.email || '';
+            let nombre = data?.user?.name || data?.nombre;
+
+            // Si es la cuenta de prueba de Don Campo o cualquier otra, adaptamos el saludo
+            if (email === 'doncampo@gmail.com') {
+              nombre = 'Franco'; 
+            } else if (!nombre && email) {
+              const partesEmail = email.split('@')[0];
+              nombre = partesEmail.charAt(0).toUpperCase() + partesEmail.slice(1);
+            }
+
+            setNombreUsuario(nombre || 'Usuario');
+
+            const rolUsuario = data?.user?.role ?? data?.role;
+            const emailUsuario = email;
+
+            if (rolUsuario === 1 || emailUsuario === 'admin@admin.com') {
+              setCurrentView('dashboard-admin');
+            } else {
+              setCurrentView('dashboard-usuario');
+            }
           }}
-          
         />
       )}
 
-      {/* 2. Formulario de Registro */}
+      {/* 3. Formulario de Registro */}
       {currentView === 'register-user' && (
         <Registro
           onNavigateToLogin={() => setCurrentView('login')}
@@ -133,20 +166,91 @@ function App() {
         />
       )}
 
-      {/* 3. Recuperación de Contraseña */}
+      {/* 4. Recuperación de Contraseña */}
       {currentView === 'forgot-password' && (
         <ForgotPassword
           onNavigateToLogin={() => setCurrentView('login')}
         />
       )}
-      {/* 4. Dashboard Administrador */}
+
+      {/* 5. Dashboard Administrador */}
       {currentView === 'dashboard-admin' && (
-      <Dashboard
-        userName="Nombre Real"
-        userInitials="NR"
-        onLogout={() => setCurrentView('login')}
-      />
-)}
+        <Dashboard
+          userName="Nombre Real"
+          userInitials="NR"
+          onLogout={() => setCurrentView('login')}
+        />
+      )}
+
+      {/* 6. Dashboard Usuario / PyME (Formato original exacto) */}
+      {currentView === 'dashboard-usuario' && (
+        <div className="dashboard-layout">
+          
+          {/* Sidebar lateral del Usuario con el saludo personalizado */}
+          <aside style={{ width: '260px', backgroundColor: 'var(--sidebar-bg)', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '24px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ background: '#fff', color: 'var(--text-dark)', fontWeight: '900', padding: '8px 10px', borderRadius: '8px', fontSize: '1.1rem' }}>CBA</div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '0.9rem', letterSpacing: '0.5px' }}>VIDRIERA PRODUCTIVA</h3>
+              </div>
+            </div>
+
+            {/* Saludo personalizado */}
+            <div style={{ padding: '15px 20px 0 20px' }}>
+              <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>Hola,</p>
+              <p style={{ fontSize: '1rem', fontWeight: 'bold', color: '#fff', margin: '2px 0 0 0' }}>{nombreUsuario}</p>
+            </div>
+
+            <nav style={{ padding: '15px 15px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+              <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', paddingLeft: '10px', marginBottom: '5px' }}>Menú PyME</p>
+              
+              <button 
+                onClick={() => setVistaUsuario('empresa')}
+                style={{ 
+                  background: vistaUsuario === 'empresa' ? '#1E3A8A' : 'transparent', 
+                  color: '#fff', border: 'none', padding: '12px 15px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', 
+                  fontWeight: vistaUsuario === 'empresa' ? '600' : '400', display: 'flex', alignItems: 'center', gap: '10px', width: '100%'
+                }}
+              >
+                🏢 Mi Empresa
+              </button>
+
+              <button 
+                onClick={() => setVistaUsuario('productos')}
+                style={{ 
+                  background: vistaUsuario === 'productos' ? '#1E3A8A' : 'transparent', 
+                  color: '#fff', border: 'none', padding: '12px 15px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', 
+                  fontWeight: vistaUsuario === 'productos' ? '600' : '400', display: 'flex', alignItems: 'center', gap: '10px', width: '100%'
+                }}
+              >
+                🍯 Productos
+              </button>
+            </nav>
+
+            <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <button 
+                onClick={() => setCurrentView('login')}
+                style={{ width: '100%', background: 'var(--accent-red)', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </aside>
+
+          {/* Contenido Principal */}
+          <div className="dashboard-main">
+            <header style={{ background: 'var(--topbar-bg)', padding: '15px 32px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, fontSize: '14px' }}>
+              <span>MINISTERIO DE BIOAGROINDUSTRIA — <strong>PANEL DE GESTIÓN PYME</strong></span>
+            </header>
+
+            <div className="dashboard-content">
+              {vistaUsuario === 'empresa' && <EmpresaView />}
+              {vistaUsuario === 'productos' && <ProductosView />}
+            </div>
+          </div>
+
+        </div>
+      )}
     </main>
   );
 }
