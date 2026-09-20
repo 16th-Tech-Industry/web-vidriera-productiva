@@ -17,9 +17,7 @@ type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashbo
 
 function App() {
   // Si la ruta en el navegador es /login, arranca en login; si no, en mapa
-  const [currentView, setCurrentView] = useState<AuthView>(() => {
-    return window.location.pathname === '/register-user' ? 'register-user' : 'register-user';//HEYME MODIFICA 07/09
-  });
+  const [currentView, setCurrentView] = useState<AuthView>(('login'));
 
   // Estado interno para saber qué pestaña está activa dentro del Dashboard de Usuario
   const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos'>('empresa');
@@ -31,6 +29,21 @@ function App() {
   const navegar = (vista: AuthView, url: string) => {
     setCurrentView(vista);
     window.history.pushState({}, '', url);
+  };
+
+  //cierre de sesión y limpieza de local storage
+  const handleLogout= () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    setCurrentView('login');
+  };
+
+  const ObtenerDatosIniciales= (nombre:string) => {
+    const partes= nombre.trim().split(' ');
+    if(partes.length >=2 ) {
+      return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
+    } 
+    return (nombre[0] || 'U').toUpperCase();
   };
 
   return (
@@ -146,7 +159,7 @@ function App() {
             const rolUsuario = data?.user?.role ?? data?.role;
             const emailUsuario = email;
 
-            if (rolUsuario === 1 || emailUsuario === 'admin@admin.com') {
+            if (Number(rolUsuario) === 1 || emailUsuario === 'admin@admin.com') {
               setCurrentView('dashboard-admin');
             } else {
               setCurrentView('dashboard-usuario');
@@ -176,9 +189,9 @@ function App() {
       {/* 5. Dashboard Administrador */}
       {currentView === 'dashboard-admin' && (
         <Dashboard
-          userName="Nombre Real"
-          userInitials="NR"
-          onLogout={() => setCurrentView('login')}
+          userName={nombreUsuario}
+          userInitials={ ObtenerDatosIniciales(nombreUsuario)}
+          onLogout={handleLogout}
         />
       )}
 
