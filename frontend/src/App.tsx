@@ -179,6 +179,7 @@ function App() {
           userName="Nombre Real"
           userInitials="NR"
           onLogout={() => setCurrentView('login')}
+          onGoToLanding={() => navegar('mapa', '/')}
         />
       )}
 
