@@ -11,3 +11,9 @@ JWT_EXPIRE_MINUTES=60
 # URL pública del backend, para armar la URL de las imágenes servidas
 # desde /uploads (ver api/v1/endpoints/noticias.py)
 PUBLIC_BASE_URL=http://localhost:8000
+DB_USER='cba_vidriera'
+DB_CONNECTION='esclavitosis/freepdb1'
+PASSWORD='M1nisterio2026$'
+JWT_SECRET_KEY='57af69b091b60bb557d8fce20f3c79b1bf36dac474e16d08d64f33f1bde51ffd'
+JWT_ALGORITHM='HS256'
+JWT_EXPIRE_MINUTES=60

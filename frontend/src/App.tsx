@@ -6,14 +6,16 @@ import { Registro } from './components/registro_usuario/registrousuario';
 import { Dashboard } from './components/dashboard_admin/Dashboard';
 import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
+import {Nav, Footer } from './components';
 import { CarruselNovedades } from './components/noticias/noticias';
+import {EventosView} from './components/dash_usuario/EventosView'; 
 
 // Importación de las vistas de usuario
 import EmpresaView from './components/dash_usuario/EmpresaView';
 import ProductosView from './components/dash_usuario/ProductosView';
 
 // Definimos las vistas disponibles agregando 'dashboard-usuario'
-type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
+type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario' | 'eventos'; 
 
 function App() {
   // Si la ruta en el navegador es /login, arranca en login; si no, en mapa
@@ -63,26 +65,10 @@ function App() {
             boxSizing: 'border-box',
           }}
         >
-          {/* Botón de Acceso Institucional / Login */}
-          <button
-            onClick={() => navegar('login', '/login')}
-            style={{
-              alignSelf: 'flex-end',
-              padding: '10px 20px',
-              backgroundColor: '#00457F',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '14px',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(0, 69, 127, 0.3)',
-              transition: 'background-color 0.2s ease',
-            }}
-          >
-            🔒 Iniciar Sesión
-          </button>
-
+          {/* Navbar / Botón de Acceso Institucional / Login */}
+          <nav>
+            <Nav label="🔒 Iniciar Sesión" onLoginClick={() => setCurrentView('login')} />
+          </nav>
           {/* Sección Mapa */}
           <div style={{ width: '100%' }}>
             <Mapa />
@@ -130,10 +116,13 @@ function App() {
             </div>
             <CarruselNovedades />
           </div>
+          <footer><Footer /></footer>
         </div>
+      
       )}
       
-      {/* 2. Iniciar Sesión */}
+      
+      {/* 1. Iniciar Sesión */}
       {currentView === 'login' && (
         <Login
           onNavigateToForgotPassword={() => setCurrentView('forgot-password')}
