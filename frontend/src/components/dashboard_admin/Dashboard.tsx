@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import Sidebar, { type SidebarItemKey } from "./Sidebar";
 import { InicioView } from "./Inicio/InicioView";
 import { EmpresasView } from "./Empresas/EmpresasView";
+import { MapaAdminView } from "./Mapa/MapaAdminView";
 import "./dashboard.css";
 
 export interface DashboardProps {
@@ -62,9 +63,7 @@ export function Dashboard({
         <div className="dashboard-content">
           {activeItem === "inicio" && <InicioView />}
           {activeItem === "empresas" && <EmpresasView />}
-          {activeItem === "mapa" && (
-            <p className="dashboard-proximamente">Vista de Mapa: próximamente.</p>
-          )}
+          {activeItem === "mapa" && <MapaAdminView />}
           {activeItem === "noticias" && (
             <p className="dashboard-proximamente">Vista de Noticias: próximamente.</p>
           )}
