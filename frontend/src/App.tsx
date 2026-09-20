@@ -179,8 +179,9 @@ function App() {
       {currentView === 'dashboard-admin' && (
         <Dashboard
           userName={nombreUsuario}
-          userInitials={ ObtenerDatosIniciales(nombreUsuario)}
+          userInitials={ObtenerDatosIniciales(nombreUsuario)}
           onLogout={handleLogout}
+          onGoToLanding={() => navegar('mapa', '/')}
         />
       )}
 
