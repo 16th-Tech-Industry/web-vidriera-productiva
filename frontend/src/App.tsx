@@ -8,13 +8,14 @@ import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
 import {Nav, Footer } from './components';
 import { CarruselNovedades } from './components/noticias/noticias';
+import {EventosView} from './components/dash_usuario/EventosView'; 
 
 // Importación de las vistas de usuario
 import EmpresaView from './components/dash_usuario/EmpresaView';
 import ProductosView from './components/dash_usuario/ProductosView';
 
 // Definimos las vistas disponibles agregando 'dashboard-usuario'
-type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
+type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario' | 'eventos'; 
 
 function App() {
   // Si la ruta en el navegador es /login, arranca en login; si no, en mapa

@@ -2,7 +2,7 @@ import { useState, useEffect, type JSX } from "react";
 import "../dashboard_admin/sidebar.css";
 import logo from "../../assets/logo_cba_vp.png";
 
-export type SidebarUsuarioItemKey = "mi-empresa" | "productos";
+export type SidebarUsuarioItemKey = "mi-empresa" | "productos" | "eventos";
 
 export interface SidebarUsuarioProps {
   activeItem?: SidebarUsuarioItemKey;
@@ -20,6 +20,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { key: "mi-empresa", label: "Mi Empresa", icon: BuildingIcon },
   { key: "productos", label: "Productos", icon: ProductIcon },
+  { key: "eventos", label: "Eventos", icon: ProductIcon },
 ];
 
 export default function SidebarUsuario({
