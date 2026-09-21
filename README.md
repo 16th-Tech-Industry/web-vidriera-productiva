@@ -39,7 +39,7 @@ Al ingresar se mostrará la pantalla de **Login**. Para acceder con permisos adm
 * **Password:** `Admin987654`
 
 usuario:
-* **Email:** `francoavila9356@gmail.com`
+* **Email:** `francoavila935@gmail.com`
 * **Password:** `Francolat22`
 
 

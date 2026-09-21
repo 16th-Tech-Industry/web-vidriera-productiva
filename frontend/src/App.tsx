@@ -8,7 +8,7 @@ import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
 import {Nav, Footer } from './components';
 import { CarruselNovedades } from './components/noticias/noticias';
-import {EventosView} from './components/dash_usuario/EventosView'; 
+import EventosView from './components/dash_usuario/EventosView';
 
 // Importación de las vistas de usuario
 import EmpresaView from './components/dash_usuario/EmpresaView';
@@ -18,11 +18,11 @@ import ProductosView from './components/dash_usuario/ProductosView';
 type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario' | 'eventos'; 
 
 function App() {
-  // Si la ruta en el navegador es /login, arranca en login; si no, en mapa
-  const [currentView, setCurrentView] = useState<AuthView>(('login'));
+  // Arranca por defecto en 'mapa' (landing page)
+  const [currentView, setCurrentView] = useState<AuthView>('mapa');
 
-  // Estado interno para saber qué pestaña está activa dentro del Dashboard de Usuario
-  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos'>('empresa');
+  // Estado interno para saber qué pestaña está activa dentro del Dashboard de Usuario (incluyendo 'eventos')
+  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos'>('empresa');
   
   // Estado para guardar el nombre del usuario logueado
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
@@ -33,16 +33,16 @@ function App() {
     window.history.pushState({}, '', url);
   };
 
-  //cierre de sesión y limpieza de local storage
-  const handleLogout= () => {
+  // Cierre de sesión y limpieza de local storage
+  const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
     setCurrentView('login');
   };
 
-  const ObtenerDatosIniciales= (nombre:string) => {
-    const partes= nombre.trim().split(' ');
-    if(partes.length >=2 ) {
+  const ObtenerDatosIniciales = (nombre: string) => {
+    const partes = nombre.trim().split(' ');
+    if (partes.length >= 2) {
       return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
     } 
     return (nombre[0] || 'U').toUpperCase();
@@ -118,11 +118,9 @@ function App() {
           </div>
           <footer><Footer /></footer>
         </div>
-      
       )}
       
-      
-      {/* 1. Iniciar Sesión */}
+      {/* 2. Iniciar Sesión */}
       {currentView === 'login' && (
         <Login
           onNavigateToForgotPassword={() => setCurrentView('forgot-password')}
@@ -131,11 +129,9 @@ function App() {
           onLoginSuccess={(data: any) => {
             console.log('--- DATOS QUE DEVUELVE EL LOGIN ---', data);
 
-            // Extraemos el email y el nombre de manera flexible
             const email = data?.user?.email || data?.email || '';
             let nombre = data?.user?.name || data?.nombre;
 
-            // Si es la cuenta de prueba de Don Campo o cualquier otra, adaptamos el saludo
             if (email === 'doncampo@gmail.com') {
               nombre = 'Franco'; 
             } else if (!nombre && email) {
@@ -185,7 +181,7 @@ function App() {
         />
       )}
 
-      {/* 6. Dashboard Usuario / PyME (Formato original exacto) */}
+      {/* 6. Dashboard Usuario / PyME */}
       {currentView === 'dashboard-usuario' && (
         <div className="dashboard-layout">
           
@@ -228,6 +224,17 @@ function App() {
               >
                 🍯 Productos
               </button>
+
+              <button 
+                onClick={() => setVistaUsuario('eventos')}
+                style={{ 
+                  background: vistaUsuario === 'eventos' ? '#1E3A8A' : 'transparent', 
+                  color: '#fff', border: 'none', padding: '12px 15px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', 
+                  fontWeight: vistaUsuario === 'eventos' ? '600' : '400', display: 'flex', alignItems: 'center', gap: '10px', width: '100%'
+                }}
+              >
+                📅 Eventos
+              </button>
             </nav>
 
             <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
@@ -249,6 +256,7 @@ function App() {
             <div className="dashboard-content">
               {vistaUsuario === 'empresa' && <EmpresaView />}
               {vistaUsuario === 'productos' && <ProductosView />}
+              {vistaUsuario === 'eventos' && <EventosView />}
             </div>
           </div>
 
