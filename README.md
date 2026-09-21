@@ -1,3 +1,51 @@
+## 🚀 Guía de Ejecución Local y Acceso a la Plataforma
+### Cabe destacar que esto es para poder levantar el Frontend.
+El backend necesita de otro comando, otras dependencias pero que no se va a poder ejecutar ya que se necesita el acceso a la base de datos hosteada.
+
+### 1. Clonar el repositorio y sincronizar la rama `dev`
+```bash
+# 1. Clonar el proyecto
+git clone [https://github.com/16th-Tech-Industry/web-vidriera-productiva.git](https://github.com/16th-Tech-Industry/web-vidriera-productiva.git)
+
+# 2. Entrar al directorio
+cd web-vidriera-productiva
+
+# 3. Posicionarse en la rama de desarrollo
+git checkout dev
+
+# 4. Traer las últimas actualizaciones
+git pull origin dev
+```
+
+### 2. Instalar dependencias y levantar el servidor local
+```bash
+# Instalar los paquetes necesarios
+npm install
+
+# Iniciar el servidor de desarrollo
+npm run dev
+```
+
+Una vez iniciado el servicio, abre tu navegador web e ingresa a:  
+👉 `http://localhost:5173` *(o la URL local que indique la consola)*.
+
+---
+
+### 🔑 Acceso al Dashboard de Administración
+
+Al ingresar se mostrará la pantalla de **Login**. Para acceder con permisos administrativos al panel de gestión, utiliza las siguientes credenciales de prueba:
+
+* **Email:** `admin@admin.com`
+* **Password:** `Admin987654`
+
+usuario:
+* **Email:** `francoavila935@gmail.com`
+* **Password:** `Francolat22`
+
+
+> ⚠️ **Nota:** Estas credenciales son de uso provisorio y exclusivo para el entorno de desarrollo y testing local.
+
+---
 # En esta entrega todos los cambios de código y vistas en general se encuentran en la rama "dev" ya que aún no se encuentran en estado de pasar a la rama "main"
 
 # 🌾 Córdoba Vidriera Productiva — Digitalización y Gestión Integral
@@ -110,3 +158,18 @@ flowchart TD
     *   **🌿 lcanas-dev:** Fullstack Development y Documentación Técnica (OpenAPI).
     *   **🌿 guillermo_dev:** DevOps, Dockerización de Microservicios y Cloud Infrastructure.
     *   **🌿 heyme_dev:** Database Administration (DBA), Modelado Relacional y Oracle SQL.
+
+
+### 🐳 Ejecución con Docker + Oracle
+Requisito: Docker Desktop
+
+Levantar:
+docker compose up --build
+
+Accesos:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8000
+- Oracle DB: localhost:1521 (FREEPDB1 / vidriera_user / vidriera123)
+
+Detener:
+docker compose down

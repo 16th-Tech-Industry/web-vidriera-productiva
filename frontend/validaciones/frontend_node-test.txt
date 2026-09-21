@@ -1,0 +1,143 @@
+# Evidencia — Pruebas automatizadas FRONTEND
+# Comando: node --test   (ejecutado desde la carpeta frontend/)
+# Carpeta de los tests: frontend/validaciones
+# Fecha: 2026-09-10
+# Node: v22.18.0
+
+TAP version 13
+# Subtest: TC-L-01 login admin con credenciales validas es aceptado
+ok 1 - TC-L-01 login admin con credenciales validas es aceptado
+  ---
+  duration_ms: 1.275073
+  type: 'test'
+  ...
+# Subtest: TC-L-02 login admin con password incorrecta es rechazado
+ok 2 - TC-L-02 login admin con password incorrecta es rechazado
+  ---
+  duration_ms: 0.138792
+  type: 'test'
+  ...
+# Subtest: TC-L-03 email con formato invalido es rechazado
+ok 3 - TC-L-03 email con formato invalido es rechazado
+  ---
+  duration_ms: 0.142702
+  type: 'test'
+  ...
+# Subtest: TC-L-04 email con formato valido es aceptado
+ok 4 - TC-L-04 email con formato valido es aceptado
+  ---
+  duration_ms: 0.086424
+  type: 'test'
+  ...
+# Subtest: TC-L-05 password de menos de 8 caracteres es rechazada
+ok 5 - TC-L-05 password de menos de 8 caracteres es rechazada
+  ---
+  duration_ms: 0.084239
+  type: 'test'
+  ...
+# Subtest: TC-L-06 password de 8 o mas caracteres es aceptada
+ok 6 - TC-L-06 password de 8 o mas caracteres es aceptada
+  ---
+  duration_ms: 0.061821
+  type: 'test'
+  ...
+# Subtest: TC-L-07 email con espacios adelante/atras se normaliza (trim) y se acepta
+ok 7 - TC-L-07 email con espacios adelante/atras se normaliza (trim) y se acepta
+  ---
+  duration_ms: 0.054985
+  type: 'test'
+  ...
+# Subtest: TC-R-01 registro con todos los datos validos no genera errores
+ok 8 - TC-R-01 registro con todos los datos validos no genera errores
+  ---
+  duration_ms: 0.768517
+  type: 'test'
+  ...
+# Subtest: TC-R-02 registro con campos obligatorios vacios genera un error por campo
+ok 9 - TC-R-02 registro con campos obligatorios vacios genera un error por campo
+  ---
+  duration_ms: 0.330144
+  type: 'test'
+  ...
+# Subtest: TC-R-03 registro con email invalido informa el error de email
+ok 10 - TC-R-03 registro con email invalido informa el error de email
+  ---
+  duration_ms: 0.285752
+  type: 'test'
+  ...
+# Subtest: TC-R-04 registro con password de menos de 8 caracteres informa el error
+ok 11 - TC-R-04 registro con password de menos de 8 caracteres informa el error
+  ---
+  duration_ms: 0.123415
+  type: 'test'
+  ...
+# Subtest: TC-R-05 registro con contrasenias que no coinciden informa el error
+ok 12 - TC-R-05 registro con contrasenias que no coinciden informa el error
+  ---
+  duration_ms: 0.10927
+  type: 'test'
+  ...
+# Subtest: TC-R-06 el telefono es opcional: sin telefono no hay error
+ok 13 - TC-R-06 el telefono es opcional: sin telefono no hay error
+  ---
+  duration_ms: 0.058011
+  type: 'test'
+  ...
+# Subtest: TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
+ok 14 - TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
+  ---
+  duration_ms: 0.049124
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.511424
+
+
+
+# Fecha: 2026-09-17
+TAP version 13
+
+# Subtest: TC-R-01 registro con todos los datos validos no genera errores
+ok 8 - TC-R-01 registro con todos los datos validos no genera errores
+  ---
+  duration_ms: 0.7388
+  ...
+# Subtest: TC-R-02 registro con campos obligatorios vacios genera un error por campo
+ok 9 - TC-R-02 registro con campos obligatorios vacios genera un error por campo
+  ---
+  duration_ms: 0.4163
+  ...
+# Subtest: TC-R-03 registro con email invalido informa el error de email
+ok 10 - TC-R-03 registro con email invalido informa el error de email
+  ---
+  duration_ms: 0.4613
+  ...
+# Subtest: TC-R-04 registro con password de menos de 8 caracteres informa el error
+ok 11 - TC-R-04 registro con password de menos de 8 caracteres informa el error
+  ---
+  duration_ms: 0.2056
+  ...
+# Subtest: TC-R-05 registro con contrasenias que no coinciden informa el error
+ok 12 - TC-R-05 registro con contrasenias que no coinciden informa el error
+  ---
+  duration_ms: 0.1281
+  ...
+# Subtest: TC-R-06 el telefono es opcional: sin telefono no hay error
+ok 13 - TC-R-06 el telefono es opcional: sin telefono no hay error
+  ---
+  duration_ms: 0.1133
+  ...
+# Subtest: TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
+ok 14 - TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
+  ---
+  duration_ms: 0.1251
+  ...
+ ❯ validaciones/validaciones.test.mjs (0 test)
+ ❯ validaciones/registro.test.tsx (0 test)
