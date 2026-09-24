@@ -71,6 +71,7 @@ def _armar_imagen_url(nombre_archivo: Optional[str]) -> Optional[str]:
 
 def _fila_a_response(fila) -> NoticiaResponse:
     id_noticia, titulo, cuerpo, imagen_archivo, fecha_creacion, estado = fila
+    cuerpo = cuerpo.read() if hasattr(cuerpo, "read") else str(cuerpo)
     return NoticiaResponse(
         id=id_noticia,
         titulo=titulo,
