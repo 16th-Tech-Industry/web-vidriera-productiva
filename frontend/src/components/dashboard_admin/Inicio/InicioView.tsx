@@ -1,7 +1,18 @@
 import StatCard from "./StatCard";
 import NewsCard from "./NewsCard";
 import EventCard from "./EventCard";
-import fotoEjemplo from "../../../assets/foto_ejemplo.png";
+//import fotoEjemplo from "../../../assets/foto_ejemplo.png";
+import { useEffect, useState } from "react";
+//import { Noticias } from '../../noticias/noticias';
+
+
+//datos back
+interface Noticias{
+  id: number | string;
+  titulo: string;
+  cuerpo?: string;
+  imagen_url?: string;
+}
 
 // TODO: reemplazar por datos reales que vengan del backend (FastAPI)
 const STATS = [
@@ -9,21 +20,6 @@ const STATS = [
   { icon: "✅", value: 245, label: "PyMEs en el mapa" },
   { icon: "🕒", value: 12, label: "Correcciones pendientes" },
   { icon: "📅", value: "02", label: "Ferias este mes" },
-];
-
-const NEWS = [
-  {
-    image: fotoEjemplo,
-    text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
-  },
-  {
-    image: fotoEjemplo,
-    text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
-  },
-  {
-    image: fotoEjemplo,
-    text: "There is no one who loves pain itself, who seeks after it and wants to have it, simply because it is pain...",
-  },
 ];
 
 const EVENTS: Array<{
@@ -59,6 +55,29 @@ const EVENTS: Array<{
 
 /** Vista de Inicio del Dashboard: tarjetas de estadísticas, noticias y próximos eventos. */
 export function InicioView() {
+  const [noticias,  setNoticias]= useState <Noticias[]>([]);
+  const [cargando, setCargando]= useState <boolean>(true);
+
+  useEffect(() =>{
+    const obtenrNoticias= async() =>{
+      try{
+        const response= await fetch ("http://localhost:8000/api/v1/noticias/");
+        
+        if(response.ok){
+          const data: Noticias[]= await response.json();
+          setNoticias(data);
+        } else{
+          console.error("error al cargar", response.statusText);
+        }
+      } catch(error){
+        console.error("error red", error);
+      }finally{
+        setCargando(false);
+      }
+    };
+    obtenrNoticias();
+  }, []);
+
   return (
     <>
       <h1 className="dashboard-heading">Panel de control - Administrador</h1>
@@ -71,11 +90,23 @@ export function InicioView() {
 
       <section className="dashboard-section">
         <h2 className="section-heading">Noticias</h2>
-        <div className="news-grid">
-          {NEWS.map((item) => (
-            <NewsCard key={item.text} {...item} />
-          ))}
-        </div>
+
+        {cargando?(
+          <p style={{ color: "#64748b" }}>Cargando Noticias...</p>
+          )  : noticias.length=== 0?(
+            <p style={{ color: "#64748b" }}>No hay noticias registradas.</p>
+          ) :(
+             <div className="news-grid">
+              { noticias.map((item) =>(
+                <NewsCard
+                  key={item.id}
+                  image={item.imagen_url || 'https://via.placeholder.com/300x165?text=Novedad'}
+                  text={item.titulo}
+                />
+              ))}
+              </div>
+              )
+        }
       </section>
 
       <section className="dashboard-section">
