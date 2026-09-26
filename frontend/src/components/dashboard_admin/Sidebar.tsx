@@ -7,7 +7,8 @@ export type SidebarItemKey =
   | "empresas"
   | "mapa"
   | "noticias"
-  | "eventos";
+  | "eventos"
+  | "permisos";
 
 export interface SidebarProps {
   activeItem?: SidebarItemKey;
@@ -29,6 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: "mapa", label: "Mapa", icon: MapIcon },
   { key: "noticias", label: "Noticias", icon: NewsIcon },
   { key: "eventos", label: "Próximos Eventos", icon: CalendarIcon },
+  { key: "permisos", label: "Permisos usuarios", icon: CalendarIcon },
 ];
 
 /**
