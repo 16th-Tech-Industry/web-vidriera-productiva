@@ -16,6 +16,7 @@ backend/
         │   ├── user.py                 # CRUD de usuarios (id, listar, patch, delete) — todavía MOCK, no lee/escribe la DB
         │   ├── noticias.py             # CRUD de noticias con imagen, exclusivo admin (require_admin)
         │   ├── landing.py              # Vista pública "mapa": productores/eventos MOCK + GET /landing/empresas (real, filtrable por rubro)
+        │   ├── notificaciones.py       # WebSocket de notificaciones en vivo + envío (a todos / a usuarios específicos), exclusivo admin
         │   ├── usuario/
         │   │   ├── register.py         # Registro de cuentas nuevas
         │   │   └── login.py            # Login + recuperación de contraseña (forgot/reset)
@@ -26,7 +27,8 @@ backend/
             ├── users.py            # Modelos Pydantic de usuarios/login/registro
             ├── noticias.py         # Modelos Pydantic de noticias
             ├── landing.py          # Modelos Pydantic de productores/eventos (mock)
-            └── empresas.py         # Modelos Pydantic de empresas: alta, respuesta interna y respuesta pública
+            ├── empresas.py         # Modelos Pydantic de empresas: alta, respuesta interna y respuesta pública
+            └── notificaciones.py   # Modelos Pydantic de notificaciones: envío a todos / a usuarios y respuesta
 ```
 
 Fuera de `backend/` pero relevante:
@@ -127,6 +129,25 @@ Errores comunes de los tres endpoints de admin: `403` si quien llama no es admin
 
 ### `GET /api/v1/landing/empresas` — público, sin autenticación
 Empresas **aprobadas**, para el mapa/listado de la landing. Filtro opcional `?rubro=AGROALIMENTO` (usa la columna virtual `rubro_vc` de `db/indices_empresas.sql`, indexada). No expone `estado`, `motivo_rechazo`, `id_representante` ni `cuit` — son datos del circuito de revisión interno, no de cara al visitante.
+
+### Notificaciones en vivo: dashboard admin → dashboard usuario
+
+Cada dashboard abre un WebSocket y el admin envía por REST. Las notificaciones **no se guardan** en la DB: solo las reciben los usuarios que tienen el dashboard abierto en ese momento. Las conexiones viven en memoria, así que requiere un solo worker de uvicorn.
+
+#### `WS /api/v1/notificaciones/ws?token=<JWT>` — cualquier usuario logueado
+El token va por query string (el WebSocket del navegador no deja mandar `Authorization`). Token inválido/vencido → se rechaza el handshake (`1008`). Cada notificación llega como:
+```json
+{ "tipo": "notificacion", "alcance": "todos", "titulo": "Aviso", "mensaje": "Texto", "fecha": "2026-09-28T21:00:00+00:00" }
+```
+
+#### `POST /api/v1/notificaciones/todos` — exclusivo admin
+A todos los usuarios conectados (los admins no la reciben). Request: `{ "titulo": "Aviso", "mensaje": "Texto" }` · Response: `{ "usuarios_notificados": 5, "usuarios_sin_conexion": [] }`
+
+#### `POST /api/v1/notificaciones/usuarios` — exclusivo admin
+Solo a los `id_representante` indicados. Request: `{ "titulo": "Aviso", "mensaje": "Texto", "usuario_ids": [12, 15] }` · Response: `{ "usuarios_notificados": 1, "usuarios_sin_conexion": [15] }`
+
+#### `GET /api/v1/notificaciones/conectados` — exclusivo admin
+Ids de los usuarios con el dashboard abierto ahora.
 
 ## Notas
 
