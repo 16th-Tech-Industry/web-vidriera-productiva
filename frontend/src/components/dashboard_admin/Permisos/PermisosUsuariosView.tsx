@@ -6,10 +6,9 @@ interface RepUsuario{
     nombre?: string;
     name?: string;     
     apellido: string; 
-    ast_name?: string;
     email: string;
     estado?: number | string;
-    status?: number | string;
+    is_active?: boolean;
     rol?: number;
     role?: number;
 }
@@ -61,13 +60,13 @@ const cambiarRol= async (idUsuario: number, rolActual: boolean) =>{
 
 
 if (!window.confirm(`¿Confirma que desea ${accionTexto} a este usuario?`)){
-    return ("Rol modificado");
+    return ;
     }
 
 try {
     const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
 
-    const response= await fetch(`http://localhost:8000/api/v1/users/${idUsuario}/rol/`,{
+    const response= await fetch(`http://localhost:8000/api/v1/users/${idUsuario}`,{
         method: 'PATCH',
         headers: {
             "content-type": "application/json",
@@ -96,7 +95,9 @@ try {
 //búsqueda
 const filtroUsuarios= usuarios.filter((usuario) => {
     const termino= busqueda.toLowerCase().trim();
-    const nombreCompleto=  `${usuario.nombre ?? ""} ${usuario.apellido ?? ""}`.toLocaleLowerCase();
+    const nombre= usuario.name || usuario.nombre || "";
+    const apellido= usuario.apellido || "";
+    const nombreCompleto= `${nombre} ${apellido}`.toLocaleLowerCase();
     const mail= ( usuario.email ?? "").toLocaleLowerCase();
 
     return(
@@ -153,22 +154,25 @@ return (
                         <th style={{padding:"1rem"}}>Apellido</th>
                         <th style={{padding:"1rem"}}>Email</th>
                         <th style={{padding:"1rem"}}>Estado</th>
+                        <th style={{ padding: "1rem" }}>Rol</th>
                         <th style={{padding:"1rem", textAlign:"center"}}>Cambiar rol</th>
                     </tr>
                 </thead>
                 
                 <tbody>
                     {filtroUsuarios.map((usuario)=>{
-                        const rolNumero= usuario.rol ?? usuario.rol ?? 0;
+                        const rolNumero= usuario.role ?? usuario.rol ?? 0;
                         const esAdmin = rolNumero === 1;
 
-                        const estadoVal= usuario.estado;
-                        const estaActivo = estadoVal ===1 || estadoVal === "1" || estadoVal === "activo" || estadoVal === "ACTIVO" || estadoVal === undefined;
+                        const estaActivo = usuario.is_active ?? (usuario.estado===1 || usuario.estado==="activo")
+
+                        const mostrarNombre= usuario.name || usuario.nombre || "-";
+                        const mostrarApellido= usuario.apellido || "-";
 
                         return(/**estado */
                             <tr key={usuario.id} style={{ borderBottom: "1px solid  #f1f5f9" }}>
-                                <td style={{ padding: "1rem", fontWeight: "500" }}>{usuario.nombre || "-"}</td>
-                                <td style={{ padding: "1rem", fontWeight: "500" }}>{usuario.apellido || "-"}</td>
+                                <td style={{ padding: "1rem", fontWeight: "500" }}>{mostrarNombre}</td>
+                                <td style={{ padding: "1rem", fontWeight: "500" }}>{mostrarApellido || "-"}</td>
                                 <td style={{ padding: "1rem", fontWeight: "500" }}>{usuario.email || "-"}</td>
 
                                 <td style={{ padding: "1rem" }}>
@@ -184,7 +188,8 @@ return (
                                 </span>
                             </td>
 
-                            <td style={{
+                            <td style={{ padding: "1rem" }}>
+                            <span style={{
                                 padding: "0.25rem 0.6rem",
                                 borderRadius: "12px",
                                 fontWeight: "bold",
@@ -193,6 +198,7 @@ return (
                                 color: esAdmin ? "#1d4ed8" : "#475569",
                             }}>
                                 {esAdmin ? "Administrador" : "Representante"}
+                            </span>
                             </td>
 
                             {/* Botón Cambiar Rol */}
