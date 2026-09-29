@@ -1,157 +1,79 @@
 .eventos-view {
-  padding: 2rem;
+  padding: 1.5rem;
   max-width: 950px;
   margin: 0 auto;
-}
-
-/* Cabecera con el azul institucional exacto */
-.eventos-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .eventos-header-flex h1 {
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
   font-weight: 700;
   color: #1e3a8a;
   margin: 0 0 0.25rem 0;
 }
 
 .eventos-header-flex p {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin: 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+  margin: 0 0 1.5rem 0;
 }
 
-/* Caja azul grande del medio */
-.eventos-box-azul {
-  background-color: #2b7ade;
-  border-radius: 8px;
-  padding: 2.5rem 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
+.eventos-lista-v2 { display: flex; flex-direction: column; gap: 12px; }
 
-/* Contenedor blanco de la lista */
-.eventos-lista {
-  background: #ffffff;
-  border-radius: 6px;
-  overflow: hidden;
+.evento-card-v2 {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
   display: flex;
-  flex-direction: column;
-}
-
-/* Cada fila de evento */
-.evento-fila {
-  display: flex;
+  gap: 16px;
   align-items: center;
-  padding: 1.25rem 2rem;
-  border-bottom: 1px solid #e5e7eb;
-  gap: 1.5rem;
 }
 
-.evento-fila:last-child {
-  border-bottom: none;
-}
-
-/* Estilo del Calendario Desprendible */
 .calendario-bloque {
-  width: 58px;
-  height: 60px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  flex-shrink: 0;
+  width: 58px; height: 60px;
+  background: #fff; border: 1px solid #cbd5e1;
+  border-radius: 8px; display: flex;
+  flex-direction: column; align-items: center;
+  justify-content: center; overflow: hidden; flex-shrink: 0;
 }
 
 .calendario-mes {
-  background: #1e3a8a;
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  width: 100%;
-  text-align: center;
-  padding: 3px 0;
-  letter-spacing: 0.5px;
+  background: #1e3a8a; color: #fff;
+  font-size: 0.65rem; font-weight: 700;
+  width: 100%; text-align: center; padding: 4px 0;
 }
 
-.calendario-dia {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #0f172a;
-  padding: 2px 0;
-  line-height: 1;
+.calendario-dia { font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+
+.tag {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #1e3a8a;
+  background: #e8f0fe; padding: 4px 8px; border-radius: 20px;
 }
 
-/* Textos del evento */
-.evento-detalles h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #000;
-  margin: 0 0 0.2rem 0;
-}
+.evento-detalles { flex: 1; min-width: 0; }
+.evento-detalles h3 { margin: 6px 0 4px 0; font-size: 1.1rem; }
+.meta { font-size: 0.9rem; color: #4b5563; margin: 0; }
+.cierre { font-size: 0.8rem; color: #b45309; margin: 4px 0 0 0; font-weight: 600; }
 
-.evento-fecha {
-  font-size: 0.9rem;
-  color: #333;
-  margin: 0 0 0.1rem 0;
-}
-
-.evento-lugar {
-  font-size: 0.9rem;
-  color: #4b5563;
-  margin: 0;
-}
-
-/* Botón de Postulación */
 .btn-postular {
-  background-color: #1e3a8a;
-  color: #ffffff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #1e3a8a; color: #fff; border: none;
+  padding: 0.65rem 1.25rem; border-radius: 8px;
+  font-weight: 600; font-size: 0.875rem; cursor: pointer;
+  white-space: nowrap;
 }
+.btn-postular.postulado { background-color: #10b981; }
 
-.btn-postular:hover {
-  background-color: #1d4ed8;
+.toast {
+  background: #111827; color: #fff; padding: 12px 16px;
+  border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;
 }
+.nota-secundaria { font-size: 0.85rem; color: #6b7280; margin-top: 16px; text-align: center; }
 
-/* Estado cuando ya se postuló */
-.btn-postular.postulado {
-  background-color: #10b981;
-  color: #ffffff;
-}
-
-.btn-postular.postulado:hover {
-  background-color: #059669;
-}
-
-/* Barra de aviso inferior */
-.eventos-footer-aviso {
-  background-color: #2b7ade;
-  color: #fff;
-  padding: 1rem 1.5rem;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.eventos-footer-aviso p {
-  margin: 0;
+@media (max-width: 640px) {
+  .eventos-view { padding: 1rem; }
+  .evento-card-v2 { flex-direction: column; align-items: flex-start; }
+  .evento-accion, .btn-postular { width: 100%; }
 }
