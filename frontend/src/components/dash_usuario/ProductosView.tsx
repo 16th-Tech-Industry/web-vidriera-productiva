@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import './ProductosView.css';
 
-
 interface Producto {
   id: number;
   nombre: string;
@@ -80,21 +79,14 @@ export default function ProductosView() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (modo === 'crear') {
-      const nuevoProducto: Producto = {
-        id: Date.now(),
-        ...formData
-      };
+      const nuevoProducto: Producto = { id: Date.now(), ...formData };
       setProductos([...productos, nuevoProducto]);
       setToast('¡Producto agregado al catálogo con éxito!');
     } else {
-      setProductos(
-        productos.map((p) => (p.id === productoIdEditando ? { ...p, ...formData } : p))
-      );
+      setProductos(productos.map((p) => (p.id === productoIdEditando ? { ...p, ...formData } : p)));
       setToast('¡Producto actualizado con éxito!');
     }
-
     setTimeout(() => setToast(null), 3000);
     setPanelAbierto(false);
   };
@@ -114,19 +106,11 @@ export default function ProductosView() {
           <h1>Catálogo de Productos ({productos.length})</h1>
           <p>Gestiona los artículos y presentaciones que ofreces en la provincia.</p>
         </div>
-        <button className="btn-primary" onClick={abrirCreacion}>
-          + Nuevo Producto
-        </button>
+        <button className="btn-primary" onClick={abrirCreacion}>+ Nuevo Producto</button>
       </div>
 
       <div className="toolbar-container">
-        <input 
-          type="text" 
-          placeholder="🔍 Buscar por nombre, categoría o descripción..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="search-input"
-        />
+        <input type="text" placeholder="🔍 Buscar por nombre, categoría o descripción..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="search-input" />
       </div>
 
       <div className="productos-layout">
@@ -137,137 +121,66 @@ export default function ProductosView() {
             productosFiltrados.map((prod) => (
               <div className="card-producto" key={prod.id}>
                 <div className="card-header-info">
-                  <span className={`badge ${prod.estado}`}>
-                    {prod.estado === 'activo' ? '🟢 Activo' : '🔴 Oculto'}
-                  </span>
+                  <span className={`badge ${prod.estado}`}>{prod.estado === 'activo' ? '🟢 Activo' : '🔴 Oculto'}</span>
                 </div>
-
                 <div className="card-img-container">
-                  {prod.imagen ? (
-                    <img 
-                      src={prod.imagen} 
-                      alt={prod.nombre} 
-                      className="card-real-img" 
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="card-img-placeholder">🍯</div>
-                  )}
+                  {prod.imagen ? <img src={prod.imagen} alt={prod.nombre} className="card-real-img" onError={(e) => {(e.target as HTMLElement).style.display = 'none';}} /> : <div className="card-img-placeholder">🍯</div>}
                 </div>
-
-                <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>{prod.categoria}</span>
+                <span className="categoria-label">{prod.categoria}</span>
                 <h3>{prod.nombre}</h3>
-                <p style={{ fontSize: '12px', color: '#4b5563', fontWeight: 500 }}>📦 {prod.presentacion}</p>
+                <p className="presentacion-label">📦 {prod.presentacion}</p>
                 <p className="card-desc">{prod.descripcion}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                  <p className="card-price" style={{ margin: 0 }}>${prod.precio}</p>
-                  <span style={{ fontSize: '11px', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>{prod.stock}</span>
+                <div className="card-price-row">
+                  <p className="card-price">${prod.precio}</p>
+                  <span className="stock-badge">{prod.stock}</span>
                 </div>
-                
                 <div className="card-actions">
-                  <button className="btn-editar" onClick={() => abrirEdicion(prod)}>
-                    Editar
-                  </button>
-                  <button className="btn-eliminar" onClick={() => eliminarProducto(prod.id)}>
-                    🗑️
-                  </button>
+                  <button className="btn-editar" onClick={() => abrirEdicion(prod)}>Editar</button>
+                  <button className="btn-eliminar" onClick={() => eliminarProducto(prod.id)}>🗑️</button>
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {/* Modal flotante centralizado con overlay oscuro */}
         {panelAbierto && (
           <>
             <div className="modal-overlay" onClick={() => setPanelAbierto(false)}></div>
             <aside className="edit-panel">
               <h3>{modo === 'crear' ? '✨ Nuevo Producto' : '✏️ Editar Producto'}</h3>
-              
               <form onSubmit={handleSubmit} className="product-form">
                 <label>Nombre del producto</label>
-                <input 
-                  type="text" 
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  placeholder="Ej: Miel pura de abejas" 
-                  required 
-                />
-
+                <input type="text" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Miel pura de abejas" required />
                 <label>Categoría</label>
-                <select 
-                  value={formData.categoria}
-                  onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                >
+                <select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
                   <option value="Lácteos y Dulces">Lácteos y Dulces</option>
                   <option value="Mieles y Derivados">Mieles y Derivados</option>
                   <option value="Embutidos y Chacinados">Embutidos y Chacinados</option>
                   <option value="Bebidas y Infusiones">Bebidas e Infusiones</option>
                   <option value="Artesanías varias">Artesanías varias</option>
                 </select>
-
                 <label>Presentación / Envase</label>
-                <input 
-                  type="text" 
-                  value={formData.presentacion}
-                  onChange={(e) => setFormData({ ...formData, presentacion: e.target.value })}
-                  placeholder="Ej: Frasco 500g / Bidón 5L" 
-                  required
-                />
-
+                <input type="text" value={formData.presentacion} onChange={(e) => setFormData({ ...formData, presentacion: e.target.value })} placeholder="Ej: Frasco 500g / Bidón 5L" required />
                 <label>Descripción</label>
-                <textarea 
-                  value={formData.descripcion}
-                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  placeholder="Detalles del producto..." 
-                  required 
-                />
-
+                <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} placeholder="Detalles del producto..." required />
                 <label>Precio ($)</label>
-                <input 
-                  type="number" 
-                  value={formData.precio}
-                  onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
-                  placeholder="1500" 
-                  required
-                />
-
+                <input type="number" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} placeholder="1500" required />
                 <label>Disponibilidad / Stock</label>
-                <select 
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                >
+                <select value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })}>
                   <option value="En Stock">En Stock</option>
                   <option value="A pedido">A pedido</option>
                   <option value="Stock limitado">Stock limitado</option>
                 </select>
-
                 <label>URL de la Imagen (Opcional)</label>
-                <input 
-                  type="url" 
-                  value={formData.imagen}
-                  onChange={(e) => setFormData({ ...formData, imagen: e.target.value })}
-                  placeholder="https://... (enlace directo de foto)" 
-                />
-
+                <input type="url" value={formData.imagen} onChange={(e) => setFormData({ ...formData, imagen: e.target.value })} placeholder="https://... (enlace directo de foto)" />
                 <label>Estado de visibilidad</label>
-                <select 
-                  value={formData.estado}
-                  onChange={(e) => setFormData({ ...formData, estado: e.target.value as 'activo' | 'oculto' })}
-                >
+                <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value as 'activo' | 'oculto' })}>
                   <option value="activo">Activo (Visible en Vidriera)</option>
                   <option value="oculto">Oculto (Borrador)</option>
                 </select>
-
                 <div className="panel-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setPanelAbierto(false)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-save">
-                    {modo === 'crear' ? 'Guardar' : 'Actualizar'}
-                  </button>
+                  <button type="button" className="btn-cancel" onClick={() => setPanelAbierto(false)}>Cancelar</button>
+                  <button type="submit" className="btn-save">{modo === 'crear' ? 'Guardar' : 'Actualizar'}</button>
                 </div>
               </form>
             </aside>

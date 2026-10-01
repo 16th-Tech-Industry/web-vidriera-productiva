@@ -1,0 +1,130 @@
+/* FORZADO - ESTE SI TE LO TIENE QUE TOMAR */
+.dashboard-content .alta-page {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 32px 16px !important;
+  min-height: 100% !important;
+  background: #eef3f8 !important;
+}
+
+.dashboard-content .alta-card,
+.alta-page .alta-card,
+.alta-card {
+  width: 100% !important;
+  max-width: 440px !important;
+  background: #9cc2e6 !important;
+  background-color: #9cc2e6 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  padding: 26px 28px 28px !important;
+  box-shadow: 0 12px 32px rgba(15, 57, 94, 0.15) !important;
+}
+
+.alta-kicker {
+  display: block !important;
+  text-align: center !important;
+  font-size: 0.62rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  color: #0f2f4d !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+.alta-card h2 {
+  text-align: center !important;
+  margin: 0 0 20px 0 !important;
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  color: #12395e !important;
+}
+
+.alta-form { display: flex !important; flex-direction: column !important; gap: 14px !important; }
+
+.alta-form label {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: #0f2f4d !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.alta-form input,
+.alta-form select {
+  width: 100% !important;
+  height: 42px !important;
+  border: 1px solid #7aadd6 !important;
+  border-radius: 10px !important;
+  padding: 0 12px !important;
+  font-size: 0.88rem !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.row-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+
+.btn-dark {
+  margin-top: 6px !important;
+  height: 46px !important;
+  width: 100% !important;
+  background: #0f2f4d !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+
+/* DARK */
+[data-theme="dark"] .dashboard-content { background: #0f172a !important; }
+[data-theme="dark"] .alta-card { 
+  background: #1e293b !important; 
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important; 
+}
+[data-theme="dark"] .alta-card h2 { color: #f1f5f9 !important; }
+[data-theme="dark"] .alta-form label { color: #cbd5e1 !important; }
+[data-theme="dark"] .alta-kicker { color: #94a3b8 !important; }
+[data-theme="dark"] .alta-form input,
+[data-theme="dark"] .alta-form select {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* HEADER CELESTE COMO EL DE REGISTRO - LIGHT */
+.dashboard-main header,
+.dashboard-layout header,
+header {
+  background: #9cc2e6 !important;
+  color: #0f2f4d !important;
+  border-bottom: 1px solid #7aadd6 !important;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  padding: 0 32px !important;
+}
+
+.dashboard-main header span,
+.dashboard-main header p,
+header span {
+  color: #0f2f4d !important;
+  font-weight: 600;
+}
+
+/* DARK MODE - que siga viéndose */
+[data-theme="dark"] .dashboard-main header,
+[data-theme="dark"] .dashboard-layout header,
+[data-theme="dark"] header {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] .dashboard-main header span,
+[data-theme="dark"] header span {
+  color: #cbd5e1 !important;
+}

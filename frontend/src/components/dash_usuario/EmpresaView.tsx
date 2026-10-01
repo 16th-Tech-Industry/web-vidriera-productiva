@@ -1,4 +1,3 @@
-// src/components/dash-usuario/EmpresaView.tsx
 import { useState } from 'react';
 import './EmpresaView.css';
 import AltaEmpresa from './AltaEmpresa';
@@ -12,40 +11,25 @@ export default function EmpresaView() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setEmpresaData((prev: any) => ({...prev, logoUrl: reader.result as string }));
-      };
+      reader.onloadend = () => setEmpresaData((prev: any) => ({...prev, logoUrl: reader.result as string }));
       reader.readAsDataURL(file);
     }
   };
 
   const calcularProgreso = () => {
     if (!empresaData) return 0;
-    const camposTexto = [
-      empresaData.nombreComercial,
-      empresaData.rubro,
-      empresaData.localidad,
-      empresaData.direccion,
-      empresaData.descripcion,
-      empresaData.telefono,
-      empresaData.whatsapp,
-      empresaData.email,
-      empresaData.sitioWeb,
-      empresaData.instagram,
-      empresaData.sellos
-    ];
-    const completados = camposTexto.filter(val => typeof val === 'string' && val.trim()!== '').length;
-    return Math.round((completados / camposTexto.length) * 100);
+    const campos = [empresaData.nombreComercial, empresaData.rubro, empresaData.localidad, empresaData.direccion, empresaData.descripcion, empresaData.telefono, empresaData.whatsapp, empresaData.email, empresaData.sitioWeb, empresaData.instagram, empresaData.sellos];
+    const completados = campos.filter(v => typeof v === 'string' && v.trim()!== '').length;
+    return Math.round((completados / campos.length) * 100);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setEditando(false);
-    setToast('¡Perfil institucional y visibilidad actualizados con éxito!');
+    setToast('¡Perfil actualizado con éxito!');
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Si no hay empresa, mostramos el registro
   if (!empresaData) {
     return (
       <AltaEmpresa
@@ -55,15 +39,7 @@ export default function EmpresaView() {
             rubro: 'Alimentos y Bebidas',
             localidad: `${datosNuevos.localidad}, ${datosNuevos.departamento}`,
             direccion: datosNuevos.direccion,
-            descripcion: '',
-            telefono: '',
-            whatsapp: '',
-            email: '',
-            sitioWeb: '',
-            instagram: '',
-            sellos: '',
-            activo: true,
-            logoUrl: ''
+            descripcion: '', telefono: '', whatsapp: '', email: '', sitioWeb: '', instagram: '', sellos: '', activo: true, logoUrl: ''
           });
         }}
       />
@@ -79,106 +55,79 @@ export default function EmpresaView() {
       <div className="content-top-row">
         <div>
           <h1>Mi Empresa</h1>
-          <p>Perfil institucional y logístico visible en la Vidriera Productiva.</p>
+          <p>Perfil institucional visible en la Vidriera Productiva.</p>
         </div>
         <button className="btn-primary" onClick={() => setEditando(!editando)}>
-          {editando? 'Cancelar Edición' : 'Editar Información'}
+          {editando? 'Cancelar' : 'Editar Información'}
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px', marginBottom: '20px' }}>
-        <div className="profile-completion-card" style={{ margin: 0 }}>
+      <div className="top-stats-grid">
+        <div className="profile-completion-card">
           <div className="completion-info">
-            <span>Perfil completado</span>
-            <strong>{progreso}%</strong>
+            <span>Perfil completado</span><strong>{progreso}%</strong>
           </div>
           <div className="progress-bar-background">
             <div className="progress-bar-fill" style={{ width: `${progreso}%` }}></div>
           </div>
         </div>
-
-        <div style={{ background: '#fff', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="map-status-card">
           <div>
-            <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block' }}>Estado en Mapa</span>
-            <span style={{ fontWeight: 'bold', color: empresaData.activo? '#16a34a' : '#dc2626', fontSize: '0.95rem' }}>
+            <span className="status-label">Estado en Mapa</span>
+            <span className={`status-value ${empresaData.activo? 'is-active' : 'is-inactive'}`}>
               {empresaData.activo? '🟢 Visible (Activa)' : '🔴 Oculta (Inactiva)'}
             </span>
           </div>
-          {editando && (
-            <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <input
-                type="checkbox"
-                checked={empresaData.activo}
-                onChange={(e) => setEmpresaData({...empresaData, activo: e.target.checked })}
-                style={{ width: '18px', height: '18px', accentColor: '#00457F' }}
-              />
-            </label>
-          )}
+          {editando && <input type="checkbox" checked={empresaData.activo} onChange={(e) => setEmpresaData({...empresaData, activo: e.target.checked })} />}
         </div>
       </div>
 
       <div className="empresa-card-container">
         <div className="empresa-card">
-          <div className="avatar-placeholder" style={{ overflow: 'hidden', padding: empresaData.logoUrl? '0' : '15px' }}>
-            {empresaData.logoUrl? (
-              <img src={empresaData.logoUrl} alt="Logo empresa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              '🏢'
+          <div className="avatar-column">
+            <div className="avatar-placeholder">
+              {empresaData.logoUrl? <img src={empresaData.logoUrl} alt="Logo" /> : '🏢'}
+            </div>
+            {editando && (
+              <label className="file-input-label">
+                Cambiar logo
+                <input type="file" accept="image/*" onChange={handleLogoChange} hidden />
+              </label>
             )}
           </div>
 
           <div className="empresa-info">
             {editando? (
               <form onSubmit={handleSubmit} className="empresa-form">
-                <label>Logo / Imagen de la Empresa</label>
-                <input type="file" accept="image/*" onChange={handleLogoChange} style={{ padding: '6px', background: '#f8fafc', border: '1px dashed #cbd5e1' }} />
-                <label>Nombre Comercial</label>
-                <input type="text" value={empresaData.nombreComercial} onChange={(e) => setEmpresaData({...empresaData, nombreComercial: e.target.value })} required />
-                <label>Rubro</label>
-                <select value={empresaData.rubro} onChange={(e) => setEmpresaData({...empresaData, rubro: e.target.value })}>
-                  <option value="Alimentos y Bebidas">Alimentos y Bebidas</option>
-                  <option value="Artesanías y Diseño">Artesanías y Diseño</option>
-                  <option value="Metalúrgica y Maquinaria">Metalúrgica y Maquinaria</option>
-                  <option value="Textil y Calzado">Textil y Calzado</option>
-                </select>
-                <label>Localidad / Departamento (Córdoba)</label>
-                <input type="text" value={empresaData.localidad} onChange={(e) => setEmpresaData({...empresaData, localidad: e.target.value })} placeholder="Ej: Río Cuarto, Córdoba" />
-                <label>Dirección del Establecimiento / Planta</label>
-                <input type="text" value={empresaData.direccion} onChange={(e) => setEmpresaData({...empresaData, direccion: e.target.value })} />
-                <label>Descripción</label>
-                <textarea value={empresaData.descripcion} onChange={(e) => setEmpresaData({...empresaData, descripcion: e.target.value })} required />
-                <label>Teléfono</label>
-                <input type="text" value={empresaData.telefono} onChange={(e) => setEmpresaData({...empresaData, telefono: e.target.value })} />
-                <label>WhatsApp de Ventas</label>
-                <input type="text" value={empresaData.whatsapp} onChange={(e) => setEmpresaData({...empresaData, whatsapp: e.target.value })} placeholder="351..." />
-                <label>Email de contacto</label>
-                <input type="email" value={empresaData.email} onChange={(e) => setEmpresaData({...empresaData, email: e.target.value })} />
-                <label>Sitio Web</label>
-                <input type="text" value={empresaData.sitioWeb} onChange={(e) => setEmpresaData({...empresaData, sitioWeb: e.target.value })} />
-                <label>Instagram</label>
-                <input type="text" value={empresaData.instagram} onChange={(e) => setEmpresaData({...empresaData, instagram: e.target.value })} />
-                <label>Sellos de Calidad / Distinciones</label>
-                <input type="text" value={empresaData.sellos} onChange={(e) => setEmpresaData({...empresaData, sellos: e.target.value })} placeholder="Ej: Hecho en Córdoba, Orgánico" />
-                <button type="submit" className="btn-save" style={{ marginTop: '10px' }}>Guardar Cambios</button>
+                <div className="form-grid">
+                  <div className="fg"><label>Nombre Comercial</label><input type="text" value={empresaData.nombreComercial} onChange={e => setEmpresaData({...empresaData, nombreComercial: e.target.value})} required /></div>
+                  <div className="fg"><label>Rubro</label><select value={empresaData.rubro} onChange={e => setEmpresaData({...empresaData, rubro: e.target.value})}><option>Alimentos y Bebidas</option><option>Artesanías y Diseño</option><option>Metalúrgica y Maquinaria</option><option>Textil y Calzado</option></select></div>
+                  <div className="fg full"><label>Localidad</label><input type="text" value={empresaData.localidad} onChange={e => setEmpresaData({...empresaData, localidad: e.target.value})} /></div>
+                  <div className="fg full"><label>Dirección</label><input type="text" value={empresaData.direccion} onChange={e => setEmpresaData({...empresaData, direccion: e.target.value})} /></div>
+                  <div className="fg full"><label>Descripción</label><textarea rows={3} value={empresaData.descripcion} onChange={e => setEmpresaData({...empresaData, descripcion: e.target.value})} required placeholder="Contá que hace tu empresa..." /></div>
+                  <div className="fg"><label>Teléfono</label><input type="text" value={empresaData.telefono} onChange={e => setEmpresaData({...empresaData, telefono: e.target.value})} /></div>
+                  <div className="fg"><label>WhatsApp</label><input type="text" value={empresaData.whatsapp} onChange={e => setEmpresaData({...empresaData, whatsapp: e.target.value})} /></div>
+                  <div className="fg"><label>Email</label><input type="email" value={empresaData.email} onChange={e => setEmpresaData({...empresaData, email: e.target.value})} /></div>
+                  <div className="fg"><label>Sitio Web</label><input type="text" value={empresaData.sitioWeb} onChange={e => setEmpresaData({...empresaData, sitioWeb: e.target.value})} /></div>
+                  <div className="fg"><label>Instagram</label><input type="text" value={empresaData.instagram} onChange={e => setEmpresaData({...empresaData, instagram: e.target.value})} /></div>
+                  <div className="fg"><label>Sellos</label><input type="text" value={empresaData.sellos} onChange={e => setEmpresaData({...empresaData, sellos: e.target.value})} /></div>
+                </div>
+                <button type="submit" className="btn-save">Guardar Cambios</button>
               </form>
             ) : (
               <div className="empresa-details">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <p style={{ margin: 0 }}><strong>🏢 Nombre Comercial:</strong> {empresaData.nombreComercial}</p>
-                  <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', backgroundColor: empresaData.activo? '#dcfce7' : '#fee2e2', color: empresaData.activo? '#166534' : '#991b1b' }}>
-                    {empresaData.activo? 'Activa en Mapa' : 'Inactiva'}
-                  </span>
+                <h3>{empresaData.nombreComercial}</h3>
+                <span className="badge-rubro">{empresaData.rubro}</span>
+                <p className="desc">{empresaData.descripcion || 'Sin descripción aún.'}</p>
+                <div className="details-grid">
+                  <p><strong>📍</strong> {empresaData.localidad} - {empresaData.direccion}</p>
+                  <p><strong>📞</strong> {empresaData.telefono || '-'}</p>
+                  <p><strong>💚</strong> {empresaData.whatsapp || '-'}</p>
+                  <p><strong>✉️</strong> {empresaData.email || '-'}</p>
+                  <p><strong>🌐</strong> {empresaData.sitioWeb || '-'}</p>
+                  <p><strong>📸</strong> {empresaData.instagram || '-'}</p>
+                  <p><strong>🏅</strong> {empresaData.sellos || '-'}</p>
                 </div>
-                <p><strong>🏷️ Rubro:</strong> {empresaData.rubro}</p>
-                <p><strong>📍 Ubicación:</strong> {empresaData.localidad} ({empresaData.direccion})</p>
-                <p><strong>📝 Descripción:</strong> {empresaData.descripcion || 'Sin descripción aún'}</p>
-                <hr style={{ border: '0', borderTop: '1px solid #d1d5db', margin: '15px 0' }} />
-                <p><strong>📞 Teléfono:</strong> {empresaData.telefono}</p>
-                <p><strong>💚 WhatsApp:</strong> +54 9 {empresaData.whatsapp}</p>
-                <p><strong>✉️ Email:</strong> {empresaData.email}</p>
-                <p><strong>🌐 Sitio web:</strong> {empresaData.sitioWeb}</p>
-                <p><strong>📸 Instagram:</strong> {empresaData.instagram}</p>
-                <p><strong>🏅 Sellos oficiales:</strong> <span style={{ color: '#0369a1', fontWeight: 600 }}>{empresaData.sellos}</span></p>
               </div>
             )}
           </div>
