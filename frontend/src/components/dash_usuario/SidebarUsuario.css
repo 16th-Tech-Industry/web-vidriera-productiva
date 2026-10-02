@@ -1,9 +1,10 @@
 .sidebar { 
-  background: #123a6d; 
+  background: #123a6d !important; 
   width: 260px; 
   min-height: 100vh; 
   display: flex;
   flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.15);
 }
 
 .sidebar-brand {
@@ -31,4 +32,12 @@
 
 .sidebar-nav { padding: 15px 20px; display: flex; flex-direction: column; gap: 8px; }
 .sidebar-btn { color: white; background: transparent; border: 0; text-align: left; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; gap: 10px; }
-.sidebar-btn.is-active { background: #1e4a7a; }
+.sidebar-btn.is-active { background: #1e4a7a !important; border-left: 3px solid #3b82f6; }
+
+/* MODO OSCURO - Ahora sí diferenciado */
+body.dark .sidebar,
+.dark .sidebar,
+html.dark .sidebar {
+  background: #1a365d !important; /* azul más oscuro que #123a6d pero NUNCA negro */
+  border-right: 1px solid #2d4a6e !important;
+}

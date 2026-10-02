@@ -109,9 +109,9 @@ export default function ProductosView() {
         <button className="btn-primary" onClick={abrirCreacion}>+ Nuevo Producto</button>
       </div>
 
-      <div className="toolbar-container">
-        <input type="text" placeholder="🔍 Buscar por nombre, categoría o descripción..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="search-input" />
-      </div>
+     <div className="toolbar-container" style={{ marginBottom: '28px', marginTop: '16px' }}>
+  <input type="text" placeholder="🔍 Buscar por nombre, categoría o descripción..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="search-input" />
+</div>
 
       <div className="productos-layout">
         <div className="cards-grid">

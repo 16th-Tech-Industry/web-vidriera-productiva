@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./SidebarUsuario.css";
-import logo from "frontend\public\CbaProdLOGO.ico"; // ahora SÍ se usa
+import logo from "/CbaProdLOGO.ico";
 
 export type SidebarUsuarioItemKey = "mi-empresa" | "productos" | "eventos";
 export interface SidebarUsuarioProps {
@@ -23,7 +23,7 @@ export default function SidebarUsuario({ activeItem="mi-empresa", onNavigate, co
   useEffect(()=>{ setNombreUsuario(localStorage.getItem("nombre_empresa") || "Mi Empresa") },[]);
 
   return (
-    <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+    <aside className={`sidebar ${collapsed ? "collapsed" : ""}`} style={{ background: '#123a6d', borderRight: '1px solid rgba(255,255,255,0.15)' }}>
       <div className="sidebar-brand">
         <img src={logo} alt="Vidriera Productiva" className="sidebar-logo-img" />
         {!collapsed && <div className="sidebar-brand-text"><span>{nombreUsuario}</span></div>}

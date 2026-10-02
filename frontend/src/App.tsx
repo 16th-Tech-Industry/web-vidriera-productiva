@@ -20,6 +20,7 @@ function App() {
   const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos'>('empresa');
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
   const [isDark, setIsDark] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('theme') || 'light';
@@ -49,9 +50,9 @@ function App() {
     return (nombre[0] || 'U').toUpperCase();
   };
 
-  // COLORES COMO EN TU FOTO
-  const sidebarBg = isDark? '#0f172a' : '#12395e'; // azul oscuro institucional
-  const headerBg = isDark? '#1e293b' : '#f1f5f9'; // blanco grisáceo
+  const sidebarUsuarioBg = isDark? '#1a365d' : '#12395e';
+  const logo = "/CbaProdLOGO.ico";
+  const headerBg = isDark? '#1e293b' : '#f1f5f9';
   const headerColor = isDark? '#fff' : '#12395e';
   const contentBg = isDark? '#0f172a' : '#ffffff';
   const activeBtnBg = isDark? '#1E3A8A' : '#1e4a7a';
@@ -60,7 +61,7 @@ function App() {
     <main className="app-container">
       {currentView === 'mapa' && (
         <>
-          <Nav label="🔒 Iniciar Sesión" onLoginClick={() => setCurrentView('login')} onRegisterClick={() => setCurrentView('register-user')} />
+          <Nav label=" Iniciar Sesión" onLoginClick={() => setCurrentView('login')} onRegisterClick={() => setCurrentView('register-user')} />
           <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4rem', padding: '2rem 1.5rem 5rem 1.5rem', boxSizing: 'border-box' }}>
             <div style={{ width: '100%' }}><Mapa /></div>
             <div style={{ width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
@@ -111,36 +112,48 @@ function App() {
 
       {currentView === 'dashboard-usuario' && (
         <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh' }}>
-          <aside style={{ width: '260px', backgroundColor: sidebarBg, color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-            <div style={{ padding: '0 20px', height: '54px', display: 'flex', alignItems: 'center', borderBottom: `1px solid ${isDark? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.15)'}`, boxSizing: 'border-box' }}>
-              <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#fff', letterSpacing: '0.5px' }}>CBA | Vidriera Productiva</h3>
+          <aside style={{ width: sidebarCollapsed? '72px' : '260px', backgroundColor: sidebarUsuarioBg, color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'width 0.25s ease' }}>
+            <div style={{ padding: '0 16px', height: '64px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: `1px solid rgba(255,255,255,0.15)`, boxSizing: 'border-box', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+              <img src={logo} alt="Logo CBA" style={{ height: '40px', width: '40px', objectFit: 'contain', borderRadius: '6px', background: '#fff', padding: '2px' }} />
+              {!sidebarCollapsed && <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#fff', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>CBA | Vidriera</h3>}
             </div>
-            <div style={{ padding: '15px 20px 0 20px' }}>
-              <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.85rem' }}>Hola,</p>
-              <p style={{ fontWeight: 'bold', margin: '2px 0 0 0', color: '#fff' }}>{nombreUsuario}</p>
-            </div>
+
+            {!sidebarCollapsed && (
+              <div style={{ padding: '15px 20px 0 20px' }}>
+                <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.85rem' }}>Hola,</p>
+                <p style={{ fontWeight: 'bold', margin: '2px 0 0 0', color: '#fff' }}>{nombreUsuario}</p>
+              </div>
+            )}
+
             <nav style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-              <button onClick={() => setVistaUsuario('empresa')} style={{ background: vistaUsuario === 'empresa'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%' }}>🏢 Mi Empresa</button>
-              <button onClick={() => setVistaUsuario('productos')} style={{ background: vistaUsuario === 'productos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%' }}>🍯 Productos</button>
-              <button onClick={() => setVistaUsuario('eventos')} style={{ background: vistaUsuario === 'eventos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%' }}>📅 Eventos</button>
+              <button onClick={() => setVistaUsuario('empresa')} title="Mi Empresa" style={{ background: vistaUsuario === 'empresa'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14H3z"/><path d="M9 10h6M9 14h6M9 18h6"/></svg>
+                {!sidebarCollapsed && 'Mi Empresa'}
+              </button>
+
+              <button onClick={() => setVistaUsuario('productos')} title="Productos" style={{ background: vistaUsuario === 'productos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
+                {!sidebarCollapsed && 'Productos'}
+              </button>
+
+              <button onClick={() => setVistaUsuario('eventos')} title="Eventos" style={{ background: vistaUsuario === 'eventos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                {!sidebarCollapsed && 'Eventos'}
+              </button>
             </nav>
-            <div style={{ padding: '20px' }}>
-              <button onClick={handleLogout} style={{ width: '100%', background: '#ef4444', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer' }}>Cerrar Sesión</button>
+
+            <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ width: '100%', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {sidebarCollapsed? '>' : '<'}
+              </button>
+              <button onClick={handleLogout} style={{ width: '100%', background: '#ef4444', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontSize: sidebarCollapsed? '0.7rem' : '0.9rem' }}>
+                {sidebarCollapsed? '↪' : 'Cerrar Sesión'}
+              </button>
             </div>
           </aside>
 
           <div className="dashboard-main" style={{ flex: 1, background: contentBg, display: 'flex', flexDirection: 'column' }}>
-            <header style={{
-              background: headerBg,
-              height: '54px',
-              padding: '0 32px',
-              display: 'flex',
-              alignItems: 'center',
-              color: headerColor,
-              borderBottom: `1px solid ${isDark? '#334155' : '#e2e8f0'}`,
-              fontSize: '0.85rem',
-              boxSizing: 'border-box'
-            }}>
+            <header style={{ background: headerBg, height: '54px', padding: '0 32px', display: 'flex', alignItems: 'center', color: headerColor, borderBottom: `1px solid ${isDark? '#334155' : '#e2e8f0'}`, fontSize: '0.85rem', boxSizing: 'border-box' }}>
               <span>Ministerio de BioAgroIndustria - <strong>Panel de Gestión de PyMEs</strong></span>
             </header>
             <div className="dashboard-content" style={{ background: contentBg, flex: 1, padding: '24px 32px' }}>
