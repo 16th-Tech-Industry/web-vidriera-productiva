@@ -14,6 +14,16 @@ interface Noticias{
   imagen_url?: string;
 }
 
+interface Eventos{
+  id: string;
+  fecha: string;
+  titulo: string;
+  descripcion: string;
+  hora: string;
+  lugar: string;
+  color: string;
+}
+
 // TODO: reemplazar por datos reales que vengan del backend (FastAPI)
 const STATS = [
   { icon: "👤", value: 34, label: "Inscripciones a revisar" },
@@ -22,7 +32,24 @@ const STATS = [
   { icon: "📅", value: "02", label: "Ferias este mes" },
 ];
 
-const EVENTS: Array<{
+const meses_format=[
+  "ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
+  "JUL", "AGO", "SEP", "OCT", "NOV", "DIC",
+];
+
+function parseFecha(fechaISO: string) {
+  const partes= fechaISO.split("-");
+  if(partes.length !==3) return{ day:"01", month:"ENE" };
+  const [_, mes, dia]= partes;
+  const mesId= parseInt(mes,10)-1;
+  return{
+    day:dia,
+    month: meses_format[mesId] ?? "ENE",
+  };
+  
+}
+
+/*const EVENTS: Array<{
   day: string;
   month: string;
   title: string;
@@ -51,15 +78,17 @@ const EVENTS: Array<{
     location: "Centro de Innovación Agraria",
     badgeColor: "green",
   },
-];
+];*/
 
 /** Vista de Inicio del Dashboard: tarjetas de estadísticas, noticias y próximos eventos. */
 export function InicioView() {
   const [noticias,  setNoticias]= useState <Noticias[]>([]);
-  const [cargando, setCargando]= useState <boolean>(true);
+  const [eventos, setEventos]= useState <Eventos[]>([]);
+  const [cargandoNoticias, setCargandoNoticias]= useState <boolean>(true);
+  const [cargandoEventos, setCargandoEventos]= useState <boolean>(true);
 
   useEffect(() =>{
-    const obtenrNoticias= async() =>{
+    const obtenerNoticias= async() =>{
       try{
         const response= await fetch ("http://localhost:8000/api/v1/noticias/");
         
@@ -72,10 +101,29 @@ export function InicioView() {
       } catch(error){
         console.error("error red", error);
       }finally{
-        setCargando(false);
+        setCargandoNoticias(false);
       }
     };
-    obtenrNoticias();
+    obtenerNoticias();
+  }, []);
+
+  useEffect(() =>{
+    const obtenerEventos= async() =>{
+      try{
+        const response= await fetch("http://localhost:8000/api/v1/eventos/");
+        if (response.ok){
+          const data: Eventos[]= await response.json();
+          setEventos(data);
+        } else{
+          console.error("Error al cargar eventos", response.statusText);
+        }
+      } catch (error){
+        console.error("error en eventos", error);
+      } finally{
+        setCargandoEventos(false);
+      }
+    };
+    obtenerEventos();
   }, []);
 
   return (
@@ -87,11 +135,11 @@ export function InicioView() {
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>
-
+{/* Sección de NOTICAS */}
       <section className="dashboard-section">
         <h2 className="section-heading">Noticias</h2>
 
-        {cargando?(
+        {cargandoNoticias?(
           <p style={{ color: "#64748b" }}>Cargando Noticias...</p>
           )  : noticias.length=== 0?(
             <p style={{ color: "#64748b" }}>No hay noticias registradas.</p>
@@ -109,13 +157,40 @@ export function InicioView() {
         }
       </section>
 
+{/* Sección de Próximos Eventos */}
       <section className="dashboard-section">
         <h2 className="section-heading">Próximos Eventos</h2>
-        <div className="events-list">
-          {EVENTS.map((event) => (
-            <EventCard key={event.title} {...event} />
-          ))}
-        </div>
+       
+       {cargandoEventos ?(
+        <p style={{ color: "#64748b" }}>Cargando Eventos...</p>
+          )  : noticias.length=== 0?(
+            <p style={{ color: "#64748b" }}>No hay eventos para mostrar.</p>
+          ) :(  
+            <div className="events-grid">
+              {eventos.map((ev) =>{
+                const{day, month}= parseFecha(ev.fecha);
+                removeEventListener
+                return(
+                  <EventCard
+                    key={ev.id}
+                    day={day}
+                    month={month}
+                    title={ev.titulo}
+                    description={ev.descripcion}
+                    time={ev.hora}
+                    location={ev.lugar}
+                    badgeColor={ev.color === "green" ? "green": "blue"}
+                  />
+                )
+              }
+              )
+
+              }
+
+            </div>
+       )
+
+       }
       </section>
     </>
   );
