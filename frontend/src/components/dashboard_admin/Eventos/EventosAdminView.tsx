@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import EventoFormModal from "./EventoFormModal";
-import { EVENTOS_MOCK, type Evento } from "./eventos.types";
+import type { Evento } from "./eventos.types";
 import "./eventosAdmin.css";
 
 const DIAS_SEMANA = ["D", "L", "M", "X", "J", "V", "S"];
@@ -42,11 +42,33 @@ function construirGrilla(mesRef: Date): CeldaDia[] {
 }
 
 export function EventosAdminView() {
-  const [mesActual, setMesActual] = useState(() => new Date(2026, 9, 1)); // Octubre 2026, alineado a los mocks
-  const [eventos, setEventos] = useState<Evento[]>(EVENTOS_MOCK);
+  const [mesActual, setMesActual] = useState(() => new Date()); //fecha en sistema
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [cargando, setCargando]= useState<boolean>(true);
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [eventoEditando, setEventoEditando] = useState<Evento | null>(null);
+
+  const cargarEventos= async() =>{
+    setCargando(true);
+    try{
+      const response= await fetch ("http://localhost:8000/api/v1/eventos/");
+      if(response.ok){
+        const data= await response.json();
+        setEventos(data);
+      } else{
+        console.error("error en servidor");
+      }
+    } catch (err){
+        console.error("error al cargar los eventos", err);
+    } finally{
+      setCargando(false);
+    }
+  };
+
+  useEffect(()=> {
+    cargarEventos();
+  },[]);
 
   const celdas = useMemo(() => construirGrilla(mesActual), [mesActual]);
   const hoyISO = toISODate(new Date());
@@ -93,21 +115,60 @@ export function EventosAdminView() {
     setModalAbierto(true);
   };
 
-  const handleGuardar = (datos: Omit<Evento, "id"> & { id?: string }) => {
+  const handleGuardar = async (datos: Omit<Evento, "id"> & { id?: string }) => {
     // TODO: conectar con el backend, ej. POST /eventos o PUT /eventos/{id}
-    if (datos.id) {
-      setEventos((prev) => prev.map((ev) => (ev.id === datos.id ? { ...ev, ...datos, id: ev.id } : ev)));
-    } else {
-      setEventos((prev) => [...prev, { ...datos, id: crypto.randomUUID() }]);
+    try{
+      const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
+      const esEdicion= Boolean(datos.id);
+
+      const url= esEdicion 
+      ? `http://localhost:8000/api/v1/eventos/${datos.id}`
+      : "http://localhost:8000/api/v1/eventos/";
+      
+      const method= esEdicion ? "PATCH" : "POST";
+
+      const response= await fetch( url, {
+        method,
+        headers:{
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(datos),
+      });
+
+    if (response.ok){
+      await cargarEventos();
+      setModalAbierto(false);
+    } else{
+      alert("error al giardar evento, verifica campos");
     }
-    setModalAbierto(false);
+    } catch(err){
+      console.error("Error al guardar", err);
+  }
   };
 
-  const handleEliminar = (id: string) => {
+  const handleEliminar = async(id: string) => {
     // TODO: conectar con el backend, ej. DELETE /eventos/{id}
-    if (window.confirm("¿Seguro que querés eliminar este evento?")) {
-      setEventos((prev) => prev.filter((ev) => ev.id !== id));
-      setModalAbierto(false);
+    if (!window.confirm("¿Seguro que querés eliminar este evento?")) return;
+    
+    try{
+      const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
+
+      const response= await fetch(`http://localhost:8000/api/v1/eventos/${id}`,{
+        method: "DELETE",
+        headers:{
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      if (response.ok){
+        await cargarEventos();
+        setModalAbierto(false);
+      } else{
+        alert("No se puede elminar");
+      }
+    } catch(err){
+      console.error("Error al eliminar evento", err);
     }
   };
 
@@ -192,8 +253,10 @@ export function EventosAdminView() {
           )}
         </div>
 
-        {listaAMostrar.length === 0 ? (
-          <p className="eventos-admin-vacio">No hay eventos para mostrar acá.</p>
+      {cargando ? (
+        <p className="eventos-admin-vacio">Cargando Eventos...</p>
+        ): listaAMostrar.length === 0 ? (
+        <p className="eventos-admin-vacio">No hay eventos para mostrar acá.</p>
         ) : (
           <div className="eventos-admin-lista">
             {listaAMostrar.map((ev) => (
@@ -230,3 +293,4 @@ export function EventosAdminView() {
     </>
   );
 }
+

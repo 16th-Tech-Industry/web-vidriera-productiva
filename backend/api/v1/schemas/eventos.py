@@ -7,7 +7,7 @@ class EventoBase(BaseModel):
     descripcion: str
     hora: str
     lugar: str
-    color: str= "blue"
+    color: str
 
 class EventoCreate(EventoBase):
     pass

@@ -8,7 +8,7 @@ from security import require_admin
 router = APIRouter(prefix="/eventos", tags=["Eventos"])
 
 _SELECT_EVENTO= (
-    "SELECT id_evento, fecha, titulo, descripcion, hora, lugar, color FROM eventos"
+    "SELECT id_evento, fecha, titulo, TO_CHAR(descripcion), hora, lugar, color FROM eventos"
 )
 
 def _fila_a_response(fila) -> EventoResponse:
@@ -19,7 +19,7 @@ def _fila_a_response(fila) -> EventoResponse:
         id= str(id_evento),
         fecha=str(fecha),
         titulo=str(titulo),
-        descripcion=desc_texto,
+        descripcion=str(descripcion or ""),
         hora=hora,
         lugar=lugar,
         color=str(color or "blue")
@@ -28,13 +28,13 @@ def _fila_a_response(fila) -> EventoResponse:
 @router.get("/", response_model=List[EventoResponse])
 def listar_eventos():
     """listado de eventos"""
-    filas= execute_query(_SELECT_EVENTO+ "ORDER BY fecha ASC", fetch=True)
+    filas= execute_query(_SELECT_EVENTO + " ORDER BY fecha ASC", fetch=True)
     return [_fila_a_response(fila) for fila in filas]
 
-@router.get("{/evento_id}", response_model=EventoResponse)
+@router.get("/{evento_id}", response_model=EventoResponse)
 def obtener_evento(evento_id: int):
     filas= execute_query(
-        _SELECT_EVENTO + "WHERE id_evento= :id",
+        _SELECT_EVENTO + " WHERE id_evento= :id",
         {"id": evento_id},
         fetch=True,
     )
@@ -58,7 +58,7 @@ def crear_evento(datos: EventoCreate, admin: dict= Depends(require_admin)):
     )
 
     nuevo= execute_query(
-        _SELECT_EVENTO+ "WHERE titulo= :titulo AND fecha= :fecha ORDER BY fecha ASC",
+        _SELECT_EVENTO+ " WHERE titulo= :titulo AND fecha= :fecha ORDER BY fecha ASC",
         {"titulo": datos.titulo, "fecha": datos.fecha},
         fetch=True,
     )
@@ -72,7 +72,7 @@ def editar_evento(
 ): 
     """editar eventos"""
     filas= execute_query(
-        _SELECT_EVENTO+ "WHERE id_evento= :id",
+        _SELECT_EVENTO+  " WHERE id_evento= :id",
         {"id": evento_id},
         fetch=True,
     )
@@ -88,11 +88,12 @@ def editar_evento(
         "descripcion": datos.descripcion,
         "hora": datos.hora,
         "lugar": datos.lugar,
-        "color": datos.color,   
+        "color": datos.color, 
+        "id": evento_id,  
         },
 )
     actualizado= execute_query(
-        _SELECT_EVENTO+ "WHERE id_evento= :id",
+        _SELECT_EVENTO+ " WHERE id_evento= :id",
         {"id": evento_id},
         fetch=True,
     )
