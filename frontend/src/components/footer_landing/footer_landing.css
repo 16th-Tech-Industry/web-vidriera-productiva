@@ -1,38 +1,69 @@
 .footer {
-    max-width: 100%;
-    width: 1300px;
-    height: 110px;
+    width: 100%;
+    min-height: 110px;
     color: #ffffff;
-    border-radius: 30px;
     background-color: #6CAEE5;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    padding: 20px 40px;
     box-sizing: border-box;
+    margin-top: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+[data-theme="dark"] .footer {
+    background-color: #1e3a5f;
 }
 
 .logo-footer {
-    width: 440px;
-    height: 120px;
-    margin-top: 90px;
-    display: flexbox;
-    justify-content: center;
+    width: 240px;
+    display: flex;
     align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+.logo-footer img {
+    width: 180px;
+    height: auto;
 }
 
-.social-footer .div {
-    width: 10px;
+/* ESTO ES LO QUE TE FALTA - ACOTA LOS ICONOS */
+.social-footer {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.social-footer div {
+    display: flex;
+    gap: 12px;
+}
+
+.social-footer img {
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.footer {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    min-height: 90px;
+    color: #ffffff;
+    background-color: #6CAEE5;
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 200px;
-    margin-right: 20px;
+    padding: 16px 32px;
+    box-sizing: border-box;
+    margin-top: 60px;
 }
-.social-footer img {
-    width: 50px;
-    height: 50px;
-    padding: 5px;
-
-}
+[data-theme="dark"] .footer { background-color: #1e3a5f; }
+.logo-footer { width: 200px; }
+.logo-footer img { width: 100%; height: auto; }
+.social-footer img { width: 28px !important; height: 28px !important; }

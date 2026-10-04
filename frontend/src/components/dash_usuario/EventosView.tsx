@@ -1,101 +1,72 @@
 import { useState } from "react";
 import "./EventosView.css";
 
-export default function EventosView() {
-  // Lista de eventos disponibles con su estado de postulación
-  const [listaEventos, setListaEventos] = useState([
-    {
-      id: 1,
-      titulo: "Expo Delicatessen & vinos",
-      dia: "15",
-      mes: "AGO",
-      anio: "2026",
-      lugar: "Cordoba Argentina",
-      postulado: false,
-    },
-    {
-      id: 2,
-      titulo: "Feria Agroalimentaria",
-      dia: "20",
-      mes: "SEP",
-      anio: "2026",
-      lugar: "Cordoba Argentina",
-      postulado: false,
-    },
-    {
-      id: 3,
-      titulo: "Encuentro Productivo Regional",
-      dia: "10",
-      mes: "OCT",
-      anio: "2026",
-      lugar: "Cordoba Argentina",
-      postulado: false,
-    },
-  ]);
+type Evento = {
+  id: number;
+  categoria: string;
+  titulo: string;
+  dia: string;
+  mes: string;
+  anio: string;
+  lugar: string;
+  cierraEn: string;
+  postulado: boolean;
+};
 
-  // Función para manejar la postulación
-  const handlePostularse = (id: number) => {
-    setListaEventos(
-      listaEventos.map((evento) => {
-        if (evento.id === id) {
-          const nuevoEstado = !evento.postulado;
-          if (nuevoEstado) {
-            alert(`¡Te has postulado con éxito a "${evento.titulo}"!`);
-          } else {
-            alert(`Has cancelado tu postulación a "${evento.titulo}".`);
-          }
-          return { ...evento, postulado: nuevoEstado };
-        }
-        return evento;
-      })
-    );
+const inicial: Evento[] = [
+  { id: 1, categoria: "Vinos y Delicatessen", titulo: "Expo Delicatessen & Vinos", dia: "15", mes: "AGO", anio: "2026", lugar: "Córdoba, Argentina", cierraEn: "Cierra en 5 días", postulado: false },
+  { id: 2, categoria: "Agroalimentaria", titulo: "Feria Agroalimentaria", dia: "20", mes: "SEP", anio: "2026", lugar: "Córdoba, Argentina", cierraEn: "Cierra en 12 días", postulado: false },
+  { id: 3, categoria: "Regional", titulo: "Encuentro Productivo Regional", dia: "10", mes: "OCT", anio: "2026", lugar: "Córdoba, Argentina", cierraEn: "Cierra en 30 días", postulado: false },
+];
+
+export default function EventosView() {
+  const [eventos, setEventos] = useState(inicial);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const toggle = (id: number, titulo: string, postulado: boolean) => {
+    setEventos(prev => prev.map(e => e.id === id ? { ...e, postulado: !e.postulado } : e));
+    setToast(postulado ? `Cancelaste tu postulación a ${titulo}` : `Listo, estás postulado a ${titulo}`);
+    setTimeout(() => setToast(null), 3000);
   };
 
   return (
     <main className="eventos-view">
-      {/* Cabecera limpia sin botón de creación */}
       <div className="eventos-header-flex">
         <div>
           <h1>Próximos eventos</h1>
-          <p>Mira los próximos eventos de prensa y convocatorias.</p>
+          <p>Elegí a cuáles querés postular tu marca.</p>
         </div>
       </div>
 
-      {/* Caja azul principal con la lista de eventos */}
-      <div className="eventos-box-azul">
-        <div className="eventos-lista">
-          {listaEventos.map((evento) => (
-            <div className="evento-fila" key={evento.id}>
-              <div className="calendario-bloque">
-                <span className="calendario-mes">{evento.mes}</span>
-                <span className="calendario-dia">{evento.dia}</span>
-              </div>
+      {toast && <div className="toast">{toast}</div>}
 
-              <div className="evento-detalles" style={{ flex: 1 }}>
-                <h3>{evento.titulo}</h3>
-                <p className="evento-fecha">{evento.dia} de {evento.mes.toLowerCase()} de {evento.anio}</p>
-                <p className="evento-lugar">{evento.lugar}</p>
-              </div>
-
-              {/* Botón de Postulación */}
-              <div>
-                <button
-                  className={`btn-postular ${evento.postulado ? "postulado" : ""}`}
-                  onClick={() => handlePostularse(evento.id)}
-                >
-                  {evento.postulado ? "✓ Postulado" : "Postularme"}
-                </button>
-              </div>
+      <div className="eventos-lista-v2">
+        {eventos.map(e => (
+          <article key={e.id} className="evento-card-v2">
+            <div className="calendario-bloque" aria-label={`${e.dia} de ${e.mes} ${e.anio}`}>
+              <span className="calendario-mes">{e.mes}</span>
+              <span className="calendario-dia">{e.dia}</span>
             </div>
-          ))}
-        </div>
+            <div className="evento-detalles">
+              <span className="tag">{e.categoria}</span>
+              <h3>{e.titulo}</h3>
+              <p className="meta">{e.dia} de {e.mes.toLowerCase()} {e.anio} • {e.lugar}</p>
+              <p className="cierre">{e.cierraEn}</p>
+            </div>
+            <div className="evento-accion">
+              <button
+                className={`btn-postular ${e.postulado ? "postulado" : ""}`}
+                onClick={() => toggle(e.id, e.titulo, e.postulado)}
+                aria-pressed={e.postulado}
+              >
+                {e.postulado ? "✓ Postulado" : "Postularme"}
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
 
-      {/* Barra de aviso inferior */}
-      <div className="eventos-footer-aviso">
-        <span className="aviso-icono">ℹ️</span>
-        <p>Los eventos estan sujetoa a cambios. Te mantendremos informados.</p>
-      </div>
+      <p className="nota-secundaria">Los eventos están sujetos a cambios. Te avisaremos por email si hay novedades.</p>
     </main>
   );
 }
