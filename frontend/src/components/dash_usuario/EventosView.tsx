@@ -92,6 +92,8 @@ export default function EventosView() {
         const response= await fetch("http://localhost:8000/api/v1/eventos/");
         if(response.ok){
           const data: EventoBackend[]= await response.json();
+          
+          const guardadas = JSON.parse(localStorage.getItem("misPostulaciones") || "[]") as string[]; 
 
           const adaptados: EventoUI[]= data.map((ev) =>{
            const {dia, mes, mesNombre, anio}= parsearFechaISO(ev.fecha);
@@ -110,7 +112,7 @@ export default function EventosView() {
             anio,
             lugar: ev.lugar || "Córdoba, Argentina",
             cierraEn: calcularCierraEn(ev.fecha),
-            postulado: false,
+            postulado: guardadas.includes(String(ev.id)),
            }; 
           });
 
@@ -133,6 +135,15 @@ export default function EventosView() {
     setEventos((prev) =>
       prev.map((e) => (e.id=== id ? {...e, postulado: !e.postulado}:e))
     );
+
+    const guardadas = JSON.parse(
+      localStorage.getItem("misPostulaciones") || "[]"
+    ) as string[];
+    const nuevas = postulado
+      ? guardadas.filter((x) => x !== id)
+      : [...guardadas, id];
+    localStorage.setItem("misPostulaciones", JSON.stringify(nuevas));
+
     setToast(
       postulado
       ? `Cancelaste tu postulación a ${titulo}`
@@ -143,7 +154,7 @@ export default function EventosView() {
 
   return(
     <main className="eventos-view">
-      <div className="ventos-header-flex">
+      <div className="eventos-header-flex">
         <div>
           <h1>Próximos Eventos</h1><br/>
           <p>Elegí a cuáles querés postular tu marca</p><br />

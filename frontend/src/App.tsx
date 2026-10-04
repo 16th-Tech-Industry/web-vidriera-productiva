@@ -12,12 +12,13 @@ import { CarruselNovedades } from './components/noticias/noticias';
 import EventosView from './components/dash_usuario/EventosView';
 import EmpresaView from './components/dash_usuario/EmpresaView';
 import ProductosView from './components/dash_usuario/ProductosView';
+import MisPostulacionesView from './components/dash_usuario/MisPostulacionesView';
 
 type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
 
 function App() {
   const [currentView, setCurrentView] = useState<AuthView>('mapa');
-  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos'>('empresa');
+  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos' | 'mis-postulaciones'>('empresa');
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
   const [isDark, setIsDark] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -140,6 +141,11 @@ function App() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                 {!sidebarCollapsed && 'Eventos'}
               </button>
+
+              <button onClick={() => setVistaUsuario('mis-postulaciones')} title="Mis Postulaciones" style={{ background: vistaUsuario === 'mis-postulaciones'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 5a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-14z"/><path d="M3 7l18 0"/></svg>
+                {!sidebarCollapsed && 'Mis Postulaciones'}
+              </button>
             </nav>
 
             <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -160,6 +166,7 @@ function App() {
               {vistaUsuario === 'empresa' && <EmpresaView />}
               {vistaUsuario === 'productos' && <ProductosView />}
               {vistaUsuario === 'eventos' && <EventosView />}
+              {vistaUsuario === 'mis-postulaciones' && <MisPostulacionesView />}
             </div>
           </div>
         </div>

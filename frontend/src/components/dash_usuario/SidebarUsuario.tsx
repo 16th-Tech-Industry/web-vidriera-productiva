@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "./SidebarUsuario.css";
 import logo from "/CbaProdLOGO.ico";
 
-export type SidebarUsuarioItemKey = "mi-empresa" | "productos" | "eventos";
+export type SidebarUsuarioItemKey = "mi-empresa" | "productos" | "eventos" | "mis-postulaciones";
 export interface SidebarUsuarioProps {
   activeItem?: SidebarUsuarioItemKey;
   onNavigate?: (key: SidebarUsuarioItemKey) => void;
@@ -11,11 +11,13 @@ export interface SidebarUsuarioProps {
 
 function BuildingIcon(){ return <span>🏢</span> }
 function ProductIcon(){ return <span>📦</span> }
+function TicketIcon(){ return <span>🎟️</span> }
 
 const NAV_ITEMS = [
   { key: "mi-empresa", label: "Mi Empresa", icon: BuildingIcon },
   { key: "productos", label: "Productos", icon: ProductIcon },
   { key: "eventos", label: "Eventos", icon: ProductIcon },
+  { key: "mis-postulaciones", label: "Mis Postulaciones", icon: TicketIcon },
 ] as const;
 
 export default function SidebarUsuario({ activeItem="mi-empresa", onNavigate, collapsed=false }: SidebarUsuarioProps){
