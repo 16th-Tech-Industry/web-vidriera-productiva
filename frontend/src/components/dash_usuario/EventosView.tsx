@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./EventosView.css";
 
 type Evento = {
@@ -23,8 +23,23 @@ export default function EventosView() {
   const [eventos, setEventos] = useState(inicial);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Al cargar, recupera mis postulaciones
+  useEffect(() => {
+    const guardadas = JSON.parse(localStorage.getItem("misPostulaciones") || "[]") as number[];
+    if (guardadas.length > 0) {
+      setEventos(prev => prev.map(e => ({ ...e, postulado: guardadas.includes(e.id) })));
+    }
+    // Guarda detalle de eventos para la otra vista
+    localStorage.setItem("eventos_detalle", JSON.stringify(inicial));
+  }, []);
+
   const toggle = (id: number, titulo: string, postulado: boolean) => {
     setEventos(prev => prev.map(e => e.id === id ? { ...e, postulado: !e.postulado } : e));
+
+    const actuales = JSON.parse(localStorage.getItem("misPostulaciones") || "[]") as number[];
+    const nuevas = postulado ? actuales.filter(x => x !== id) : [...actuales, id];
+    localStorage.setItem("misPostulaciones", JSON.stringify(nuevas));
+
     setToast(postulado ? `Cancelaste tu postulación a ${titulo}` : `Listo, estás postulado a ${titulo}`);
     setTimeout(() => setToast(null), 3000);
   };
