@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.v1.endpoints import landing, noticias, user, eventos
+from api.v1.endpoints import landing, noticias, user, eventos, postulaciones
 from api.v1.endpoints.usuario import register, login
 
 api_router_v1 = APIRouter()
@@ -9,3 +9,4 @@ api_router_v1.include_router(login.router, tags=["Login V1"])
 api_router_v1.include_router(noticias.router, tags=["Noticias V1"])
 api_router_v1.include_router(landing.router, tags=["Landing V1"])
 api_router_v1.include_router(eventos.router, tags=["Eventos V1"])
+api_router_v1.include_router(postulaciones.router, tags=["Postulaciones V1"])
