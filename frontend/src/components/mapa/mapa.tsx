@@ -5,7 +5,7 @@ import proj4 from 'proj4';
 import 'leaflet/dist/leaflet.css';
 import db from '../../assets/db.json';
 import mapaMetros from '../../assets/dataMap.json';
-import './Mapa.css';
+import './mapa.css';
 import 'leaflet/dist/leaflet.css';
 import { InfoCard } from '../infoProductor/infoProductor';
 

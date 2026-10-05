@@ -14,6 +14,7 @@ export interface SidebarProps {
   onNavigate?: (key: SidebarItemKey) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onGoToLanding?: () => void;
 }
 
 interface NavItem {
@@ -31,19 +32,28 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Sidebar del dashboard
+ * Sidebar del dashboard (sin botón de cerrar sesión: eso vive
+ * en el desplegable del Navbar). Se puede colapsar a solo íconos
+ * mediante el prop `collapsed`.
  */
 export default function Sidebar({
   activeItem = "inicio",
   onNavigate,
   collapsed = false,
   onToggleCollapse,
+  onGoToLanding,
 }: SidebarProps) {
   return (
     <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`}>
-      <div className="sidebar-brand">
+      <button
+        type="button"
+        className="sidebar-brand"
+        onClick={onGoToLanding}
+        title="Volver a la página principal"
+        aria-label="Volver a la página principal"
+      >
         <img src={logo} alt="Vidriera Productiva" className="sidebar-logo" />
-      </div>
+      </button>
 
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ key, label, icon: Icon }) => (

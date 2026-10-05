@@ -180,3 +180,60 @@
 .register-link {
   font-weight: bold;
 }
+
+/* INPUTS LOGIN - FIX DARK */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  background: white !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+input::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"] {
+  background: #334155 !important;
+  color: white !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.register-footer {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #e0f2fe;
+  border-top: 1px solid rgba(255,255,255,0.3);
+  padding-top: 15px;
+  width: 100%;
+}
+
+.back-link {
+  background: transparent;
+  border: none;
+  font-size: 0.85rem;
+  color: #e0f2fe;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: inherit;
+}
+
+.back-link:hover {
+  color: #ffffff;
+}
+
+[data-theme="dark"].back-link {
+  color: #93c5fd;
+}

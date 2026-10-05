@@ -22,7 +22,7 @@ router = APIRouter(prefix="/users", tags=["Login"])
 def login(payload: LoginRequest):
     """Valida email + password contra `representates` y devuelve un JWT de sesión."""
     rows = execute_query(
-        "SELECT id_representante, contrasenia_representate, estado, rol "
+        "SELECT id_representante, nombre_representante, contrasenia_representate, estado, rol "
         "FROM representates WHERE email_representante = :email",
         {"email": payload.email},
         fetch=True,
@@ -39,7 +39,7 @@ def login(payload: LoginRequest):
     if not rows:
         raise credenciales_invalidas
 
-    id_representante, password_hash, estado, rol = rows[0]
+    id_representante, nombre, password_hash, estado, rol = rows[0]
 
     if not verify_password(payload.password, password_hash):
         raise credenciales_invalidas
@@ -50,7 +50,17 @@ def login(payload: LoginRequest):
     # int(rol): NUMBER(1) puede volver como Decimal, y eso no serializa a JSON
     # dentro del JWT. "rol" es lo que después chequea security.require_admin().
     token = create_access_token({"sub": str(id_representante), "email": payload.email, "rol": int(rol)})
-    return {"access_token": token, "token_type": "bearer"}
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": id_representante,
+            "name": nombre,
+            "email": payload.email,
+            "role": int(rol)
+        }
+    }
 
 """
 Recuperación de contraseña — cómo funciona:

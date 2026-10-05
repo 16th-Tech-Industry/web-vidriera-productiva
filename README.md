@@ -38,6 +38,11 @@ Al ingresar se mostrará la pantalla de **Login**. Para acceder con permisos adm
 * **Email:** `admin@admin.com`
 * **Password:** `Admin987654`
 
+usuario:
+* **Email:** `francoavila935@gmail.com`
+* **Password:** `Francolat22`
+
+
 > ⚠️ **Nota:** Estas credenciales son de uso provisorio y exclusivo para el entorno de desarrollo y testing local.
 
 ---
@@ -164,7 +169,6 @@ docker compose up --build
 Accesos:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
-- Oracle DB: localhost:1521 (FREEPDB1 / vidriera_user / vidriera123)
+- Oracle DB: lo realizamos utilizando una VPN que nos conecta con un servidor propio que aloja la DB
 
-Detener:
-docker compose down
+

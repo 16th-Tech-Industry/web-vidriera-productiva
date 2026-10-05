@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import db from '../../assets/db.json';
-import styles from './Calendario.module.css';
+import styles from './calendario.module.css';
 
 export type Evento = (typeof db.eventos)[number];
 

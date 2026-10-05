@@ -1,0 +1,50 @@
+.nav {
+  width: 100vw;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: #123a6d;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  margin: 0;
+}
+
+.nav .logo {
+  height: 40px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.theme-toggle {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+}
+
+.register-btn,
+.login-btn {
+  background: #123a6d;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}

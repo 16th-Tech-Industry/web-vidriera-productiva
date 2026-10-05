@@ -98,3 +98,46 @@ ok 14 - TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
 # skipped 0
 # todo 0
 # duration_ms 65.511424
+
+
+
+# Fecha: 2026-09-17
+TAP version 13
+
+# Subtest: TC-R-01 registro con todos los datos validos no genera errores
+ok 8 - TC-R-01 registro con todos los datos validos no genera errores
+  ---
+  duration_ms: 0.7388
+  ...
+# Subtest: TC-R-02 registro con campos obligatorios vacios genera un error por campo
+ok 9 - TC-R-02 registro con campos obligatorios vacios genera un error por campo
+  ---
+  duration_ms: 0.4163
+  ...
+# Subtest: TC-R-03 registro con email invalido informa el error de email
+ok 10 - TC-R-03 registro con email invalido informa el error de email
+  ---
+  duration_ms: 0.4613
+  ...
+# Subtest: TC-R-04 registro con password de menos de 8 caracteres informa el error
+ok 11 - TC-R-04 registro con password de menos de 8 caracteres informa el error
+  ---
+  duration_ms: 0.2056
+  ...
+# Subtest: TC-R-05 registro con contrasenias que no coinciden informa el error
+ok 12 - TC-R-05 registro con contrasenias que no coinciden informa el error
+  ---
+  duration_ms: 0.1281
+  ...
+# Subtest: TC-R-06 el telefono es opcional: sin telefono no hay error
+ok 13 - TC-R-06 el telefono es opcional: sin telefono no hay error
+  ---
+  duration_ms: 0.1133
+  ...
+# Subtest: TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
+ok 14 - TC-R-07 funcion passwordsCoinciden con confirmacion vacia devuelve false
+  ---
+  duration_ms: 0.1251
+  ...
+ ❯ validaciones/validaciones.test.mjs (0 test)
+ ❯ validaciones/registro.test.tsx (0 test)

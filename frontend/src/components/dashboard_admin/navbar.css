@@ -16,6 +16,21 @@
   gap: 12px;
 }
 
+.navbar-logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: opacity 0.15s ease;
+}
+
+.navbar-logo-btn:hover {
+  opacity: 0.8;
+}
+
 .navbar-logo {
   height: 34px;
   width: auto;
