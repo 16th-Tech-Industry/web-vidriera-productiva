@@ -17,12 +17,14 @@ export function NoticiasAdminView() {
   const [imagenPreview, setImagenPreview] = useState<string | null>(null);
   const [publicado, setPublicado] = useState(false);
   const [errores, setErrores] = useState<{ titulo?: boolean; cuerpo?: boolean }>({});
+  const [archivoImagen, setArchivoImagen]= useState<File | null>(null);
 
   const cuerpoRef = useRef<HTMLDivElement>(null);
   const inputImagenRef = useRef<HTMLInputElement>(null);
 
   const handleArchivoImagen = (file: File | undefined) => {
     if (!file) return;
+    setArchivoImagen(file); //guardar
     const url = URL.createObjectURL(file);
     setImagenPreview(url);
   };
@@ -46,15 +48,66 @@ export function NoticiasAdminView() {
     const url = window.prompt("Pegá el link:");
     if (url) ejecutarComando("createLink", url);
   };
-
-  const handlePublicar = () => {
+////////////////////////////////////////////////////////
+  const handlePublicar = async () => {
     const cuerpoVacio = !cuerpoRef.current?.innerText.trim();
     const tituloVacio = !titulo.trim();
     setErrores({ titulo: tituloVacio, cuerpo: cuerpoVacio });
     if (tituloVacio || cuerpoVacio) return;
 
+/*const formData = new FormData();
+formData.append("titulo", titulo);
+formData.append("cuerpo", cuerpoRef.current?.innerHTML ?? "");
+
+if (archivoImagen){
+  formData.append("imagen", archivoImagen);
+}*/
+
+try{//endpoint
+  const formData= new FormData();
+  formData.append("titulo",titulo);
+  formData.append("cuerpo", cuerpoRef.current?.innerHTML ??"");
+  if(archivoImagen){
+    formData.append("imagen",archivoImagen);
+  }
+
+  const token = localStorage.getItem("authToken");
+  console.log("Token exacto enviado:", token);
+  if (!token) {
+      console.error("No se encontró el token de autenticación (authToken). Inicia sesión de nuevo.");
+      return;
+    }
+
+  const response = await fetch("http://localhost:8000/api/v1/noticias/", {
+    method:"POST",
+    headers:{
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (response.ok){
+    const noticiaCreada= await response.json();
+    console.log("Creacion ok", noticiaCreada);
+
+    setPublicado(true);
+    setTitulo("");
+
+    if(cuerpoRef.current) cuerpoRef.current.innerHTML="";
+    setImagenPreview(null);
+    setArchivoImagen(null);
+    setTimeout(() => setPublicado(false), 3000);
+  } else{
+    const errorData= await response.json();
+    console.error("eeror al guardar", errorData);
+    }
+} catch(error){
+  console.error("error ered")
+}
+};
+
     // TODO: conectar con el backend, ej. POST /noticias
-    const noticia = {
+   /* const noticia = {
       titulo,
       imagen: imagenPreview,
       cuerpoHtml: cuerpoRef.current?.innerHTML ?? "",
@@ -63,8 +116,8 @@ export function NoticiasAdminView() {
 
     setPublicado(true);
     setTimeout(() => setPublicado(false), 3000);
-  };
-
+  };*/
+/////////////////////////////////////////////////////////
   return (
     <>
       <div className="noticias-admin-header">
@@ -82,6 +135,7 @@ export function NoticiasAdminView() {
         </label>
         <input
           type="text"
+          maxLength={200}
           className={`noticias-admin-input ${errores.titulo ? "is-error" : ""}`}
           placeholder="Escribí el título de la noticia aquí..."
           value={titulo}
