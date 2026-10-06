@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './noticias.module.css';
-//import { NoticiasAdminView } from '../dashboard_admin/Noticias/NoticiasAdminView';
+import obtenerNoticias from '../../servicios/noticias_servicio';
 
 export interface Noticias {
   id: number | string;
-  titulo : string;
+  titulo: string;
   cuerpo?: string;
-  imagen_url?: string;
+  imagen_url?: string | null;
 }
 
 interface CarruselProps {
@@ -16,35 +16,29 @@ interface CarruselProps {
 export const CarruselNovedades: React.FC<CarruselProps> = ({ noticias }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   
-  // Lee de props o directamente de la tabla novedades en db.json
-  const [ listaNovedades, setListaNovedades]= useState <Noticias[]>(noticias || [] );
-  const [cargando, setCargando]= useState <boolean>(!noticias);
+  const [listaNovedades, setListaNovedades] = useState<Noticias[]>(noticias || []);
+  const [cargando, setCargando] = useState<boolean>(!noticias);
 
   useEffect(() => {
-    if (noticias){
+    if (noticias) {
       setListaNovedades(noticias);
       setCargando(false);
-      return
+      return;
     }
 
-    const obtenerNoticias= async() =>{
-      try{
-        const response= await fetch('http://localhost:8000/api/v1/noticias/');
-
-        if (response.ok){
-          const data: Noticias[]= await response.json();
-          setListaNovedades(data); 
-        }else{
-          console.error("error al cargar noticia", response.statusText);
-        }
-      }catch(error){
-        console.error("error de red", error);
-      }finally{
+    const cargarDesdeApi = async () => {
+      try {
+        const data = await obtenerNoticias(true);
+        setListaNovedades(data);
+      } catch (error) {
+        console.error("Error al cargar novedades desde el servicio:", error);
+      } finally {
         setCargando(false);
       }
-    }
-    obtenerNoticias();
-  },[noticias]);
+    };
+
+    cargarDesdeApi();
+  }, [noticias]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (trackRef.current) {
@@ -53,11 +47,11 @@ export const CarruselNovedades: React.FC<CarruselProps> = ({ noticias }) => {
     }
   };
 
-  if(cargando){
-    return <div className={styles.carruselcontainer}>Cargando...</div>
+  if (cargando) {
+    return <div className={styles.carruselContainer}>Cargando...</div>;
   }
 
-  if(listaNovedades.length===0){
+  if (listaNovedades.length === 0) {
     return null;
   }
 
@@ -77,8 +71,6 @@ export const CarruselNovedades: React.FC<CarruselProps> = ({ noticias }) => {
           <a
             key={item.id}
             href={`/NoticiasAdminView/${item.id}`}
-            /*target="_blank"
-            rel="noopener noreferrer"*/
             className={styles.card}
           >
             <div className={styles.imageWrapper}>
@@ -111,3 +103,5 @@ export const CarruselNovedades: React.FC<CarruselProps> = ({ noticias }) => {
     </div>
   );
 };
+
+export default CarruselNovedades;

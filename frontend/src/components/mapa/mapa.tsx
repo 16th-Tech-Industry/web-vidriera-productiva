@@ -3,24 +3,16 @@ import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import L, { type LatLngBoundsExpression, type LeafletMouseEvent } from 'leaflet';
 import proj4 from 'proj4';
 import 'leaflet/dist/leaflet.css';
-import db from '../../assets/db.json';
 import mapaMetros from '../../assets/dataMap.json';
 import './mapa.css';
-import 'leaflet/dist/leaflet.css';
 import { InfoCard } from '../infoProductor/infoProductor';
+import { 
+  obtenerDatosLanding, 
+  type Productor, 
+  type EventoLanding 
+} from '../../servicios/landing_servicio';
 
 type TipoCapa = 'todos' | 'empresas' | 'eventos';
-
-interface Productor {
-  id: number;
-  nombre: string;
-  rubro: string;
-  localidad: string;
-  lat: number;
-  lng: number;
-  imagen: string;
-  descripcion: string;
-}
 
 const PROJ_FAJA4 = "+proj=tmerc +lat_0=-90 +lon_0=-63 +k=1 +x_0=4500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 const PROJ_GRADOS = "+proj=longlat +datum=WGS84 +no_defs";
@@ -33,13 +25,33 @@ const BoundingBoxCordoba: LatLngBoundsExpression = [
 export const Mapa: React.FC = () => {
   const [categoria, setCategoria] = useState<string>('Todas');
   const [tipoFiltro, setTipoFiltro] = useState<TipoCapa>('todos');
+  const [productores, setProductores] = useState<Productor[]>([]);
+  const [eventos, setEventos] = useState<EventoLanding[]>([]);
   const [geoJsonGrados, setGeoJsonGrados] = useState<any>(null);
   const [instanciaMapa, setInstanciaMapa] = useState<L.Map | null>(null);
 
+  // 1. Carga de datos dinámicos desde FastAPI
   useEffect(() => {
-    if (mapaMetros && mapaMetros.features) {
+    const cargarDatos = async () => {
       try {
-        const mapaClonado = JSON.parse(JSON.stringify(mapaMetros));
+        const data = await obtenerDatosLanding();
+        setProductores(data.productores || []);
+        setEventos(data.eventos || []);
+      } catch (error) {
+        console.error("Error al cargar los datos de la landing:", error);
+      }
+    };
+
+    cargarDatos();
+  }, []);
+
+  // 2. Proyección de polígonos del mapa
+  useEffect(() => {
+    const mapaJson = mapaMetros as any;
+
+    if (mapaJson && mapaJson.features) {
+      try {
+        const mapaClonado = JSON.parse(JSON.stringify(mapaJson));
         mapaClonado.features = mapaClonado.features.map((feature: any) => {
           if (feature.geometry) {
             const tipo = feature.geometry.type;
@@ -64,14 +76,13 @@ export const Mapa: React.FC = () => {
     }
   }, []);
 
-  const productores: Productor[] = db.productores;
   const filtrados = categoria === 'Todas' 
     ? productores 
     : productores.filter(p => p.rubro === categoria);
 
   const eventosFiltrados = categoria === 'Todas'
-    ? db.eventos
-    : db.eventos.filter(ev => ev.categoria === categoria);
+    ? eventos
+    : eventos.filter(ev => ev.categoria === categoria);
 
   const estiloDeptoBase: L.PathOptions = {
     fillColor: '#6ea4d2',
@@ -108,8 +119,6 @@ export const Mapa: React.FC = () => {
 
   const handleCambioCategoria = (nuevaCategoria: string) => {
     setCategoria(nuevaCategoria);
-    
-    // Si selecciona un rubro puntual, cambia automáticamente a la pestaña Empresas
     if (nuevaCategoria !== 'Todas') {
       setTipoFiltro('empresas');
     }
@@ -149,14 +158,14 @@ export const Mapa: React.FC = () => {
   };
 
   return (
-   <div className="mapa-page-wrapper">
-    <div className="mapaWrapper">
-      <button className="btnRestaurar" onClick={restaurarVistaProvincia}>
-        🗺️ Ver Provincia Completa
-      </button>
+    <div className="mapa-page-wrapper">
+      <div className="mapaWrapper">
+        <button className="btnRestaurar" onClick={restaurarVistaProvincia}>
+          🗺️ Ver Provincia Completa
+        </button>
 
-      <div className="panelFiltros">
-        <div className="grupoFiltroTipo">
+        <div className="panelFiltros">
+          <div className="grupoFiltroTipo">
             <button
               className={`btnTipo ${tipoFiltro === 'todos' ? 'activo' : ''}`}
               onClick={() => setTipoFiltro('todos')}
@@ -176,86 +185,90 @@ export const Mapa: React.FC = () => {
               ⭐ Eventos
             </button>
           </div>
-        <select 
-          className="selectRubro"
-          value={categoria} 
-          onChange={(e) => handleCambioCategoria(e.target.value)} 
-        >
-          <option value="Todas">Todos los Rubros</option>
-          <option value="AGROALIMENTO">Agroalimento</option>
-          <option value="AGROINDUSTRIA">Agroindustria</option>
-          <option value="AGTECH">Agtech</option>
-        </select>
 
-        <div className="leyenda">
-          <div className="leyendaItem">
-            <div className="dotAgroalimento" /> Agroalimento
-          </div>
-          <div className="leyendaItem">
-            <div className="dotAgroindustria" /> Agroindustria
-          </div>
-          <div className="leyendaItem">
-            <div className="dotAgtech" /> Agtech
+          <select 
+            className="selectRubro"
+            value={categoria} 
+            onChange={(e) => handleCambioCategoria(e.target.value)} 
+          >
+            <option value="Todas">Todos los Rubros</option>
+            <option value="AGROALIMENTO">Agroalimento</option>
+            <option value="AGROINDUSTRIA">Agroindustria</option>
+            <option value="AGTECH">Agtech</option>
+          </select>
+
+          <div className="leyenda">
+            <div className="leyendaItem">
+              <div className="dotAgroalimento" /> Agroalimento
+            </div>
+            <div className="leyendaItem">
+              <div className="dotAgroindustria" /> Agroindustria
+            </div>
+            <div className="leyendaItem">
+              <div className="dotAgtech" /> Agtech
+            </div>
           </div>
         </div>
-      </div>
 
-      <MapContainer 
-        bounds={BoundingBoxCordoba}
-        boundsOptions={{ padding: [0, 0] }}
-        zoomSnap={0}
-        zoomDelta={0.25}
-        className="mapaLeaflet"
-        zoomControl={false}
-        ref={setInstanciaMapa}
-      >
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
+        <MapContainer 
+          bounds={BoundingBoxCordoba}
+          boundsOptions={{ padding: [0, 0] }}
+          zoomSnap={0}
+          zoomDelta={0.25}
+          className="mapaLeaflet"
+          zoomControl={false}
+          ref={setInstanciaMapa}
+        >
+          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
 
-        {geoJsonGrados && (
-          <GeoJSON key={categoria} data={geoJsonGrados} style={estiloDeptoBase} onEachFeature={alCadaDepartamento} />
-        )}
-        {/* Marcadores de Empresas (Se muestran si tipoFiltro es 'todos' o 'empresas') */}
-        {(tipoFiltro === 'todos' || tipoFiltro === 'empresas') && filtrados.map((p) => (
-          <Marker key={p.id} position={[p.lat, p.lng]} icon={crearIconoCirculo(p.rubro)} zIndexOffset={100}>
-            <Popup maxWidth={280}>
-              <InfoCard item={p} />
-            </Popup>
-          </Marker>
-        ))}
-        {/* Marcadores de Eventos (Estrellas) */}
-        {(tipoFiltro === 'todos' || tipoFiltro === 'eventos') && db.eventos.map((ev) => (
-          <Marker key={`ev-${ev.id}`} position={[ev.lat, ev.lng]} icon={crearIconoEstrella()}>
-            <Popup maxWidth={260}>
-              <div style={{ padding: '0.8rem 1rem', fontFamily: 'sans-serif' }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#00457F', textTransform: 'uppercase' }}>
-                  📅 Evento • {ev.categoria}
-                </span>
-                <h4 style={{ margin: '0.3rem 0', fontSize: '1rem', color: '#1e293b' }}>{ev.nombre}</h4>
-                <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.8rem', color: '#64748b' }}>📍 {ev.localidad}</p>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569' }}>
-                  {ev.fechaInicio} al {ev.fechaFin}
-                </p>
-              </div>
-              {ev.imagen && (
-                <div style={{ width: '100%', height: '120px', borderRadius: '10px', overflow: 'hidden', marginTop: '0.25rem', backgroundColor: '#f1f5f9' }}>
-                  <img
-                    src={ev.imagen}
-                    alt={ev.nombre}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/260x120?text=Sin+Imagen';
-                    }}
-                  />
+          {geoJsonGrados && (
+            <GeoJSON key={categoria} data={geoJsonGrados} style={estiloDeptoBase} onEachFeature={alCadaDepartamento} />
+          )}
+
+          {/* Marcadores de Empresas */}
+          {(tipoFiltro === 'todos' || tipoFiltro === 'empresas') && filtrados.map((p) => (
+            <Marker key={p.id} position={[p.lat, p.lng]} icon={crearIconoCirculo(p.rubro)} zIndexOffset={100}>
+              <Popup maxWidth={280}>
+                <InfoCard item={p} />
+              </Popup>
+            </Marker>
+          ))}
+
+          {/* Marcadores de Eventos */}
+          {(tipoFiltro === 'todos' || tipoFiltro === 'eventos') && eventosFiltrados.map((ev) => (
+            <Marker key={`ev-${ev.id}`} position={[ev.lat, ev.lng]} icon={crearIconoEstrella()}>
+              <Popup maxWidth={260}>
+                <div style={{ padding: '0.8rem 1rem', fontFamily: 'sans-serif' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#00457F', textTransform: 'uppercase' }}>
+                    📅 Evento • {ev.categoria}
+                  </span>
+                  <h4 style={{ margin: '0.3rem 0', fontSize: '1rem', color: '#1e293b' }}>{ev.nombre}</h4>
+                  <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.8rem', color: '#64748b' }}>📍 {ev.localidad}</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569' }}>
+                    {ev.fechaInicio} al {ev.fechaFin}
+                  </p>
                 </div>
-              )}
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+                {ev.imagen && (
+                  <div style={{ width: '100%', height: '120px', borderRadius: '10px', overflow: 'hidden', marginTop: '0.25rem', backgroundColor: '#f1f5f9' }}>
+                    <img
+                      src={ev.imagen}
+                      alt={ev.nombre}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        e.currentTarget.src = 'https://via.placeholder.com/260x120?text=Sin+Imagen';
+                      }}
+                    />
+                  </div>
+                )}
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
     </div>
-   </div>
   );
 };
+
 const crearIconoEstrella = (): L.DivIcon => {
   return L.divIcon({
     className: 'marcador-evento-estrella',
