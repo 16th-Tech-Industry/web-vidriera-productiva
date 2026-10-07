@@ -4,7 +4,6 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
   margin: 0 auto;
 }
 
@@ -15,9 +14,12 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  padding: 1rem 0.5rem 1.5rem 0.5rem;
+  /* Espacio lateral para que las tarjetas no queden pegadas ni tapadas por las flechas */
+  padding: 1rem 1rem 1.5rem 1rem;
   width: 100%;
-  justify-content: center;
+  /* CAMBIO CRÍTICO: siempre flex-start para que el scroll empiece en 0 */
+  justify-content: flex-start;
+  align-items: stretch;
   scrollbar-width: none; /* Oculta scrollbar en Firefox */
 }
 
@@ -28,18 +30,21 @@
 /* Tarjeta individual */
 .card {
   flex: 0 0 300px;
+  width: 300px;
   max-width: 300px;
-  scroll-snap-align: center;
+  /* CAMBIO CRÍTICO: alinear al inicio del viewport del contenedor */
+  scroll-snap-align: start;
   background-color: #ffffff;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  text-decoration: none; /* Quita el subrayado de enlace */
+  text-decoration: none;
   color: inherit;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .card:hover {
@@ -73,16 +78,16 @@
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.35;
-  color: #00457F; /* Azul institucional */
+  color: #00457F;
   margin: 0;
   text-align: left;
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* Limita a 4 renglones */
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Botones de navegación (Flechas flotantes) */
+/* Botones de navegación */
 .btnNav {
   position: absolute;
   top: 50%;
@@ -117,19 +122,13 @@
   right: -20px;
 }
 
-/* Ocultar flechas si no entra en pantallas chicas */
+/* Responsive */
 @media (max-width: 768px) {
   .btnNav {
     display: none;
   }
   .card {
     flex: 0 0 240px;
-  }
-}
-@media (max-width: 992px) {
-  .track {
-    justify-content: flex-start;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    width: 240px;
   }
 }
