@@ -47,7 +47,7 @@ _EVENTOS = [
         "lat": -33.1245,
         "lng": -64.3521,
         "descripcion": "Muestra comercial, industrial y de servicios ganaderos.",
-        "imagen": "src/assets/RuralRIO4.png",
+        "imagen": "http://localhost:8000/uploads/eventos/ruralrio4.jpg",
     },
     {
         "id": 2,
@@ -59,7 +59,7 @@ _EVENTOS = [
         "lat": -31.9768,
         "lng": -64.5562,
         "descripcion": "Tradicional celebración con productores gastronómicos y cerveceros.",
-        "imagen": "src/assets/OktoberFest.png",
+        "imagen": "http://localhost:8000/uploads/eventos/oktoberfest.jpg",
     },
     {
         "id": 3,
@@ -71,7 +71,7 @@ _EVENTOS = [
         "lat": -31.4201,
         "lng": -64.1888,
         "descripcion": "Encuentro de innovación y tecnologías aplicadas al agro.",
-        "imagen": "src/assets/AgtechCBA.png",
+        "imagen": "http://localhost:8000/uploads/eventos/agtech.jpg",
     },
 ]
 

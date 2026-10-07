@@ -1,18 +1,59 @@
-import React, { useState } from 'react';
-import db from '../../assets/db.json';
+import React, { useEffect, useState } from 'react';
 import styles from './calendario.module.css';
+import {obtenerEventos} from '../../servicios/landing_servicio';
 
-export type Evento = (typeof db.eventos)[number];
+export interface Evento {
+  id: number | string;
+  nombre: string;
+  localidad: string;
+  categoria?: string;
+  fechaInicio: string; // formato YYYY-MM-DD
+  fechaFin: string;    // formato YYYY-MM-DD
+  imagen?: string | null;
+  descripcion: string;
+}
 
 interface CalendarioProps {
   onSelectEvento?: (evento: Evento) => void;
 }
 
+const BACKEND_URL = 'http://localhost:8000';
+
+// Función para normalizar la URL de la imagen
+const resolverImagenUrl = (url?: string | null): string => {
+  if (!url) return 'https://via.placeholder.com/400x200?text=Sin+Imagen';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
-  const eventos: Evento[] = db.eventos;
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [cargando, setCargando] = useState<boolean>(true);
   const [fechaActual, setFechaActual] = useState(new Date());
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [eventoActivo, setEventoActivo] = useState<Evento | null>(null);
+
+  // Carga asíncrona de eventos desde la API
+  useEffect(() => {
+    const fetchEventos = async () => {
+      try {
+        const data = await obtenerEventos();
+        setEventos(data);
+
+        // Si hay eventos, seleccionar automáticamente el primero
+        if (data && data.length > 0) {
+          setEventoActivo(data[0]);
+          setDiaSeleccionado(data[0].fechaInicio);
+        }
+      } catch (error) {
+        console.error('Error al cargar eventos en el calendario:', error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    fetchEventos();
+  }, []);
 
   const mes = fechaActual.getMonth();
   const anio = fechaActual.getFullYear();
@@ -24,7 +65,7 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
   const mesesAnt = () => setFechaActual(new Date(anio, mes - 1, 1));
   const mesesSig = () => setFechaActual(new Date(anio, mes + 1, 1));
 
-  // Obtener eventos correspondientes al día consultado
+
   const getEventosDelDia = (dia: number) => {
     const diaFormateado = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     return eventos.filter((e) => diaFormateado >= e.fechaInicio && diaFormateado <= e.fechaFin);
@@ -37,8 +78,7 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
   const handleDiaClick = (fechaStr: string, tieneEventos: boolean) => {
     if (!tieneEventos) return;
     setDiaSeleccionado(fechaStr);
-    
-    // Seleccionar automáticamente el primer evento del día seleccionado
+
     const evs = eventos.filter((e) => fechaStr >= e.fechaInicio && fechaStr <= e.fechaFin);
     if (evs.length > 0) {
       setEventoActivo(evs[0]);
@@ -49,6 +89,16 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
   const eventosDelDiaSeleccionado = diaSeleccionado
     ? eventos.filter((e) => diaSeleccionado >= e.fechaInicio && diaSeleccionado <= e.fechaFin)
     : [];
+
+  if (cargando) {
+    return (
+      <div className={styles.contenedorPrincipal}>
+        <div className={styles.placeholderVacio}>
+          <p className={styles.textoVacio}>Cargando agenda de eventos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.contenedorPrincipal}>
@@ -102,7 +152,7 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
           <article className={styles.cardDetalle}>
             <div className={styles.imagenWrapper}>
               <img
-                src={eventoActivo.imagen}
+                src={resolverImagenUrl(eventoActivo.imagen)}
                 alt={eventoActivo.nombre}
                 className={styles.imagenDetalle}
                 onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -117,7 +167,7 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
             <div className={styles.contenidoDetalle}>
               <h4 className={styles.eventoNombre}>{eventoActivo.nombre}</h4>
               <p className={styles.eventoLugar}>📍 {eventoActivo.localidad}</p>
-              
+              <p className={styles.eventoLugar}>📍 {eventoActivo.descripcion}</p>
               <div className={styles.eventoFechas}>
                 <span>🗓️ {eventoActivo.fechaInicio}</span>
                 {eventoActivo.fechaFin !== eventoActivo.fechaInicio && (
@@ -125,7 +175,6 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
                 )}
               </div>
 
-              {/* Si hay más de un evento en el mismo día, listado para alternar */}
               {eventosDelDiaSeleccionado.length > 1 && (
                 <div className={styles.selectorEventos}>
                   <p className={styles.selectorTitulo}>Otros eventos en esta fecha:</p>

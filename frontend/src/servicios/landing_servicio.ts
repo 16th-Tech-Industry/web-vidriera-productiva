@@ -43,7 +43,7 @@ export const obtenerProductores = async (): Promise<Productor[]> => {
   return res.json();
 };
 
-export const obtenerEventosLanding = async (): Promise<EventoLanding[]> => {
+export const obtenerEventos = async (): Promise<EventoLanding[]> => {
   const res = await fetch(`${API_URL}/api/v1/landing/eventos`);
   if (!res.ok) throw new Error(`Error ${res.status}`);
   return res.json();
