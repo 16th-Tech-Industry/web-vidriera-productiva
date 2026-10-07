@@ -10,7 +10,7 @@ export interface NoticiaResponse {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const obtenerNoticias = async (soloActivas: boolean = true): Promise<NoticiaResponse[]> => {
-    const res = await fetch(`${API_URL}/noticias/?solo_activas=${soloActivas}`);
+    const res = await fetch(`${API_URL}/api/v1/noticias/?solo_activas=${soloActivas}`);
 
   if (!res.ok) {
     throw new Error(`Error ${res.status}: no se pudieron cargar las noticias`);

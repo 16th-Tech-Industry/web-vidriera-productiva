@@ -30,7 +30,7 @@ export interface LandingResponse {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const obtenerDatosLanding = async (): Promise<LandingResponse> => {
-  const res = await fetch(`${API_URL}/landing/`);
+  const res = await fetch(`${API_URL}/api/v1/landing/`);
   if (!res.ok) {
     throw new Error(`Error ${res.status}: no se pudieron cargar los datos de la landing`);
   }
@@ -38,13 +38,13 @@ export const obtenerDatosLanding = async (): Promise<LandingResponse> => {
 };
 
 export const obtenerProductores = async (): Promise<Productor[]> => {
-  const res = await fetch(`${API_URL}/landing/productores`);
+  const res = await fetch(`${API_URL}/api/v1/landing/productores`);
   if (!res.ok) throw new Error(`Error ${res.status}`);
   return res.json();
 };
 
 export const obtenerEventosLanding = async (): Promise<EventoLanding[]> => {
-  const res = await fetch(`${API_URL}/landing/eventos`);
+  const res = await fetch(`${API_URL}/api/v1/landing/eventos`);
   if (!res.ok) throw new Error(`Error ${res.status}`);
   return res.json();
 };

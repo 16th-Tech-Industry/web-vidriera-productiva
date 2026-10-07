@@ -87,6 +87,9 @@ export const CarruselNovedades: React.FC<CarruselProps> = ({ noticias }) => {
               <p className={styles.texto}>
                 {item.titulo}
               </p>
+              <p className={styles.body}>
+                {item.cuerpo}
+              </p>
             </div>
           </a>
         ))}

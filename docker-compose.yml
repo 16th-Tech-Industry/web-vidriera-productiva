@@ -28,10 +28,19 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - DB_HOST=db
-      - DB_USER=vidriera_user
-      - DB_PASSWORD=vidriera123
-      - DB_NAME=FREEPDB1
+      - DB_HOST=100.114.112.47
+      - DB_PORT=1521
+      - DB_USER=cba_vidriera
+      - DB_PASSWORD=M1nisterio2026$$
+      - PASSWORD=M1nisterio2026$$
+      - DB_NAME=freepdb1
+      - DB_SERVICE=freepdb1
+      - DB_SERVICE_NAME=freepdb1
+      - DB_DSN=100.114.112.47:1521/freepdb1
+      - DB_CONNECTION=100.114.112.47:1521/freepdb1
+      - JWT_SECRET_KEY=57af69b091b60bb557d8fce20f3c79b1bf36dac474e16d08d64f33f1bde51ffd
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRE_MINUTES=60
 
   frontend:
     build: ./frontend
