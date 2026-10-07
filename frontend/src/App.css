@@ -1,3 +1,22 @@
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #0f172a;
+  --nav-footer: #6CAEE5;
+  --input-bg: #ffffff;
+  --text-muted: #64748b;
+}
+
+/* MODO OSCURO SUAVE - no negro puro */
+[data-theme="dark"] {
+  --bg: #1e293b;        /* era #0f172a - ahora gris azulado */
+  --card: #334155;      /* era #1e293b - tarjetas más claras */
+  --text: #cbd5e1;      /* era #f1f5f9 blanco que encandila */
+  --text-muted: #94a3b8;
+  --nav-footer: #253a5e;
+  --input-bg: #475569;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,34 +26,45 @@
 
 body {
   margin: 0;
-  background-color: #0f172a; /* Azul noche oscuro, ideal para descansar la vista */
+  background-color: var(--bg);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
+}
+
+/* LOGIN */
+.login-page-wrapper {
+  flex: 1;
+  display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background-color: #0f172a;
+  min-height: 100vh;
 }
 
-/* Tarjeta celeste del login */
 .login-container {
   background-color: #5fa4e1;
   width: 100%;
   max-width: 380px;
   padding: 32px 24px;
   border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Sombra adaptada a fondos oscuros */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+[data-theme="dark"] .login-container {
+  background-color: #3b82c4;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .login-container h2 {
@@ -69,14 +99,22 @@ body {
   padding: 14px 18px;
   border: none;
   border-radius: 16px;
-  background-color: #ffffff;
-  color: #2f6592;
+  background-color: var(--input-bg);
+  color: #1e3a5f;
   font-size: 15px;
   outline: none;
 }
 
+[data-theme="dark"] .form-group input {
+  color: #f1f5f9;
+}
+
 .form-group input::placeholder {
   color: #8bb2d6;
+}
+
+[data-theme="dark"] .form-group input::placeholder {
+  color: #94a3b8;
 }
 
 .btn-submit {
@@ -91,9 +129,76 @@ body {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
 .btn-submit:hover {
   background-color: #00284d;
+}
+
+/* MAPA + CALENDARIO */
+.mapa-page-layout {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+.seccion-mapa {
+  width: 100%;
+}
+
+.mapaWrapper {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background-color: var(--card);
+}
+
+.mapaLeaflet {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.seccion-calendario {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.calendario-titulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.calendario-subtitulo {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0.35rem 0 0 0;
+}
+
+.calendario-contenedor {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* DASHBOARD - FONDO SUAVE EN MODO OSCURO */
+.dashboard-main {
+  background-color: var(--bg);
+}
+
+.dashboard-content {
+  background-color: var(--bg) !important;
 }

@@ -1,0 +1,31 @@
+# Evidencia — Pruebas automatizadas BACKEND
+# Comando: ./recursos/bin/python -m pytest validaciones -v   (ejecutado desde la carpeta backend/)
+# Fecha: 2026-09-10
+# Python: Python 3.12.3
+
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/nakel/proyectos/web-vidriera-productiva/backend/recursos/bin/python
+cachedir: .pytest_cache
+rootdir: /home/nakel/proyectos/web-vidriera-productiva/backend
+plugins: anyio-4.14.2
+collecting ... collected 11 items
+
+validaciones/test_esquemas_usuario.py::test_TC_L_08_login_con_datos_validos_se_acepta PASSED [  9%]
+validaciones/test_esquemas_usuario.py::test_TC_L_09_login_con_email_sin_arroba_se_rechaza PASSED [ 18%]
+validaciones/test_esquemas_usuario.py::test_TC_L_10_login_con_password_de_menos_de_8_se_rechaza PASSED [ 27%]
+validaciones/test_esquemas_usuario.py::test_TC_L_11_login_sin_password_se_rechaza PASSED [ 36%]
+validaciones/test_esquemas_usuario.py::test_TC_R_08_registro_con_datos_validos_se_acepta PASSED [ 45%]
+validaciones/test_esquemas_usuario.py::test_TC_R_09_registro_con_nombre_de_1_letra_se_rechaza PASSED [ 54%]
+validaciones/test_esquemas_usuario.py::test_TC_R_10_registro_sin_apellido_se_rechaza PASSED [ 63%]
+validaciones/test_esquemas_usuario.py::test_TC_R_11_registro_con_email_invalido_se_rechaza PASSED [ 72%]
+validaciones/test_esquemas_usuario.py::test_TC_R_12_registro_con_password_corta_se_rechaza PASSED [ 81%]
+validaciones/test_esquemas_usuario.py::test_TC_RC_01_reset_password_con_nueva_password_corta_se_rechaza PASSED [ 90%]
+validaciones/test_esquemas_usuario.py::test_TC_RC_02_reset_password_con_datos_validos_se_acepta PASSED [100%]
+
+=============================== warnings summary ===============================
+api/v1/schemas/users.py:41
+  /home/nakel/proyectos/web-vidriera-productiva/backend/api/v1/schemas/users.py:41: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class UserResponse(UserBase):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 11 passed, 1 warning in 0.09s =========================

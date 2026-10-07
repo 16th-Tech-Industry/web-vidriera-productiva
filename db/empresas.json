@@ -7,7 +7,9 @@
             "departamento":"dpto",
             "localidad":"loc",
             "calle":"siempre viva",
-            "numero":123
+            "numero":123,
+            "latitud":-31.4201,
+            "longitud":-64.1888
         },
         "descripcion":"esto es una descripcion breve de la empresa",
         "correo_empresa":"empresa@falsa.com",

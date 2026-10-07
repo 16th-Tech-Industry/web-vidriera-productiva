@@ -1,0 +1,237 @@
+
+.contenedorPrincipal {
+  width: 100%;
+  max-width: 1050px;
+  margin: 1.5rem auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1rem;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ================= COLUMNA IZQUIERDA: CALENDARIO (TAMAÑO FIJO COMPACTO) ================= */
+.seccionCalendario {
+  width: 320px;
+  min-width: 320px;
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background-color: #00457F;
+  padding: 1rem 1.25rem;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.navBtns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: background-color 0.2s ease;
+}
+
+.navBtn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Grilla de días de la semana */
+.diasSemana {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 0.75rem 0.75rem 0.25rem 0.75rem;
+}
+
+/* Grilla numérica de 7 columnas obligatoria */
+.gridDias {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 4px;
+  padding: 0 0.75rem 1rem 0.75rem;
+}
+
+.diaCell {
+  aspect-ratio: 1;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 50%;
+  cursor: default;
+  position: relative;
+  color: #334155;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.diaVacio {
+  visibility: hidden;
+}
+
+.diaConEvento {
+  cursor: pointer;
+  font-weight: 700;
+  color: #00457F;
+}
+
+.diaConEvento:hover {
+  background-color: #e0f2fe;
+}
+
+.diaSeleccionado {
+  background-color: #00457F !important;
+  color: #ffffff !important;
+}
+
+.puntoEvento {
+  width: 5px;
+  height: 5px;
+  background-color: #f39200;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 3px;
+}
+
+.diaSeleccionado .puntoEvento {
+  background-color: #ffffff;
+}
+
+/* ================= COLUMNA DERECHA: CARD ANCHA Y PROTAGONISTA ================= */
+.seccionDetalle {
+  width: 320px;
+  flex: 1;
+  max-width: 3200px;
+}
+
+.cardDetalle {
+  background-color: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: row; /* Horizontal */
+  height: 100%;
+  min-height: 280px;
+  border: 1px solid #f1f5f9;
+}
+
+/* Columna de la imagen fija a la izquierda */
+.imagenWrapper {
+  position: relative;
+  width: 40%; /* Toma el 40% del ancho de la card */
+  min-width: 200px;
+  max-width: 260px;
+  height: auto; /* Se estira a la altura del contenido */
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.imagenDetalle {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.badgeCategoria {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: #00457F;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Columna de textos a la derecha */
+.contenidoDetalle {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.eventoNombre {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.eventoLugar {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.eventoFechas {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #00457F;
+  background-color: #f0f7ff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  width: fit-content;
+  margin-top: 0.25rem;
+}
+
+/* Responsive: si la pantalla es chica, vuelve a apilarse vertical */
+@media (max-width: 600px) {
+  .cardDetalle {
+    flex-direction: column;
+  }
+  .imagenWrapper {
+    width: 100%;
+    max-width: 100%;
+    height: 180px;
+  }
+}

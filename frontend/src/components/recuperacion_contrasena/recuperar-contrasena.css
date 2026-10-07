@@ -1,0 +1,52 @@
+/* Texto explicativo en blanco */
+.forgot-description {
+  color: #ffffff !important;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  text-align: left;
+  line-height: 1.45;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+/* Mensaje de confirmación en blanco tras enviar el enlace */
+.alert-success,
+.form-feedback-container p {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.45;
+  margin-bottom: 20px;
+  padding: 0 !important;
+}
+
+.alert-success strong,
+.form-feedback-container strong {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+.form-feedback-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Pie inferior: '¿Te acordaste de tu clave?' en blanco */
+.register-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #ffffff !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.3) !important;
+  padding-top: 15px;
+  width: 100%;
+}
+
+.register-footer span {
+  color: #ffffff !important;
+}

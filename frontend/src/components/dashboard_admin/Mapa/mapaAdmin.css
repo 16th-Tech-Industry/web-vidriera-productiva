@@ -1,0 +1,153 @@
+.mapa-admin-subtitulo {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: -10px 0 20px;
+  max-width: 640px;
+}
+
+.mapa-admin-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.mapa-admin-mapa {
+  flex: 1;
+  min-width: 0;
+  height: 560px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(23, 56, 92, 0.06);
+  /* El componente <Mapa /> puede traer su propio alto fijo (ej. 100vh)
+     pensado para la landing pública. Si al embeberlo acá se ve
+     recortado o más grande de lo esperado, puede que Mapa.css necesite
+     un ajuste para adaptarse a este contenedor. */
+}
+
+.mapa-admin-mapa > * {
+  height: 100%;
+}
+
+.mapa-admin-lista {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 10px rgba(23, 56, 92, 0.06);
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.mapa-admin-lista .section-heading {
+  margin-top: 0;
+  font-size: 14px;
+}
+
+.mapa-admin-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapa-admin-item {
+  background: #f7f9fb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.mapa-admin-item-info {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.mapa-admin-item-nombre {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.mapa-admin-item-rubro {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.mapa-admin-item-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mapa-admin-item-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 90px;
+}
+
+.mapa-admin-item-form input {
+  border: 1px solid #dde4ec;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.mapa-admin-item-acciones {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.mapa-admin-btn {
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.mapa-admin-btn:hover {
+  filter: brightness(0.95);
+}
+
+.mapa-admin-btn--editar {
+  width: 100%;
+  background: var(--topbar-bg, #5b9bd5);
+  color: #ffffff;
+}
+
+.mapa-admin-btn--guardar {
+  flex: 1;
+  background: #22a35b;
+  color: #ffffff;
+}
+
+.mapa-admin-btn--cancelar {
+  flex: 1;
+  background: #eef1f4;
+  color: var(--text-dark);
+}
+
+@media (max-width: 900px) {
+  .mapa-admin-layout {
+    flex-direction: column;
+  }
+
+  .mapa-admin-lista {
+    width: 100%;
+    max-height: none;
+  }
+
+  .mapa-admin-mapa {
+    height: 420px;
+    width: 100%;
+  }
+}

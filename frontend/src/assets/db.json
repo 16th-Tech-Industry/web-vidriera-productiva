@@ -1,0 +1,83 @@
+{
+  "productores": [
+    {
+      "id": 1,
+      "nombre": "AgroTech Córdoba",
+      "rubro": "AGTECH",
+      "localidad": "Río Cuarto",
+      "lat": -33.1232,
+      "lng": -64.3492,
+      "descripcion": "Maquinaria de precisión.",
+      "imagen": "src/assets/Agrotech.jpg"
+    },
+    {
+      "id": 2,
+      "nombre": "Sabores Serranos",
+      "rubro": "AGROALIMENTO",
+      "localidad": "Villa General Belgrano",
+      "lat": -31.9774,
+      "lng": -64.5559,
+      "descripcion": "Dulces artesanales.",
+      "imagen": "src/assets/SaboresSerranos.png"
+    }
+  ],
+
+  "eventos": [
+    {
+      "id": 1,
+      "nombre": "Exposición Rural de Río Cuarto",
+      "categoria": "AGROINDUSTRIA",
+      "localidad": "Río Cuarto",
+      "fechaInicio": "2026-09-02",
+      "fechaFin": "2026-09-06",
+      "lat": -33.1245,
+      "lng": -64.3521,
+      "descripcion": "Muestra comercial, industrial y de servicios ganaderos.",
+      "imagen": "src/assets/RuralRIO4.png"
+    },
+    {
+      "id": 2,
+      "nombre": "Fiesta Nacional de la Cerveza (Oktoberfest)",
+      "categoria": "AGROALIMENTO",
+      "localidad": "Villa General Belgrano",
+      "fechaInicio": "2026-10-02",
+      "fechaFin": "2026-10-12",
+      "lat": -31.9768,
+      "lng": -64.5562,
+      "descripcion": "Tradicional celebración con productores gastronómicos y cerveceros.",
+      "imagen": "src/assets/OktoberFest.png"
+    },
+    {
+      "id": 3,
+      "nombre": "Congreso Internacional AgTech Córdoba",
+      "categoria": "AGTECH",
+      "localidad": "Córdoba Capital",
+      "fechaInicio": "2026-11-15",
+      "fechaFin": "2026-11-17",
+      "lat": -31.4201,
+      "lng": -64.1888,
+      "descripcion": "Encuentro de innovación y tecnologías aplicadas al agro.",
+      "imagen": "src/assets/AgtechCBA.png"
+    }
+  ],
+  "noticias": [
+    {
+      "id": 1,
+      "imagen": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=60",
+      "epigrafe": "Lanzamiento oficial del programa Córdoba Vidriera Productiva con autoridades provinciales.",
+      "link": "https://www.cba.gov.ar"
+    },
+    {
+      "id": 2,
+      "imagen": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=60",
+      "epigrafe": "Ronda de negocios y vinculación estratégica para empresas del sector agroindustrial y agtech.",
+      "link": "https://www.cba.gov.ar"
+    },
+    {
+      "id": 3,
+      "imagen": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=60",
+      "epigrafe": "Capacitación y apertura de nuevas líneas de financiamiento para proyectos de innovación local.",
+      "link": "https://www.cba.gov.ar"
+    }
+  ]
+}
