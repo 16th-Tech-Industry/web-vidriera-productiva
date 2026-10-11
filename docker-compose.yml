@@ -1,8 +1,12 @@
-version: '3.8'
 services:
+  # Oracle local. Hoy el equipo usa la base del servidor propio (por VPN), así
+  # que este servicio es opcional y no arranca con `docker compose up`: hay que
+  # pedirlo con `docker compose --profile db-local up`. Arranca vacío: todavía
+  # no carga los scripts de db/.
   db:
     image: gvenzl/oracle-free:23-slim
     container_name: vidriera_oracle_db
+    profiles: ["db-local"]
     environment:
       ORACLE_PASSWORD: root
       APP_USER: vidriera_user
@@ -16,22 +20,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 120s
 
   backend:
     build: ./backend
     container_name: vidriera_backend
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
+    # Mismas variables que usa el backend fuera de Docker (ver .envexample):
+    # DB_USER, DB_CONNECTION, PASSWORD, JWT_SECRET_KEY, etc.
+    env_file: .env
     volumes:
       - ./backend:/app
-    environment:
-      - DB_HOST=db
-      - DB_USER=vidriera_user
-      - DB_PASSWORD=vidriera123
-      - DB_NAME=FREEPDB1
 
   frontend:
     build: ./frontend
