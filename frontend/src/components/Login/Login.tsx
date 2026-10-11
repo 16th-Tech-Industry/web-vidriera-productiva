@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { API_URL } from '../../config';
 import logo from '../../assets/ministerio+cba.svg';
 import '../Login/login.css';
 
@@ -57,7 +58,7 @@ export function Login({
       setIsLoading(true);
       setErrors({});
       try {
-        const response = await fetch('http://localhost:8000/api/v1/users/login', {
+        const response = await fetch(`${API_URL}/api/v1/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim(), password: password }),

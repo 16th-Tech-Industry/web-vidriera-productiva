@@ -11,3 +11,6 @@ JWT_EXPIRE_MINUTES=60
 # URL pública del backend, para armar la URL de las imágenes servidas
 # desde /uploads (ver api/v1/endpoints/noticias.py)
 PUBLIC_BASE_URL=http://localhost:8000
+# URL del backend que usa el frontend (ver frontend/src/config.ts).
+# En un despliegue va la URL pública del backend.
+VITE_API_URL=http://localhost:8000
