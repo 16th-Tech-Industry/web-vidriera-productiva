@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from api.v1.endpoints.dashboard.empresas import _SELECT_EMPRESA, _fila_a_response
+from api.v1.endpoints.dashboard.empresas import _COLUMNAS_EMPRESA, _SELECT_EMPRESA, _fila_a_response
 from api.v1.schemas.empresas import (
     ESTADO_APROBADA,
     ESTADO_PENDIENTE,
@@ -10,6 +10,13 @@ from api.v1.schemas.empresas import (
     EmpresaResponse,
     RechazoEmpresaRequest,
 )
+from api.v1.servicios.busqueda_empresas import (
+    FiltrosEmpresa,
+    buscar_empresas,
+    convertir_filas,
+    filtros_admin,
+)
+from api.v1.servicios.paginacion import Pagina, Paginacion, armar_pagina, parametros_paginacion
 from db_connector import execute_query
 from security import require_admin
 
@@ -21,6 +28,19 @@ def _obtener_empresa_o_404(empresa_id: int):
     if not filas:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
     return filas[0]
+
+
+@router.get("/", response_model=Pagina[EmpresaResponse])
+def buscar(
+    filtros: FiltrosEmpresa = Depends(filtros_admin),
+    paginacion: Paginacion = Depends(parametros_paginacion),
+    admin: dict = Depends(require_admin),
+):
+    """Buscador de empresas del dashboard admin: combina texto, rubro, zona,
+    departamento y estado (todos opcionales), paginado. Exclusivo de
+    administradores. La lógica vive en api/v1/servicios/busqueda_empresas.py."""
+    filas, total = buscar_empresas(_COLUMNAS_EMPRESA, filtros, paginacion)
+    return armar_pagina(convertir_filas(filas, _fila_a_response), total, paginacion)
 
 
 @router.get("/pendientes", response_model=List[EmpresaResponse])

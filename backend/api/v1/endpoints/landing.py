@@ -1,11 +1,17 @@
 import json
-from typing import List, Optional
+from dataclasses import replace
+from typing import List
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends
 
 from api.v1.schemas.empresas import ESTADO_APROBADA, EmpresaPublicaResponse
 from api.v1.schemas.landing import EventoResponse, LandingResponse, ProductorResponse
-from db_connector import execute_query
+from api.v1.servicios.busqueda_empresas import (
+    FiltrosEmpresa,
+    buscar_empresas,
+    convertir_filas,
+    filtros_publicos,
+)
 
 router = APIRouter(prefix="/landing", tags=["Landing"])
 
@@ -99,11 +105,9 @@ def listar_eventos():
 
 # --- Empresas reales (tabla `empresas`), a diferencia de _PRODUCTORES/_EVENTOS
 # que siguen siendo mock. Solo se muestran las aprobadas por un admin (ver
-# dashboard/empresas_revision.py); filtrables por rubro/categoría para el
-# mapa/listado público. El filtro usa la columna virtual `rubro_vc` (ver
-# db/indices_empresas.sql) en vez de repetir la expresión JSON_VALUE: así el
-# índice se usa siempre, sin depender de que el WHERE matchee la expresión
-# tal cual quedó definida (incluyendo el RETURNING) del lado de la columna.
+# dashboard/empresas_revision.py). Los filtros y la consulta salen del
+# buscador compartido (api/v1/servicios/busqueda_empresas.py), el mismo que
+# usa el dashboard admin.
 
 
 def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
@@ -122,19 +126,12 @@ def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
 
 
 @router.get("/empresas", response_model=List[EmpresaPublicaResponse])
-def listar_empresas_publicas(
-    rubro: Optional[str] = Query(None, description="Filtra por categoría/rubro de la empresa (ej: AGROALIMENTO)"),
-):
+def listar_empresas_publicas(filtros: FiltrosEmpresa = Depends(filtros_publicos)):
     """Empresas aprobadas para la vidriera pública (mapa de la landing), opcionalmente
-    filtradas por categoría/rubro."""
-    query = (
-        "SELECT id_empresa, razon_social, datos_publico FROM empresas WHERE estado = :estado"
+    filtradas por texto, rubro, zona y/o departamento. Devuelve todas las que
+    cumplen (sin paginar): el mapa necesita todos los puntos."""
+    filas, _ = buscar_empresas(
+        "id_empresa, razon_social, datos_publico",
+        replace(filtros, estado=ESTADO_APROBADA),
     )
-    params = {"estado": ESTADO_APROBADA}
-    if rubro:
-        query += " AND rubro_vc = :rubro"
-        params["rubro"] = rubro
-    query += " ORDER BY id_empresa"
-
-    filas = execute_query(query, params, fetch=True)
-    return [_fila_a_empresa_publica(fila) for fila in filas]
+    return convertir_filas(filas, _fila_a_empresa_publica)

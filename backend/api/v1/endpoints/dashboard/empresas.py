@@ -8,10 +8,8 @@ from security import get_current_user
 
 router = APIRouter(prefix="/dashboard/empresas", tags=["Dashboard - Empresas (usuario)"])
 
-_SELECT_EMPRESA = (
-    "SELECT id_empresa, cuit, razon_social, datos_publico, id_representante, estado, motivo_rechazo "
-    "FROM empresas"
-)
+_COLUMNAS_EMPRESA = "id_empresa, cuit, razon_social, datos_publico, id_representante, estado, motivo_rechazo"
+_SELECT_EMPRESA = f"SELECT {_COLUMNAS_EMPRESA} FROM empresas"
 
 
 def _fila_a_response(fila) -> EmpresaResponse:
