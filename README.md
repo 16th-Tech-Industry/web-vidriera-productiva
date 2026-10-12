@@ -163,13 +163,16 @@ flowchart TD
 ### 🐳 Ejecución con Docker + Oracle
 Requisito: Docker Desktop
 
+Antes de levantar: copiar `.envexample` a `.env` (en la raíz) y completar
+`DB_USER`, `DB_CONNECTION`, `PASSWORD` y `JWT_SECRET_KEY`. El backend toma
+esas variables del `.env`.
+
 Levantar:
 docker compose up --build
 
 Accesos:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
-- Oracle DB: localhost:1521 (FREEPDB1 / vidriera_user / vidriera123)
+- Oracle DB: lo realizamos utilizando una VPN que nos conecta con un servidor propio que aloja la DB
 
-Detener:
-docker compose down
+

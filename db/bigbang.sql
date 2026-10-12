@@ -1,5 +1,5 @@
 -- creacion del usuario / schema con contraseña
-CREATE USER cba_vidriera IDENTIFIED BY "M1nisterio2026$"
+CREATE USER cba_vidriera IDENTIFIED BY "<password>"
 DEFAULT TABLESPACE users TEMPORARY TABLESPACE temp;
 
 -- Permitir que el usuario se conecte y genere cosas basicas
@@ -10,7 +10,7 @@ ALTER USER cba_vidriera QUOTA UNLIMITED ON users;
 
 -- IMPORTANTE: CONNECT es un comando de SQL*Plus, no una sentencia SQL valida.
 -- En DBeaver no se puede cambiar de usuario a mitad de script: crea/abri una
--- conexion nueva logueada como cba_vidriera/M1nisterio2026$ contra freepdb1,
+-- conexion nueva logueada como cba_vidriera/<password> contra freepdb1,
 -- y desde ahi ejecuta el resto de este archivo (a partir de aca).
 
 CREATE TABLE representates (

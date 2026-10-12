@@ -1,0 +1,13 @@
+# entornos virtuales locales (la imagen instala sus propias dependencias)
+recursos/
+.venv/
+venv/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# imágenes subidas en desarrollo
+uploads/
+
+.env

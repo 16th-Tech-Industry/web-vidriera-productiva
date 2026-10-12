@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { API_URL } from '../../config';
 import logo from '../../assets/ministerio+cba.svg';
 import './recuperar-contrasena.css';
 
@@ -37,7 +38,7 @@ export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/users/forgot-password', {
+      const response = await fetch(`${API_URL}/api/v1/users/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
@@ -81,7 +82,7 @@ export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/users/reset-password', {
+      const response = await fetch(`${API_URL}/api/v1/users/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

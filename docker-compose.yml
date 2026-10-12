@@ -1,37 +1,16 @@
-version: '3.8'
 services:
-  db:
-    image: gvenzl/oracle-free:23-slim
-    container_name: vidriera_oracle_db
-    environment:
-      ORACLE_PASSWORD: root
-      APP_USER: vidriera_user
-      APP_USER_PASSWORD: vidriera123
-    ports:
-      - "1521:1521"
-    volumes:
-      - oracle_data:/opt/oracle/oradata
-    healthcheck:
-      test: ["CMD", "healthcheck.sh"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
+  # No hay servicio de base de datos: Oracle está en un servidor propio
+  # (se accede por VPN) y el backend se conecta usando DB_CONNECTION del .env.
   backend:
     build: ./backend
     container_name: vidriera_backend
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
+    # Mismas variables que usa el backend fuera de Docker (ver .envexample):
+    # DB_USER, DB_CONNECTION, PASSWORD, JWT_SECRET_KEY, etc.
+    env_file: .env
     volumes:
       - ./backend:/app
-    environment:
-      - DB_HOST=db
-      - DB_USER=vidriera_user
-      - DB_PASSWORD=vidriera123
-      - DB_NAME=FREEPDB1
 
   frontend:
     build: ./frontend
@@ -40,9 +19,9 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    # URL del backend vista desde el navegador (ver frontend/src/config.ts).
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
     volumes:
       - ./frontend:/app
       - /app/node_modules
-
-volumes:
-  oracle_data:

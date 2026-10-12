@@ -1,6 +1,17 @@
-from fastapi import APIRouter
+import json
+from dataclasses import replace
+from typing import List
 
+from fastapi import APIRouter, Depends
+
+from api.v1.schemas.empresas import ESTADO_APROBADA, EmpresaPublicaResponse
 from api.v1.schemas.landing import EventoResponse, LandingResponse, ProductorResponse
+from api.v1.servicios.busqueda_empresas import (
+    FiltrosEmpresa,
+    buscar_empresas,
+    convertir_filas,
+    filtros_publicos,
+)
 
 router = APIRouter(prefix="/landing", tags=["Landing"])
 
@@ -90,3 +101,37 @@ def listar_productores():
 @router.get("/eventos", response_model=list[EventoResponse])
 def listar_eventos():
     return _EVENTOS
+
+
+# --- Empresas reales (tabla `empresas`), a diferencia de _PRODUCTORES/_EVENTOS
+# que siguen siendo mock. Solo se muestran las aprobadas por un admin (ver
+# dashboard/empresas_revision.py). Los filtros y la consulta salen del
+# buscador compartido (api/v1/servicios/busqueda_empresas.py), el mismo que
+# usa el dashboard admin.
+
+
+def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
+    id_empresa, razon_social, datos_publico = fila
+    datos = datos_publico if isinstance(datos_publico, dict) else json.loads(datos_publico)
+    return EmpresaPublicaResponse(
+        id_empresa=id_empresa,
+        razon_social=razon_social,
+        nombre_empresa=datos["nombre_empresa"],
+        rubro=datos["rubro"],
+        ubicacion=datos["ubicacion"],
+        descripcion=datos["descripcion"],
+        correo_empresa=datos["correo_empresa"],
+        redes=datos.get("redes", {}),
+    )
+
+
+@router.get("/empresas", response_model=List[EmpresaPublicaResponse])
+def listar_empresas_publicas(filtros: FiltrosEmpresa = Depends(filtros_publicos)):
+    """Empresas aprobadas para la vidriera pública (mapa de la landing), opcionalmente
+    filtradas por texto, rubro, zona y/o departamento. Devuelve todas las que
+    cumplen (sin paginar): el mapa necesita todos los puntos."""
+    filas, _ = buscar_empresas(
+        "id_empresa, razon_social, datos_publico",
+        replace(filtros, estado=ESTADO_APROBADA),
+    )
+    return convertir_filas(filas, _fila_a_empresa_publica)
