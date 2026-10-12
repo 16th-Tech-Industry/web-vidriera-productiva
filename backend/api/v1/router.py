@@ -4,6 +4,7 @@ from api.v1.endpoints.usuario import register, login
 from api.v1.endpoints.dashboard import empresas as dashboard_empresas
 from api.v1.endpoints.dashboard import empresas_revision as dashboard_empresas_revision
 from api.v1.endpoints.dashboard import empresas_exportacion as dashboard_empresas_exportacion
+from api.v1.endpoints.dashboard import ubicaciones
 
 api_router_v1 = APIRouter()
 api_router_v1.include_router(user.router, tags=["Users V1"])
@@ -18,3 +19,4 @@ api_router_v1.include_router(dashboard_empresas.router, tags=["Dashboard V1"])
 api_router_v1.include_router(dashboard_empresas_revision.router, tags=["Dashboard V1"])
 api_router_v1.include_router(dashboard_empresas_exportacion.router, tags=["Dashboard V1"])
 api_router_v1.include_router(notificaciones.router, tags=["Notificaciones V1"])
+api_router_v1.include_router(ubicaciones.router)
