@@ -3,6 +3,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.v1.schemas.empresas import ESTADO_PENDIENTE, EmpresaCreate, EmpresaResponse
+from api.v1.servicios.productos_empresa import listar_productos
 from db_connector import execute_query
 from security import get_current_user
 
@@ -31,6 +32,7 @@ def _fila_a_response(fila) -> EmpresaResponse:
         id_representante=int(id_representante),
         estado=int(estado),
         motivo_rechazo=motivo_rechazo,
+        productos=listar_productos(datos),
     )
 
 

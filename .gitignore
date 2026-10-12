@@ -40,6 +40,8 @@ share/
 
 # Archivos subidos por los usuarios (imágenes de noticias, etc.)
 backend/uploads/
+# Imágenes de productos, una carpeta por empresa
+backend/empresas_repo/
 
 # Environment variables
 .env

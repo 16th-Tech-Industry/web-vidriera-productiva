@@ -18,6 +18,14 @@
             "facebook":"faceboock",
             "instagram":"instagram",
             "pagina_web":"falsa.com"
+        },
+        "productos":{
+            "1":{
+                "id":1,
+                "nombre":"nombre del producto",
+                "descripcion":"descripcion breve del producto",
+                "ubicacion_imagen":"empresas_repo/0/archivo.jpg"
+            }
         }
     }
 }

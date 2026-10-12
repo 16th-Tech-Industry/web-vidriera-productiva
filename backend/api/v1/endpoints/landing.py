@@ -2,9 +2,9 @@ import json
 from dataclasses import replace
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from api.v1.schemas.empresas import ESTADO_APROBADA, EmpresaPublicaResponse
+from api.v1.schemas.empresas import ESTADO_APROBADA, EmpresaPublicaDetalleResponse, EmpresaPublicaResponse
 from api.v1.schemas.landing import EventoResponse, LandingResponse, ProductorResponse
 from api.v1.servicios.busqueda_empresas import (
     FiltrosEmpresa,
@@ -12,6 +12,8 @@ from api.v1.servicios.busqueda_empresas import (
     convertir_filas,
     filtros_publicos,
 )
+from api.v1.servicios.productos_empresa import listar_productos
+from db_connector import execute_query
 
 router = APIRouter(prefix="/landing", tags=["Landing"])
 
@@ -123,6 +125,24 @@ def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
         correo_empresa=datos["correo_empresa"],
         redes=datos.get("redes", {}),
     )
+
+
+@router.get("/empresas/{empresa_id}", response_model=EmpresaPublicaDetalleResponse)
+def obtener_empresa_publica(empresa_id: int):
+    """Ficha pública de una empresa aprobada, con sus productos. Es una sola
+    lectura por clave primaria: los productos viven en el mismo JSON que la
+    empresa (ver api/v1/servicios/productos_empresa.py)."""
+    filas = execute_query(
+        "SELECT id_empresa, razon_social, datos_publico FROM empresas "
+        "WHERE id_empresa = :id AND estado = :estado",
+        {"id": empresa_id, "estado": ESTADO_APROBADA},
+        fetch=True,
+    )
+    if not filas:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
+    datos = filas[0][2] if isinstance(filas[0][2], dict) else json.loads(filas[0][2])
+    publica = _fila_a_empresa_publica(filas[0])
+    return EmpresaPublicaDetalleResponse(**publica.model_dump(), productos=listar_productos(datos))
 
 
 @router.get("/empresas", response_model=List[EmpresaPublicaResponse])

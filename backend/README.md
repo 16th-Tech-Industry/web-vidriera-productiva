@@ -24,10 +24,12 @@ backend/
         │   │   └── login.py            # Login + recuperación de contraseña por mail (forgot/reset)
         │   └── dashboard/
         │       ├── empresas.py             # Alta y consulta de "mi empresa" — cualquier representante logueado (get_current_user)
+        │       ├── productos.py            # Alta, edición y baja de los productos de "mi empresa", con imagen
         │       ├── empresas_revision.py    # Buscador y revisión (pendientes, aprobar, rechazar, con aviso al representante) — exclusivo admin (require_admin)
         │       └── empresas_exportacion.py # Exportación del listado a .xlsx por cola de trabajos — exclusivo admin
         ├── servicios/
         │   ├── correo.py               # Envío de mails por SMTP: bienvenida, recupero de contraseña y revisión de empresa
+        │   ├── productos_empresa.py    # Productos dentro del JSON de la empresa e imágenes en empresas_repo/
         │   ├── busqueda_empresas.py    # Filtros combinados del buscador de empresas
         │   ├── paginacion.py           # Paginación de listados
         │   ├── exportacion_empresas.py # Armado del .xlsx
@@ -37,6 +39,7 @@ backend/
             ├── noticias.py         # Modelos Pydantic de noticias
             ├── landing.py          # Modelos Pydantic de productores/eventos (mock)
             ├── empresas.py         # Modelos Pydantic de empresas: alta, respuesta interna y respuesta pública
+            ├── productos.py        # Modelo Pydantic de producto y forma del diccionario que se guarda en el JSON
             └── notificaciones.py   # Modelos Pydantic de notificaciones: envío a todos / a usuarios y respuesta
 ```
 
@@ -46,7 +49,7 @@ Fuera de `backend/` pero relevante:
 - `../db/indices_empresas.sql` — columnas virtuales + índices para filtrar `empresas` por rubro/zona/departamento.
 - `../db/empresas_revision.sql` — agrega el circuito de revisión a `empresas` (`estado`, `motivo_rechazo`, `id_representante`) y la `PRIMARY KEY` que le faltaba a `representates`.
 
-`recursos/` y `.venv/` dentro de `backend/` son entornos virtuales de Python (ignorados por git), no código de la app.
+`recursos/` y `.venv/` dentro de `backend/` son entornos virtuales de Python (ignorados por git), no código de la app. `uploads/` (imágenes de noticias) y `empresas_repo/` (imágenes de productos, una carpeta por empresa) guardan archivos subidos por los usuarios y tampoco se versionan.
 
 ## Dependencias
 
@@ -170,7 +173,39 @@ Request:
 Errores: `400` si ese representante ya tiene una empresa cargada, o si el CUIT ya existe · `401` sin token · `422` si falla alguna validación.
 
 #### `GET /api/v1/dashboard/empresas/mia` — dashboard usuario
-Devuelve **la** empresa del representante logueado (objeto único, no lista — un representante tiene como máximo una) junto a su `estado` y `motivo_rechazo` si fue rechazada. `404` si todavía no cargó ninguna.
+Devuelve **la** empresa del representante logueado (objeto único, no lista — un representante tiene como máximo una) junto a su `estado`, `motivo_rechazo` si fue rechazada y sus `productos`. `404` si todavía no cargó ninguna.
+
+#### Productos de la empresa — dashboard usuario, requiere estar logueado
+
+Los productos no tienen tabla propia: viven **adentro del JSON de la empresa** (`empresas.datos_publico`), en la clave `productos`, como un diccionario cuya clave es el id del producto. La empresa y sus productos se leen siempre juntos, así que la ficha completa sale con una sola consulta por clave primaria.
+
+```json
+{
+  "nombre_empresa": "Sabores Serranos",
+  "rubro": "AGROALIMENTO",
+  "ubicacion": { "...": "..." },
+  "productos": {
+    "1": { "id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "ubicacion_imagen": "empresas_repo/7/0d68a117.png" },
+    "2": { "id": 2, "nombre": "Miel", "descripcion": "Pura de monte", "ubicacion_imagen": null }
+  }
+}
+```
+
+Las imágenes no van a la base: se guardan en disco en `backend/empresas_repo/<id_empresa>/` con un nombre aleatorio, y el JSON guarda solo la ubicación. `main.py` sirve esa carpeta como estático, así que `ubicacion_imagen` es también la ruta de la URL (`http://localhost:8000/empresas_repo/7/0d68a117.png`).
+
+| Endpoint | Qué hace |
+| :--- | :--- |
+| `GET /api/v1/dashboard/empresas/mia/productos/` | Lista los productos de mi empresa. |
+| `POST /api/v1/dashboard/empresas/mia/productos/` | Agrega un producto. `multipart/form-data`: `nombre` y `descripcion` obligatorios, `imagen` opcional. Devuelve `201`. |
+| `PATCH /api/v1/dashboard/empresas/mia/productos/{id}` | Edita solo los campos enviados. Una `imagen` nueva reemplaza y borra la anterior. |
+| `DELETE /api/v1/dashboard/empresas/mia/productos/{id}` | Elimina el producto y su imagen. Devuelve `204`. |
+
+Cada producto se devuelve así (la API entrega una lista ordenada por id, aunque en la base sea un diccionario):
+```json
+{ "id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "ubicacion_imagen": "empresas_repo/7/0d68a117.png", "imagen_url": "http://localhost:8000/empresas_repo/7/0d68a117.png" }
+```
+
+Reglas: imagen `.jpg`, `.jpeg`, `.png`, `.webp` o `.gif` de hasta 5 MB · máximo 50 productos por empresa · el representante solo llega a su propia empresa (sale de su JWT) · los cambios se publican directo, sin volver a revisión. Errores: `400` formato o tamaño de imagen, o tope de productos · `404` si no cargó su empresa o el producto no existe · `422` si falta `nombre` o `descripcion`.
 
 #### `GET /api/v1/dashboard/empresas/pendientes` — dashboard admin, exclusivo admin
 Lista las empresas en estado pendiente, esperando revisión.
@@ -186,7 +221,10 @@ Pasa la empresa a estado rechazada y le avisa al representante. Body: `{ "motivo
 Errores comunes de los tres endpoints de admin: `403` si quien llama no es admin · `404` si la empresa no existe.
 
 ### `GET /api/v1/landing/empresas` — público, sin autenticación
-Empresas **aprobadas**, para el mapa/listado de la landing. Filtro opcional `?rubro=AGROALIMENTO` (usa la columna virtual `rubro_vc` de `db/indices_empresas.sql`, indexada). No expone `estado`, `motivo_rechazo`, `id_representante` ni `cuit` — son datos del circuito de revisión interno, no de cara al visitante.
+Empresas **aprobadas**, para el mapa/listado de la landing. Filtro opcional `?rubro=AGROALIMENTO` (usa la columna virtual `rubro_vc` de `db/indices_empresas.sql`, indexada). No expone `estado`, `motivo_rechazo`, `id_representante` ni `cuit` — son datos del circuito de revisión interno, no de cara al visitante. Tampoco trae los productos, para que el listado del mapa siga siendo liviano.
+
+### `GET /api/v1/landing/empresas/{id}` — público, sin autenticación
+Ficha de una empresa **aprobada**: los mismos campos que el listado más `productos` (lista, con `imagen_url` lista para un `<img>`). `404` si no existe o no está aprobada.
 
 ### Notificaciones en vivo: dashboard admin → dashboard usuario
 

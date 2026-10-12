@@ -127,6 +127,25 @@ testing), así que no se pudo confirmar si tiene el mismo problema de PK
 que tenía `representates` — si en algún momento se corre, revisar lo
 mismo.
 
+## Productos dentro del JSON de la empresa
+
+Los productos de cada empresa se guardan adentro de `empresas.datos_publico`,
+en la clave `productos`: un diccionario cuya clave es el id del producto y
+cuyo valor tiene `id`, `nombre`, `descripcion` y `ubicacion_imagen` (ver el
+ejemplo en `empresas.json`). No hay tabla `productos`.
+
+Es el criterio de diseño de una base de documentos: se guarda junto lo que
+se lee junto. La ficha de una empresa necesita siempre sus productos, así
+que salen en la misma lectura por clave primaria, sin join ni segunda
+consulta. No requirió cambios de esquema: la columna `JSON` acepta la clave
+nueva tal cual.
+
+Lo que queda afuera del documento son las imágenes: van a disco, en
+`backend/empresas_repo/<id_empresa>/`, y el JSON guarda solo su ubicación.
+Así el documento se mantiene chico (texto) y el navegador puede cachear
+cada imagen por separado. El backend limita a 50 productos por empresa
+para que el documento no crezca sin tope.
+
 ## Resumen
 
 | Punto | Estado |
@@ -137,3 +156,4 @@ mismo.
 | Endpoint público que lista `empresas` aprobadas, filtrable por rubro | ✅ Hecho (`GET /api/v1/landing/empresas`) |
 | Cache del listado público de empresas | ⏳ Pendiente (endpoint ya existe; sin cache todavía, volumen actual no lo justifica) |
 | `PRIMARY KEY` faltante en `representates.id_representante` | ✅ Hecho (`empresas_revision.sql`) |
+| Productos embebidos en `empresas.datos_publico` | ✅ Hecho (`backend/api/v1/servicios/productos_empresa.py`) |

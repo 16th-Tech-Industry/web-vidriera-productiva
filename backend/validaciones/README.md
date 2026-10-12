@@ -17,6 +17,10 @@ módulo de Gestión de Noticias (no está en la planilla original).
 los endpoints `forgot-password` / `reset-password`, el mail de bienvenida
 del registro y el envío, con la base y el SMTP reemplazados por dobles.
 
+`test_productos.py` cubre los productos de una empresa: el diccionario que
+se guarda dentro del JSON, las imágenes en `empresas_repo/` (en una carpeta
+temporal) y los endpoints del dashboard y de la ficha pública.
+
 ## Cómo ejecutar
 
 Requisito: el entorno virtual del backend (`.venv`) con las dependencias de

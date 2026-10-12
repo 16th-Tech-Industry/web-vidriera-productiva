@@ -1,12 +1,16 @@
 # backend/api/v1/schemas/empresas.py
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
+
+from api.v1.schemas.productos import ProductoResponse
 
 # Forma del JSON que se persiste en empresas.datos_publico (columna JSON
 # nativa de Oracle, ver db/bigbang.sql). Espeja exactamente el ejemplo de
 # db/empresas.json: cuit y razon_social son columnas propias de la tabla,
-# el resto vive adentro del JSON.
+# el resto vive adentro del JSON. Los productos también viven en ese JSON,
+# en la clave "productos" (ver api/v1/schemas/productos.py); no se cargan
+# en el alta de la empresa sino después, desde dashboard/productos.py.
 
 # Estados del circuito de revisión (ver db/empresas_revision.sql):
 # el usuario carga la empresa (nace pendiente) y un admin la aprueba o
@@ -59,6 +63,7 @@ class EmpresaResponse(BaseModel):
     id_representante: int
     estado: int
     motivo_rechazo: Optional[str] = None
+    productos: List[ProductoResponse] = []
 
     class Config:
         from_attributes = True
@@ -84,3 +89,9 @@ class EmpresaPublicaResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Ficha pública de UNA empresa: lo mismo que el listado más sus productos.
+# El listado (mapa) no los trae para que la respuesta siga siendo liviana.
+class EmpresaPublicaDetalleResponse(EmpresaPublicaResponse):
+    productos: List[ProductoResponse] = []

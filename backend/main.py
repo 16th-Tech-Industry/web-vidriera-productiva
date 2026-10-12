@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from api.v1.router import api_router_v1
+from api.v1.servicios.productos_empresa import EMPRESAS_REPO_DIR, NOMBRE_CARPETA
 from db_connector import close_pool
 
 # Carpeta donde se guardan las imágenes subidas (ver api/v1/endpoints/noticias.py).
@@ -12,6 +13,11 @@ from db_connector import close_pool
 # queda accesible en http://localhost:8000/uploads/noticias/x.jpg
 UPLOADS_DIR = Path(__file__).resolve().parent / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+# Imágenes de los productos, una carpeta por empresa (ver
+# api/v1/servicios/productos_empresa.py). Un producto con
+# ubicacion_imagen="empresas_repo/7/x.jpg" queda accesible en
+# http://localhost:8000/empresas_repo/7/x.jpg
+EMPRESAS_REPO_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @asynccontextmanager
@@ -48,3 +54,4 @@ app.include_router(api_router_v1, prefix="/api/v1")
 
 # Archivos subidos (imágenes de noticias, etc.)
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+app.mount(f"/{NOMBRE_CARPETA}", StaticFiles(directory=EMPRESAS_REPO_DIR), name=NOMBRE_CARPETA)
