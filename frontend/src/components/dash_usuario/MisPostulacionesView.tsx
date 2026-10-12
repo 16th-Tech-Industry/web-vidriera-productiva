@@ -31,49 +31,46 @@ export default function MisPostulacionesView() {
     setMisEventos(lista.filter(e => ids.includes(e.id)).map(e => ({...e, estado: e.estado || "pendiente", fechaPostulacion: e.fechaPostulacion || new Date().toLocaleDateString()})));
   }, []);
 
-  // 2 y 4. Lógica de filtros + buscador + histórico
   const filtrados = misEventos.filter(e => {
     const busca = e.titulo.toLowerCase().includes(busqueda.toLowerCase()) || e.categoria.toLowerCase().includes(busqueda.toLowerCase());
     
     if (filtro === "Histórico") {
-      // Si el año ya pasó, va a histórico
       return parseInt(e.anio) < new Date().getFullYear() && busca;
     }
     if (filtro === "Todas") return busca;
-    return e.estado?.toLowerCase() === filtro.toLowerCase().slice(0, -1) && busca; // Pendientes -> pendiente
+    return e.estado?.toLowerCase() === filtro.toLowerCase().slice(0, -1) && busca;
   });
 
   if(misEventos.length === 0){
     return (
-      <main className="eventos-view">
+      <div className="eventos-view">
         <h1>Mis Postulaciones</h1>
         <p>Todavía no te postulaste a ningún evento. Andá a Eventos para postularte.</p>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="eventos-view">
+    <div className="eventos-view">
       <h1>Mis Postulaciones</h1>
       <p>Eventos a los que te postulaste y su estado.</p>
 
-      {/* 2. FILTROS Y BUSCADOR */}
       <div className="filtros-bar">
-        <div className="tabs">
+        <div className="tabs" role="group" aria-label="Filtrar postulaciones">
           {["Todas", "Pendientes", "Aprobadas", "Rechazadas", "Histórico"].map(tab => (
-            <button key={tab} className={`tab-btn ${filtro === tab ? "active" : ""}`} onClick={() => setFiltro(tab)}>
+            <button key={tab} className={`tab-btn ${filtro === tab ? "active" : ""}`} onClick={() => setFiltro(tab)} aria-pressed={filtro === tab}>
               {tab}
             </button>
           ))}
         </div>
-        <input type="text" placeholder="Buscar feria..." className="buscador-input" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+        <input type="text" placeholder="Buscar feria..." aria-label="Buscar feria" className="buscador-input" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
       </div>
 
       <div className="eventos-lista-v2">
         {filtrados.length === 0 ? <p>No hay resultados para "{busqueda}" en {filtro}.</p> : null}
         {filtrados.map(e => (
           <article key={e.id} className="evento-card-v2 mis-postulacion-card" onClick={() => setEventoActivo(e)} style={{cursor: 'pointer'}}>
-            <div className="calendario-bloque">
+            <div className="calendario-bloque" aria-hidden="true">
               <span className="calendario-mes">{e.mes}</span>
               <span className="calendario-dia">{e.dia}</span>
             </div>
@@ -81,31 +78,30 @@ export default function MisPostulacionesView() {
               <span className="tag">
                 {e.categoria} • <span className={`estado-badge estado-${e.estado?.toLowerCase()}`}>{e.estado?.toUpperCase()}</span>
               </span>
-              <h3>{e.titulo}</h3>
+              <h2 style={{ fontSize: '1.05rem', margin: '4px 0' }}>{e.titulo}</h2>
               <p className="meta">{e.lugar} • {e.anio}</p>
             </div>
           </article>
         ))}
       </div>
 
-      {/* 3. DETALLE / LÍNEA DE TIEMPO */}
       {eventoActivo && (
         <div className="modal-overlay" onClick={() => setEventoActivo(null)}>
-          <div className="modal-detalle" onClick={e => e.stopPropagation()}>
+          <div className="modal-detalle" role="dialog" aria-modal="true" aria-label={eventoActivo.titulo} onClick={e => e.stopPropagation()}>
             <h2>{eventoActivo.titulo}</h2>
             <span className={`estado-badge estado-${eventoActivo.estado?.toLowerCase()}`}>{eventoActivo.estado?.toUpperCase()}</span>
             
             <div className="timeline">
               <div className="timeline-item done">
-                <div className="dot"></div>
+                <div className="dot" aria-hidden="true"></div>
                 <p><b>Postulado el {eventoActivo.fechaPostulacion}</b><br/>Tu solicitud fue recibida por el Ministerio.</p>
               </div>
               <div className={`timeline-item ${eventoActivo.estado !== 'pendiente' ? 'done' : 'active'}`}>
-                <div className="dot"></div>
+                <div className="dot" aria-hidden="true"></div>
                 <p><b>En evaluación</b><br/>El equipo técnico revisa tu PyME.</p>
               </div>
               <div className={`timeline-item ${eventoActivo.estado === 'rechazado' ? 'rejected' : eventoActivo.estado === 'aprobado' ? 'done' : ''}`}>
-                <div className="dot"></div>
+                <div className="dot" aria-hidden="true"></div>
                 <p>
                   <b>{eventoActivo.estado === 'pendiente' ? 'Pendiente de resolución' : eventoActivo.estado === 'aprobado' ? 'Aprobado' : 'Rechazado'}</b><br/>
                   {eventoActivo.estado === 'rechazado' ? 'Motivo: Cupos cubiertos / Documentación.' : eventoActivo.estado === 'aprobado' ? '¡Felicitaciones! Revisá tu email para el stand.' : 'Te avisaremos por mail cuando cambie el estado.'}
@@ -116,6 +112,6 @@ export default function MisPostulacionesView() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

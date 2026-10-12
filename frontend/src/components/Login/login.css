@@ -1,5 +1,5 @@
 .login-container {
-  background-color: #5fa4e1;
+  background-color: #1e5a96;
   width: 100%;
   max-width: 380px;
   padding: 32px 24px;
@@ -54,7 +54,7 @@
   border: none;
   border-radius: 16px;
   background-color: #ffffff;
-  color: #2f6592;
+  color: #0f172a;
   font-size: 15px;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   outline: none;
@@ -63,11 +63,13 @@
 }
 
 .form-group input::placeholder {
-  color: #8bb2d6;
+  color: #64748b;
 }
 
 .form-group input:focus {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px #003e73;
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .btn-submit {
@@ -94,7 +96,12 @@
   transform: scale(0.98);
 }
 
-/* Estado Normal */
+.btn-submit:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px #003e73;
+}
+
 .input-field {
   width: 100%;
   padding: 10px;
@@ -104,37 +111,38 @@
   transition: border-color 0.2s ease;
 }
 
-/* Estado Verde (Válido) */
 .input-field.input-success {
-  border-color: #28a745;
+  border: 2px solid #15803d!important;
   background-color: #f6fff8;
 }
 
-/* Estado Rojo (Inválido) */
 .input-field.input-error {
-  border-color: #dc3545;
+  border: 2px solid #b91c1c!important;
   background-color: #fff8f8;
 }
 
-/* Mensajes de error abajo de los inputs */
 .error-message {
-  color: #dc3545;
+  color: #ffffff;
+  background-color: #7f1d1d;
+  padding: 4px 8px;
+  border-radius: 6px;
   font-size: 0.85rem;
+  font-weight: 600;
   margin-top: 4px;
   display: block;
 }
 
-/* Alerta de error general (contraseña incorrecta en el backend) */
 .alert-error {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #7f1d1d;
+  color: #ffffff;
   padding: 10px;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 15px;
   text-align: center;
+  font-weight: 600;
+  width: 100%;
 }
 
-/* Cabecera del campo contraseña (alinea label y link a los extremos) */
 .password-label-wrapper {
   display: flex;
   justify-content: space-between;
@@ -146,11 +154,10 @@
   margin-bottom: 0;
 }
 
-/* Botones con aspecto de enlace */
 .link-button {
   background: none;
   border: none;
-  color: #0056b3;
+  color: #ffffff;
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0;
@@ -159,51 +166,21 @@
 }
 
 .link-button:hover {
-  color: #003d82;
+  color: #dbeafe;
 }
 
-/* Enlace a recuperar contraseña */
+.link-button:focus,.back-link:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px #003e73;
+}
+
 .forgot-password-link {
-  font-weight: 500;
-}
-
-/* Pie de página con registro */
-.register-footer {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #555;
-  border-top: 1px solid #eee;
-  padding-top: 15px;
+  font-weight: 600;
 }
 
 .register-link {
   font-weight: bold;
-}
-
-/* INPUTS LOGIN - FIX DARK */
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-  background: white !important;
-  color: #0f172a !important;
-  border: 1px solid #cbd5e1 !important;
-}
-
-input::placeholder {
-  color: #94a3b8 !important;
-}
-
-[data-theme="dark"] input[type="text"],
-[data-theme="dark"] input[type="email"],
-[data-theme="dark"] input[type="password"] {
-  background: #334155 !important;
-  color: white !important;
-  border-color: #475569 !important;
-}
-
-[data-theme="dark"] input::placeholder {
-  color: #94a3b8 !important;
 }
 
 .register-footer {
@@ -214,8 +191,8 @@ input::placeholder {
   align-items: center;
   text-align: center;
   font-size: 0.9rem;
-  color: #e0f2fe;
-  border-top: 1px solid rgba(255,255,255,0.3);
+  color: #ffffff;
+  border-top: 1px solid rgba(255,255,255,0.4);
   padding-top: 15px;
   width: 100%;
 }
@@ -224,16 +201,69 @@ input::placeholder {
   background: transparent;
   border: none;
   font-size: 0.85rem;
-  color: #e0f2fe;
+  color: #ffffff;
   cursor: pointer;
   text-decoration: underline;
   font-family: inherit;
+  font-weight: 600;
 }
 
 .back-link:hover {
+  color: #dbeafe;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  background: white!important;
+  color: #0f172a!important;
+  border: 1px solid #cbd5e1!important;
+}
+
+input::placeholder {
+  color: #64748b!important;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"] {
+  background: #334155!important;
+  color: white!important;
+  border-color: #475569!important;
+}
+
+[data-theme="dark"] input::placeholder {
+  color: #cbd5e1!important;
+}
+
+/* FIX MODO OSCURO - Contraste Login */
+[data-theme="dark"] .login-container {
+  background-color: #0b3556;
+}
+
+[data-theme="dark"] .login-container h2,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .register-footer,
+[data-theme="dark"] .register-footer span {
   color: #ffffff;
 }
 
-[data-theme="dark"].back-link {
-  color: #93c5fd;
+[data-theme="dark"] .link-button,
+[data-theme="dark"] .back-link {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-group input {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border: 1px solid #64748b !important;
+}
+
+[data-theme="dark"] .form-group input::placeholder {
+  color: #cbd5e1 !important;
+}
+[data-theme="dark"] .login-logo {
+  background-color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 12px;
 }

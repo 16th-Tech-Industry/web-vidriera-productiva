@@ -83,31 +83,31 @@ export default function AltaEmpresa({ onComplete }: { onComplete: (d: any) => vo
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={labelStyle}>Nombre de la empresa</label>
-            <input style={inputStyle} value={form.nombreEmpresa} onChange={e=>setForm({...form, nombreEmpresa: e.target.value})} placeholder="ej. Bioagroindustria" required />
+            <label htmlFor="nombreEmpresa" style={labelStyle}>Nombre de la empresa</label>
+            <input id="nombreEmpresa" style={inputStyle} value={form.nombreEmpresa} onChange={e=>setForm({...form, nombreEmpresa: e.target.value})} placeholder="ej. Bioagroindustria" required />
           </div>
 
           <div>
-            <label style={labelStyle}>Nombre de fantasía</label>
-            <input style={inputStyle} value={form.nombreFantasia} onChange={e=>setForm({...form, nombreFantasia: e.target.value})} placeholder="ej. Agricultura y ganadería" />
+            <label htmlFor="nombreFantasia" style={labelStyle}>Nombre de fantasía</label>
+            <input id="nombreFantasia" style={inputStyle} value={form.nombreFantasia} onChange={e=>setForm({...form, nombreFantasia: e.target.value})} placeholder="ej. Agricultura y ganadería" />
           </div>
 
           <div>
-            <label style={labelStyle}>CUIT</label>
-            <input style={inputStyle} value={form.cuit} onChange={e=>setForm({...form, cuit: e.target.value})} placeholder="00-00000000-0" required />
+            <label htmlFor="cuit" style={labelStyle}>CUIT</label>
+            <input id="cuit" style={inputStyle} value={form.cuit} onChange={e=>setForm({...form, cuit: e.target.value})} placeholder="00-00000000-0" required />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={labelStyle}>Departamento</label>
-              <select style={inputStyle} value={depto} onChange={e=>setDepto(e.target.value)} required>
+              <label htmlFor="departamento" style={labelStyle}>Departamento</label>
+              <select id="departamento" style={inputStyle} value={depto} onChange={e=>setDepto(e.target.value)} required>
                 <option value="">Departamento</option>
                 {Object.keys(DEPTOS).map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Localidad</label>
-              <select style={{...inputStyle, opacity:!depto? 0.5 : 1}} value={form.localidad} onChange={e=>setForm({...form, localidad: e.target.value})} required disabled={!depto}>
+              <label htmlFor="localidad" style={labelStyle}>Localidad</label>
+              <select id="localidad" style={{...inputStyle, opacity:!depto? 0.5 : 1}} value={form.localidad} onChange={e=>setForm({...form, localidad: e.target.value})} required disabled={!depto}>
                 <option value="">Localidad</option>
                 {DEPTOS[depto]?.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
@@ -115,8 +115,8 @@ export default function AltaEmpresa({ onComplete }: { onComplete: (d: any) => vo
           </div>
 
           <div>
-            <label style={labelStyle}>Dirección de punto de venta</label>
-            <input style={inputStyle} value={form.direccion} onChange={e=>setForm({...form, direccion: e.target.value})} placeholder="ej. Figueroa Alcorta 234" required />
+            <label htmlFor="direccion" style={labelStyle}>Dirección de punto de venta</label>
+            <input id="direccion" style={inputStyle} value={form.direccion} onChange={e=>setForm({...form, direccion: e.target.value})} placeholder="ej. Figueroa Alcorta 234" required />
           </div>
 
           <button type="submit" style={{

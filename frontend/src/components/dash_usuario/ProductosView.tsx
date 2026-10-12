@@ -99,18 +99,18 @@ export default function ProductosView() {
 
   return (
     <div className="view-container">
-      {toast && <div className="toast-notification">✅ {toast}</div>}
+      {toast && <div className="toast-notification" role="status">✅ {toast}</div>}
 
       <div className="content-top-row">
         <div>
           <h1>Catálogo de Productos ({productos.length})</h1>
-          <p>Gestiona los artículos y presentaciones que ofreces en la provincia.</p>
+          <p style={{ color: '#475569' }}>Gestiona los artículos y presentaciones que ofreces en la provincia.</p>
         </div>
         <button className="btn-primary" onClick={abrirCreacion}>+ Nuevo Producto</button>
       </div>
 
      <div className="toolbar-container" style={{ marginBottom: '28px', marginTop: '16px' }}>
-  <input type="text" placeholder="🔍 Buscar por nombre, categoría o descripción..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="search-input" />
+  <input type="text" placeholder="🔍 Buscar por nombre, categoría o descripción..." aria-label="Buscar productos" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="search-input" />
 </div>
 
       <div className="productos-layout">
@@ -119,15 +119,15 @@ export default function ProductosView() {
             <p className="no-results">No se encontraron productos.</p>
           ) : (
             productosFiltrados.map((prod) => (
-              <div className="card-producto" key={prod.id}>
+              <article className="card-producto" key={prod.id}>
                 <div className="card-header-info">
                   <span className={`badge ${prod.estado}`}>{prod.estado === 'activo' ? '🟢 Activo' : '🔴 Oculto'}</span>
                 </div>
                 <div className="card-img-container">
-                  {prod.imagen ? <img src={prod.imagen} alt={prod.nombre} className="card-real-img" onError={(e) => {(e.target as HTMLElement).style.display = 'none';}} /> : <div className="card-img-placeholder">🍯</div>}
+                  {prod.imagen ? <img src={prod.imagen} alt={prod.nombre} className="card-real-img" onError={(e) => {(e.target as HTMLElement).style.display = 'none';}} /> : <div className="card-img-placeholder" aria-hidden="true">🍯</div>}
                 </div>
                 <span className="categoria-label">{prod.categoria}</span>
-                <h3>{prod.nombre}</h3>
+                <h2 style={{ fontSize: '1rem', margin: '4px 0' }}>{prod.nombre}</h2>
                 <p className="presentacion-label">📦 {prod.presentacion}</p>
                 <p className="card-desc">{prod.descripcion}</p>
                 <div className="card-price-row">
@@ -136,9 +136,9 @@ export default function ProductosView() {
                 </div>
                 <div className="card-actions">
                   <button className="btn-editar" onClick={() => abrirEdicion(prod)}>Editar</button>
-                  <button className="btn-eliminar" onClick={() => eliminarProducto(prod.id)}>🗑️</button>
+                  <button className="btn-eliminar" aria-label={`Eliminar ${prod.nombre}`} onClick={() => eliminarProducto(prod.id)}>🗑️</button>
                 </div>
-              </div>
+              </article>
             ))
           )}
         </div>
@@ -147,34 +147,34 @@ export default function ProductosView() {
           <>
             <div className="modal-overlay" onClick={() => setPanelAbierto(false)}></div>
             <aside className="edit-panel">
-              <h3>{modo === 'crear' ? '✨ Nuevo Producto' : '✏️ Editar Producto'}</h3>
+              <h2 style={{ fontSize: '1.1rem' }}>{modo === 'crear' ? '✨ Nuevo Producto' : '✏️ Editar Producto'}</h2>
               <form onSubmit={handleSubmit} className="product-form">
-                <label>Nombre del producto</label>
-                <input type="text" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Miel pura de abejas" required />
-                <label>Categoría</label>
-                <select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
+                <label htmlFor="prod-nombre">Nombre del producto</label>
+                <input id="prod-nombre" type="text" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Miel pura de abejas" required />
+                <label htmlFor="prod-categoria">Categoría</label>
+                <select id="prod-categoria" value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
                   <option value="Lácteos y Dulces">Lácteos y Dulces</option>
                   <option value="Mieles y Derivados">Mieles y Derivados</option>
                   <option value="Embutidos y Chacinados">Embutidos y Chacinados</option>
                   <option value="Bebidas y Infusiones">Bebidas e Infusiones</option>
                   <option value="Artesanías varias">Artesanías varias</option>
                 </select>
-                <label>Presentación / Envase</label>
-                <input type="text" value={formData.presentacion} onChange={(e) => setFormData({ ...formData, presentacion: e.target.value })} placeholder="Ej: Frasco 500g / Bidón 5L" required />
-                <label>Descripción</label>
-                <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} placeholder="Detalles del producto..." required />
-                <label>Precio ($)</label>
-                <input type="number" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} placeholder="1500" required />
-                <label>Disponibilidad / Stock</label>
-                <select value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })}>
+                <label htmlFor="prod-presentacion">Presentación / Envase</label>
+                <input id="prod-presentacion" type="text" value={formData.presentacion} onChange={(e) => setFormData({ ...formData, presentacion: e.target.value })} placeholder="Ej: Frasco 500g / Bidón 5L" required />
+                <label htmlFor="prod-descripcion">Descripción</label>
+                <textarea id="prod-descripcion" value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} placeholder="Detalles del producto..." required />
+                <label htmlFor="prod-precio">Precio ($)</label>
+                <input id="prod-precio" type="number" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} placeholder="1500" required />
+                <label htmlFor="prod-stock">Disponibilidad / Stock</label>
+                <select id="prod-stock" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })}>
                   <option value="En Stock">En Stock</option>
                   <option value="A pedido">A pedido</option>
                   <option value="Stock limitado">Stock limitado</option>
                 </select>
-                <label>URL de la Imagen (Opcional)</label>
-                <input type="url" value={formData.imagen} onChange={(e) => setFormData({ ...formData, imagen: e.target.value })} placeholder="https://... (enlace directo de foto)" />
-                <label>Estado de visibilidad</label>
-                <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value as 'activo' | 'oculto' })}>
+                <label htmlFor="prod-imagen">URL de la Imagen (Opcional)</label>
+                <input id="prod-imagen" type="url" value={formData.imagen} onChange={(e) => setFormData({ ...formData, imagen: e.target.value })} placeholder="https://... (enlace directo de foto)" />
+                <label htmlFor="prod-estado">Estado de visibilidad</label>
+                <select id="prod-estado" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value as 'activo' | 'oculto' })}>
                   <option value="activo">Activo (Visible en Vidriera)</option>
                   <option value="oculto">Oculto (Borrador)</option>
                 </select>

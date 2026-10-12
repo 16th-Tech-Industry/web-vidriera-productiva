@@ -1,0 +1,93 @@
+{
+  "info": {
+    "name": "Vidriera Productiva - Sprint 4 API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Noticias",
+      "item": [
+        {
+          "name": "Listar Noticias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/noticias/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "noticias", ""]
+            }
+          }
+        },
+        {
+          "name": "Crear Noticia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Noticia de Prueba Sprint 4\",\n  \"contenido\": \"Contenido detallado para la validación de la API.\",\n  \"autor\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/noticias/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "noticias", ""]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Noticia (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Noticia Actualizada Correctamente\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/noticias/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "noticias", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuarios y Auth",
+      "item": [
+        {
+          "name": "Login Usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@vidriera.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuario/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "usuario", "login"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

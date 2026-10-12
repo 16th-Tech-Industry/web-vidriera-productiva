@@ -50,7 +50,7 @@ export default function EmpresaView() {
 
   return (
     <div className="view-container">
-      {toast && <div className="toast-notification">✅ {toast}</div>}
+      {toast && <div className="toast-notification" role="status">✅ {toast}</div>}
 
       <div className="content-top-row">
         <div>
@@ -67,7 +67,7 @@ export default function EmpresaView() {
           <div className="completion-info">
             <span>Perfil completado</span><strong>{progreso}%</strong>
           </div>
-          <div className="progress-bar-background">
+          <div className="progress-bar-background" role="progressbar" aria-valuenow={progreso} aria-valuemin={0} aria-valuemax={100} aria-label="Perfil completado">
             <div className="progress-bar-fill" style={{ width: `${progreso}%` }}></div>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function EmpresaView() {
               {empresaData.activo? '🟢 Visible (Activa)' : '🔴 Oculta (Inactiva)'}
             </span>
           </div>
-          {editando && <input type="checkbox" checked={empresaData.activo} onChange={(e) => setEmpresaData({...empresaData, activo: e.target.checked })} />}
+          {editando && <input type="checkbox" aria-label="Empresa visible en el mapa" checked={empresaData.activo} onChange={(e) => setEmpresaData({...empresaData, activo: e.target.checked })} />}
         </div>
       </div>
 
@@ -86,7 +86,7 @@ export default function EmpresaView() {
         <div className="empresa-card">
           <div className="avatar-column">
             <div className="avatar-placeholder">
-              {empresaData.logoUrl? <img src={empresaData.logoUrl} alt="Logo" /> : '🏢'}
+              {empresaData.logoUrl? <img src={empresaData.logoUrl} alt="Logo de la empresa" /> : '🏢'}
             </div>
             {editando && (
               <label className="file-input-label">
@@ -100,23 +100,23 @@ export default function EmpresaView() {
             {editando? (
               <form onSubmit={handleSubmit} className="empresa-form">
                 <div className="form-grid">
-                  <div className="fg"><label>Nombre Comercial</label><input type="text" value={empresaData.nombreComercial} onChange={e => setEmpresaData({...empresaData, nombreComercial: e.target.value})} required /></div>
-                  <div className="fg"><label>Rubro</label><select value={empresaData.rubro} onChange={e => setEmpresaData({...empresaData, rubro: e.target.value})}><option>Alimentos y Bebidas</option><option>Artesanías y Diseño</option><option>Metalúrgica y Maquinaria</option><option>Textil y Calzado</option></select></div>
-                  <div className="fg full"><label>Localidad</label><input type="text" value={empresaData.localidad} onChange={e => setEmpresaData({...empresaData, localidad: e.target.value})} /></div>
-                  <div className="fg full"><label>Dirección</label><input type="text" value={empresaData.direccion} onChange={e => setEmpresaData({...empresaData, direccion: e.target.value})} /></div>
-                  <div className="fg full"><label>Descripción</label><textarea rows={3} value={empresaData.descripcion} onChange={e => setEmpresaData({...empresaData, descripcion: e.target.value})} required placeholder="Contá que hace tu empresa..." /></div>
-                  <div className="fg"><label>Teléfono</label><input type="text" value={empresaData.telefono} onChange={e => setEmpresaData({...empresaData, telefono: e.target.value})} /></div>
-                  <div className="fg"><label>WhatsApp</label><input type="text" value={empresaData.whatsapp} onChange={e => setEmpresaData({...empresaData, whatsapp: e.target.value})} /></div>
-                  <div className="fg"><label>Email</label><input type="email" value={empresaData.email} onChange={e => setEmpresaData({...empresaData, email: e.target.value})} /></div>
-                  <div className="fg"><label>Sitio Web</label><input type="text" value={empresaData.sitioWeb} onChange={e => setEmpresaData({...empresaData, sitioWeb: e.target.value})} /></div>
-                  <div className="fg"><label>Instagram</label><input type="text" value={empresaData.instagram} onChange={e => setEmpresaData({...empresaData, instagram: e.target.value})} /></div>
-                  <div className="fg"><label>Sellos</label><input type="text" value={empresaData.sellos} onChange={e => setEmpresaData({...empresaData, sellos: e.target.value})} /></div>
+                  <div className="fg"><label htmlFor="emp-nombre">Nombre Comercial</label><input id="emp-nombre" type="text" value={empresaData.nombreComercial} onChange={e => setEmpresaData({...empresaData, nombreComercial: e.target.value})} required /></div>
+                  <div className="fg"><label htmlFor="emp-rubro">Rubro</label><select id="emp-rubro" value={empresaData.rubro} onChange={e => setEmpresaData({...empresaData, rubro: e.target.value})}><option>Alimentos y Bebidas</option><option>Artesanías y Diseño</option><option>Metalúrgica y Maquinaria</option><option>Textil y Calzado</option></select></div>
+                  <div className="fg full"><label htmlFor="emp-localidad">Localidad</label><input id="emp-localidad" type="text" value={empresaData.localidad} onChange={e => setEmpresaData({...empresaData, localidad: e.target.value})} /></div>
+                  <div className="fg full"><label htmlFor="emp-direccion">Dirección</label><input id="emp-direccion" type="text" value={empresaData.direccion} onChange={e => setEmpresaData({...empresaData, direccion: e.target.value})} /></div>
+                  <div className="fg full"><label htmlFor="emp-descripcion">Descripción</label><textarea id="emp-descripcion" rows={3} value={empresaData.descripcion} onChange={e => setEmpresaData({...empresaData, descripcion: e.target.value})} required placeholder="Contá que hace tu empresa..." /></div>
+                  <div className="fg"><label htmlFor="emp-telefono">Teléfono</label><input id="emp-telefono" type="text" value={empresaData.telefono} onChange={e => setEmpresaData({...empresaData, telefono: e.target.value})} /></div>
+                  <div className="fg"><label htmlFor="emp-whatsapp">WhatsApp</label><input id="emp-whatsapp" type="text" value={empresaData.whatsapp} onChange={e => setEmpresaData({...empresaData, whatsapp: e.target.value})} /></div>
+                  <div className="fg"><label htmlFor="emp-email">Email</label><input id="emp-email" type="email" value={empresaData.email} onChange={e => setEmpresaData({...empresaData, email: e.target.value})} /></div>
+                  <div className="fg"><label htmlFor="emp-web">Sitio Web</label><input id="emp-web" type="text" value={empresaData.sitioWeb} onChange={e => setEmpresaData({...empresaData, sitioWeb: e.target.value})} /></div>
+                  <div className="fg"><label htmlFor="emp-instagram">Instagram</label><input id="emp-instagram" type="text" value={empresaData.instagram} onChange={e => setEmpresaData({...empresaData, instagram: e.target.value})} /></div>
+                  <div className="fg"><label htmlFor="emp-sellos">Sellos</label><input id="emp-sellos" type="text" value={empresaData.sellos} onChange={e => setEmpresaData({...empresaData, sellos: e.target.value})} /></div>
                 </div>
                 <button type="submit" className="btn-save">Guardar Cambios</button>
               </form>
             ) : (
               <div className="empresa-details">
-                <h3>{empresaData.nombreComercial}</h3>
+                <h2 style={{ fontSize: '18px', margin: '0 0 8px 0' }}>{empresaData.nombreComercial}</h2>
                 <span className="badge-rubro">{empresaData.rubro}</span>
                 <p className="desc">{empresaData.descripcion || 'Sin descripción aún.'}</p>
                 <div className="details-grid">

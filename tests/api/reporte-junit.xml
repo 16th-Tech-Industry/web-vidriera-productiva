@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Vidriera Productiva - Sprint 4 API" tests="4" time="3.697">
+  <testsuite name="Noticias / Listar Noticias" id="b46fe463-b9c5-4497-8f19-b5894ae270dd" timestamp="2026-10-11T00:10:31.036Z" tests="0" failures="0" errors="0" time="3.650"/>
+  <testsuite name="Noticias / Crear Noticia" id="4b1a0b7d-9396-42fd-a46f-20cb299cea4a" timestamp="2026-10-11T00:10:31.036Z" tests="0" failures="0" errors="0" time="0.014"/>
+  <testsuite name="Noticias / Actualizar Noticia (PATCH)" id="221a33eb-cf5a-4c4d-b2f9-3f83aaab308e" timestamp="2026-10-11T00:10:31.036Z" tests="0" failures="0" errors="0" time="0.009"/>
+  <testsuite name="Usuarios y Auth / Login Usuario" id="afab19fd-a3d7-4d1e-ae7f-8c3b7c52400d" timestamp="2026-10-11T00:10:31.036Z" tests="0" failures="0" errors="0" time="0.024"/>
+</testsuites>

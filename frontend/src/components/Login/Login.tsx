@@ -90,13 +90,24 @@ export function Login({
     <div className="login-container">
       <img src={logo} alt="Logo Ministerio de Bioagroindustria" className="login-logo" />
       <h2>Iniciar Sesión</h2>
-      {errors.general && <div className="alert-error">{errors.general}</div>}
+      {errors.general && <div className="alert-error" role="alert">{errors.general}</div>}
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="form-group">
           <label htmlFor="email">Correo electrónico</label>
-          <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => handleBlur('email')} className={getInputClass('email', isEmailValid)} placeholder="ej. usuario@correo.com" autoComplete="email" />
-          {touched.email && errors.email && <span className="error-message">{errors.email}</span>}
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => handleBlur('email')}
+            className={getInputClass('email', isEmailValid)}
+            placeholder="ej. usuario@correo.com"
+            autoComplete="email"
+            aria-invalid={touched.email &&!!errors.email}
+            aria-describedby={touched.email && errors.email? "email-error" : undefined}
+          />
+          {touched.email && errors.email && <span id="email-error" className="error-message" role="alert">{errors.email}</span>}
         </div>
 
         <div className="form-group">
@@ -104,8 +115,19 @@ export function Login({
             <label htmlFor="password">Contraseña</label>
             <button type="button" className="link-button forgot-password-link" onClick={onNavigateToForgotPassword}>¿Olvidaste tu contraseña?</button>
           </div>
-          <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => handleBlur('password')} className={getInputClass('password', isPasswordValid)} placeholder="••••••••" autoComplete="current-password" />
-          {touched.password && errors.password && <span className="error-message">{errors.password}</span>}
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onBlur={() => handleBlur('password')}
+            className={getInputClass('password', isPasswordValid)}
+            placeholder="••••••••"
+            autoComplete="current-password"
+            aria-invalid={touched.password &&!!errors.password}
+            aria-describedby={touched.password && errors.password? "password-error" : undefined}
+          />
+          {touched.password && errors.password && <span id="password-error" className="error-message" role="alert">{errors.password}</span>}
         </div>
 
         <button type="submit" className="btn-submit" disabled={isLoading}>{isLoading? 'Iniciando sesión...' : 'Continuar'}</button>

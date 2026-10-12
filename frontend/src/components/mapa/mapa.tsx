@@ -6,10 +6,10 @@ import 'leaflet/dist/leaflet.css';
 import mapaMetros from '../../assets/dataMap.json';
 import './mapa.css';
 import { InfoCard } from '../infoProductor/infoProductor';
-import { 
-  obtenerDatosLanding, 
-  type Productor, 
-  type EventoLanding 
+import {
+  obtenerDatosLanding,
+  type Productor,
+  type EventoLanding
 } from '../../servicios/landing_servicio';
 
 type TipoCapa = 'todos' | 'empresas' | 'eventos';
@@ -22,6 +22,31 @@ const BoundingBoxCordoba: LatLngBoundsExpression = [
   [-29.50, -61.70]
 ];
 
+const crearIconoEstrella = (): L.DivIcon => {
+  return L.divIcon({
+    className: 'marcador-evento-estrella',
+    html: `
+      <div style="
+        width: 14px;
+        height: 14px;
+        background-color: #ffd700;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        font-size: 14px;
+      ">
+        ⭐
+      </div>
+    `,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    popupAnchor: [0, -10]
+  });
+};
+
 export const Mapa: React.FC = () => {
   const [categoria, setCategoria] = useState<string>('Todas');
   const [tipoFiltro, setTipoFiltro] = useState<TipoCapa>('todos');
@@ -30,7 +55,6 @@ export const Mapa: React.FC = () => {
   const [geoJsonGrados, setGeoJsonGrados] = useState<any>(null);
   const [instanciaMapa, setInstanciaMapa] = useState<L.Map | null>(null);
 
-  // 1. Carga de datos dinámicos desde FastAPI
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -41,14 +65,11 @@ export const Mapa: React.FC = () => {
         console.error("Error al cargar los datos de la landing:", error);
       }
     };
-
     cargarDatos();
   }, []);
 
-  // 2. Proyección de polígonos del mapa
   useEffect(() => {
     const mapaJson = mapaMetros as any;
-
     if (mapaJson && mapaJson.features) {
       try {
         const mapaClonado = JSON.parse(JSON.stringify(mapaJson));
@@ -56,14 +77,14 @@ export const Mapa: React.FC = () => {
           if (feature.geometry) {
             const tipo = feature.geometry.type;
             if (tipo === "MultiPolygon") {
-              feature.geometry.coordinates = feature.geometry.coordinates.map((polygon: any) => 
-                polygon.map((ring: any) => 
-                  ring.map((coord: number[]) => Math.abs(coord[0]) > 180 ? proj4(PROJ_FAJA4, PROJ_GRADOS, [coord[0], coord[1]]) : coord)
+              feature.geometry.coordinates = feature.geometry.coordinates.map((polygon: any) =>
+                polygon.map((ring: any) =>
+                  ring.map((coord: number[]) => Math.abs(coord[0]) > 180? proj4(PROJ_FAJA4, PROJ_GRADOS, [coord[0], coord[1]]) : coord)
                 )
               );
             } else if (tipo === "Polygon") {
-              feature.geometry.coordinates = feature.geometry.coordinates.map((ring: any) => 
-                ring.map((coord: number[]) => Math.abs(coord[0]) > 180 ? proj4(PROJ_FAJA4, PROJ_GRADOS, [coord[0], coord[1]]) : coord)
+              feature.geometry.coordinates = feature.geometry.coordinates.map((ring: any) =>
+                ring.map((coord: number[]) => Math.abs(coord[0]) > 180? proj4(PROJ_FAJA4, PROJ_GRADOS, [coord[0], coord[1]]) : coord)
               );
             }
           }
@@ -76,12 +97,12 @@ export const Mapa: React.FC = () => {
     }
   }, []);
 
-  const filtrados = categoria === 'Todas' 
-    ? productores 
+  const filtrados = categoria === 'Todas'
+   ? productores
     : productores.filter(p => p.rubro === categoria);
 
   const eventosFiltrados = categoria === 'Todas'
-    ? eventos
+   ? eventos
     : eventos.filter(ev => ev.categoria === categoria);
 
   const estiloDeptoBase: L.PathOptions = {
@@ -96,22 +117,22 @@ export const Mapa: React.FC = () => {
     const props = departamento.properties || {};
     const nombreDepto = props.nombre || props.NAM || props.DEPARTAMEN || `Departamento`;
     layer.bindTooltip(nombreDepto, { sticky: true });
-    
+
     layer.on({
-      mouseover: (e: LeafletMouseEvent) => { 
-        (e.target as L.Path).setStyle({ fillColor: '#00457F', fillOpacity: 0.9 }); 
+      mouseover: (e: LeafletMouseEvent) => {
+        (e.target as L.Path).setStyle({ fillColor: '#00457F', fillOpacity: 0.9 });
       },
-      mouseout: (e: LeafletMouseEvent) => { 
-        (e.target as L.Path).setStyle(estiloDeptoBase); 
+      mouseout: (e: LeafletMouseEvent) => {
+        (e.target as L.Path).setStyle(estiloDeptoBase);
       },
       click: (e: LeafletMouseEvent) => {
         const layerClickeada = e.target as L.Polygon;
         const mapa = (layerClickeada as any)._map as L.Map;
         mapa.fitBounds(layerClickeada.getBounds(), {
           padding: [30, 30],
-          maxZoom: 8,        
-          animate: true,     
-          duration: 1.2      
+          maxZoom: 8,
+          animate: true,
+          duration: 1.2
         });
       }
     });
@@ -119,7 +140,7 @@ export const Mapa: React.FC = () => {
 
   const handleCambioCategoria = (nuevaCategoria: string) => {
     setCategoria(nuevaCategoria);
-    if (nuevaCategoria !== 'Todas') {
+    if (nuevaCategoria!== 'Todas') {
       setTipoFiltro('empresas');
     }
   };
@@ -167,29 +188,34 @@ export const Mapa: React.FC = () => {
         <div className="panelFiltros">
           <div className="grupoFiltroTipo">
             <button
-              className={`btnTipo ${tipoFiltro === 'todos' ? 'activo' : ''}`}
+              className={`btnTipo ${tipoFiltro === 'todos'? 'activo' : ''}`}
               onClick={() => setTipoFiltro('todos')}
             >
               Todos
             </button>
             <button
-              className={`btnTipo ${tipoFiltro === 'empresas' ? 'activo' : ''}`}
+              className={`btnTipo ${tipoFiltro === 'empresas'? 'activo' : ''}`}
               onClick={() => setTipoFiltro('empresas')}
             >
               🏢 Empresas
             </button>
             <button
-              className={`btnTipo ${tipoFiltro === 'eventos' ? 'activo' : ''}`}
+              className={`btnTipo ${tipoFiltro === 'eventos'? 'activo' : ''}`}
               onClick={() => setTipoFiltro('eventos')}
             >
               ⭐ Eventos
             </button>
           </div>
 
-          <select 
+          <label htmlFor="filtro-rubro" className="sr-only">
+            Filtrar por rubro
+          </label>
+          <select
+            id="filtro-rubro"
+            aria-label="Filtrar por rubro"
             className="selectRubro"
-            value={categoria} 
-            onChange={(e) => handleCambioCategoria(e.target.value)} 
+            value={categoria}
+            onChange={(e) => handleCambioCategoria(e.target.value)}
           >
             <option value="Todas">Todos los Rubros</option>
             <option value="AGROALIMENTO">Agroalimento</option>
@@ -210,7 +236,7 @@ export const Mapa: React.FC = () => {
           </div>
         </div>
 
-        <MapContainer 
+        <MapContainer
           bounds={BoundingBoxCordoba}
           boundsOptions={{ padding: [0, 0] }}
           zoomSnap={0}
@@ -225,18 +251,29 @@ export const Mapa: React.FC = () => {
             <GeoJSON key={categoria} data={geoJsonGrados} style={estiloDeptoBase} onEachFeature={alCadaDepartamento} />
           )}
 
-          {/* Marcadores de Empresas */}
           {(tipoFiltro === 'todos' || tipoFiltro === 'empresas') && filtrados.map((p) => (
-            <Marker key={p.id} position={[p.lat, p.lng]} icon={crearIconoCirculo(p.rubro)} zIndexOffset={100}>
+            <Marker
+              key={p.id}
+              position={[p.lat, p.lng]}
+              icon={crearIconoCirculo(p.rubro)}
+              zIndexOffset={100}
+              title={`Empresa de ${p.rubro}`}
+              alt={`Empresa de ${p.rubro}`}
+            >
               <Popup maxWidth={280}>
                 <InfoCard item={p} />
               </Popup>
             </Marker>
           ))}
 
-          {/* Marcadores de Eventos */}
           {(tipoFiltro === 'todos' || tipoFiltro === 'eventos') && eventosFiltrados.map((ev) => (
-            <Marker key={`ev-${ev.id}`} position={[ev.lat, ev.lng]} icon={crearIconoEstrella()}>
+            <Marker
+              key={`ev-${ev.id}`}
+              position={[ev.lat, ev.lng]}
+              icon={crearIconoEstrella()}
+              title={`Evento ${ev.nombre} en ${ev.localidad}`}
+              alt={`Evento ${ev.nombre}`}
+            >
               <Popup maxWidth={260}>
                 <div style={{ padding: '0.8rem 1rem', fontFamily: 'sans-serif' }}>
                   <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#00457F', textTransform: 'uppercase' }}>
@@ -267,29 +304,4 @@ export const Mapa: React.FC = () => {
       </div>
     </div>
   );
-};
-
-const crearIconoEstrella = (): L.DivIcon => {
-  return L.divIcon({
-    className: 'marcador-evento-estrella',
-    html: `
-      <div style="
-        width: 14px;
-        height: 14px;
-        background-color: #ffd700;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        font-size: 14px;
-      ">
-        ⭐
-      </div>
-    `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-    popupAnchor: [0, -10]
-  });
 };
