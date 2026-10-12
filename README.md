@@ -183,3 +183,85 @@ Accesos:
 - Oracle DB: lo realizamos utilizando una VPN que nos conecta con un servidor propio que aloja la DB
 
 
+## 📄 Justificación: documentos JSON en lugar de MongoDB
+
+Los lineamientos del ABP piden una base no relacional (MongoDB) con un uso
+"justificado y documentado según la naturaleza de los datos". El proyecto
+no usa MongoDB: ese lugar lo ocupan los documentos JSON de las empresas.
+
+**Qué reemplaza a MongoDB.** Cada empresa es un documento JSON con sus
+datos públicos y sus productos. Los documentos de las empresas aprobadas se
+guardan en un archivo, `backend/empresas_repo/empresas.json`, que es de
+donde lee la vidriera pública. El mismo documento está guardado en Oracle,
+en la columna JSON nativa `empresas.datos_publico`, que funciona como
+fuente de verdad y respaldo: si el archivo se pierde, se vuelve a armar
+desde la tabla.
+
+**Naturaleza de los datos.** El perfil de cada empresa es información
+pública: nombre, rubro, ubicación, contacto, redes y productos. Tiene forma
+de documento: campos anidados, una colección de productos embebida y una
+estructura que puede variar de una empresa a otra. No guarda datos
+sensibles, así que no requiere un esquema de resguardo complejo; lo que sí
+requiere es estar disponible rápido, porque es lo que consulta cualquier
+visitante de la vidriera.
+
+**Por qué un documento.** La empresa y sus productos se leen siempre
+juntos. Guardarlos en un único documento permite obtener la ficha completa
+con una sola lectura, sin uniones entre tablas. Agregar los productos no
+exigió modificar la estructura de la base: el documento admitió la clave
+nueva.
+
+**Rápida disposición.** La vidriera pública no consulta la base en cada
+visita: lee el archivo JSON ya armado. En una prueba local, la consulta que
+arma el archivo desde Oracle tardó 0,19 s y las siguientes, leyendo el
+archivo, 0,003 s. El archivo se actualiza solo cuando un administrador
+aprueba o rechaza una empresa, cuando un representante modifica sus
+productos y cuando el archivo no se encuentra.
+
+**La ventaja de Oracle como respaldo.** Oracle 21c o superior ofrece JSON
+nativo, consultable e indexable. Esto permite un modelo híbrido: relacional
+para usuarios y geografía, donde hay relaciones e integridad que cuidar, y
+documental para el perfil de la empresa. Al quedar guardado dentro de
+Oracle, el documento hereda sin infraestructura adicional sus garantías:
+transacciones, respaldo junto al resto de los datos e integridad
+referencial con el representante dueño de la empresa. Los filtros del panel
+de administración (rubro, zona y departamento) usan índices sobre campos
+internos del documento.
+
+**Validación.** La forma del documento se valida en el backend antes de
+guardar. Oracle permite además validarla en la propia base con un esquema
+JSON (`IS JSON VALIDATE`), que rechaza documentos incompletos o con valores
+fuera de rango. Probado con consultas de solo lectura contra el servidor
+del proyecto (Oracle 23.26 Free):
+
+| Documento | Resultado |
+| :--- | :--- |
+| Empresa completa con un producto | Válido |
+| Sin `correo_empresa` | Rechazado |
+| Latitud fuera de rango (120) | Rechazado |
+| Producto sin `nombre` | Rechazado |
+
+La restricción todavía no está aplicada a la tabla: la empresa de prueba
+cargada a mano (id 1) no cumple el esquema y hay que corregirla antes.
+
+**Por qué no un segundo motor.** No se espera una cantidad de empresas que
+haga crecer demasiado los documentos ni el conjunto de datos, y la carga
+prevista no alcanza para justificar una base de datos dedicada solo a
+ellos. Sumar MongoDB implicaría:
+
+- otra base, otro contenedor y otro servicio que desplegar;
+- una librería más en el backend de Python (el conector de MongoDB), con su
+  configuración y mantenimiento;
+- más consumo en el hosting: un segundo servicio con su propio
+  almacenamiento, cuando los planes disponibles ya son limitados, sin que
+  eso ayude a guardar mejor los datos. El archivo JSON, en cambio, no
+  necesita almacenamiento persistente: si el disco del hosting se reinicia,
+  se regenera desde Oracle;
+- mantener sincronizadas dos bases distintas.
+
+Incorporarlo en la última entrega habría puesto en riesgo la estabilidad de
+funcionalidades ya probadas, sin una mejora medible.
+
+**Estructura de los documentos.** El esquema completo, con sus reglas por
+campo, está en `backend/README.md` (secciones de productos y de la vidriera
+pública) y en `db/README.md`, con un ejemplo en `db/empresas.json`.

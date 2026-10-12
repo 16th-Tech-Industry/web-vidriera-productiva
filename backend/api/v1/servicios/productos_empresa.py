@@ -18,9 +18,11 @@ Este módulo no sabe de HTTP ni de la base: trabaja sobre el diccionario
 de dashboard/productos.py) lee la fila, aplica el cambio y la vuelve a
 guardar.
 """
+import json
 import os
 import shutil
 import uuid
+from decimal import Decimal
 from pathlib import Path
 from typing import List, Optional
 
@@ -39,6 +41,31 @@ class ProductoNoEncontrado(LookupError):
 
 class LimiteDeProductos(ValueError):
     pass
+
+
+# --- Lectura del JSON de la empresa --------------------------------------
+
+
+def _sin_decimales(valor):
+    if isinstance(valor, Decimal):
+        return int(valor) if valor == valor.to_integral_value() else float(valor)
+    if isinstance(valor, dict):
+        return {clave: _sin_decimales(item) for clave, item in valor.items()}
+    if isinstance(valor, list):
+        return [_sin_decimales(item) for item in valor]
+    return valor
+
+
+def leer_datos_publico(datos_publico) -> dict:
+    """Pasa empresas.datos_publico, tal como lo devuelve Oracle, a un diccionario
+    que se puede modificar y volver a guardar con json.dumps.
+
+    python-oracledb entrega la columna JSON ya decodificada, pero con los
+    números como Decimal (latitud, número de calle, id de producto), que
+    json.dumps no sabe escribir: acá se convierten a int o float.
+    """
+    datos = datos_publico if isinstance(datos_publico, dict) else json.loads(datos_publico)
+    return _sin_decimales(datos)
 
 
 # --- Diccionario de productos --------------------------------------------

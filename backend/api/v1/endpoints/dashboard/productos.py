@@ -11,7 +11,7 @@ from api.v1.schemas.productos import (
     NOMBRE_MAX_LENGTH,
     ProductoResponse,
 )
-from api.v1.servicios import productos_empresa
+from api.v1.servicios import productos_empresa, vidriera_json
 from api.v1.servicios.productos_empresa import LimiteDeProductos, ProductoNoEncontrado
 from db_connector import execute_query
 from security import get_current_user
@@ -32,6 +32,8 @@ Productos de "mi empresa" — cómo funciona:
    un id en la URL.
 4. Los cambios se publican directo: agregar o editar un producto no manda
    la empresa de nuevo a revisión.
+5. Después de cada cambio se regenera el archivo JSON de la vidriera
+   (api/v1/servicios/vidriera_json.py), que es de donde lee la parte pública.
 """
 
 
@@ -45,8 +47,7 @@ def _mi_empresa(usuario: dict):
     if not filas:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todavía no cargaste tu empresa")
     id_empresa, datos_publico = filas[0]
-    datos = datos_publico if isinstance(datos_publico, dict) else json.loads(datos_publico)
-    return int(id_empresa), datos
+    return int(id_empresa), productos_empresa.leer_datos_publico(datos_publico)
 
 
 def _guardar_datos(id_empresa: int, datos: dict) -> None:
@@ -54,6 +55,8 @@ def _guardar_datos(id_empresa: int, datos: dict) -> None:
         "UPDATE empresas SET datos_publico = :datos_publico WHERE id_empresa = :id",
         {"datos_publico": json.dumps(datos, ensure_ascii=False), "id": id_empresa},
     )
+    # Los productos también figuran en el archivo del que lee la vidriera pública.
+    vidriera_json.actualizar()
 
 
 def _leer_imagen(imagen: UploadFile):

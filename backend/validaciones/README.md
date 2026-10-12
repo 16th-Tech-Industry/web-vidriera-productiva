@@ -19,7 +19,9 @@ del registro y el envío, con la base y el SMTP reemplazados por dobles.
 
 `test_productos.py` cubre los productos de una empresa: el diccionario que
 se guarda dentro del JSON, las imágenes en `empresas_repo/` (en una carpeta
-temporal) y los endpoints del dashboard y de la ficha pública.
+temporal), los endpoints del dashboard y de la ficha pública, y el archivo
+JSON de la vidriera (se arma si falta, se actualiza con cada cambio y sigue
+sirviendo aunque Oracle no responda).
 
 ## Cómo ejecutar
 

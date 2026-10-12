@@ -1,19 +1,14 @@
 import json
-from dataclasses import replace
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 
-from api.v1.schemas.empresas import ESTADO_APROBADA, EmpresaPublicaDetalleResponse, EmpresaPublicaResponse
+from api.v1.schemas.empresas import EmpresaPublicaDetalleResponse, EmpresaPublicaResponse
 from api.v1.schemas.landing import EventoResponse, LandingResponse, ProductorResponse
-from api.v1.servicios.busqueda_empresas import (
-    FiltrosEmpresa,
-    buscar_empresas,
-    convertir_filas,
-    filtros_publicos,
-)
+from api.v1.servicios import vidriera_json
+from api.v1.servicios.busqueda_empresas import FiltrosEmpresa, convertir_filas, filtros_publicos
 from api.v1.servicios.productos_empresa import listar_productos
-from db_connector import execute_query
 
 router = APIRouter(prefix="/landing", tags=["Landing"])
 
@@ -107,9 +102,10 @@ def listar_eventos():
 
 # --- Empresas reales (tabla `empresas`), a diferencia de _PRODUCTORES/_EVENTOS
 # que siguen siendo mock. Solo se muestran las aprobadas por un admin (ver
-# dashboard/empresas_revision.py). Los filtros y la consulta salen del
-# buscador compartido (api/v1/servicios/busqueda_empresas.py), el mismo que
-# usa el dashboard admin.
+# dashboard/empresas_revision.py). Se leen del archivo JSON de la vidriera
+# (api/v1/servicios/vidriera_json.py), que se regenera desde Oracle cuando
+# cambia una empresa aprobada; los filtros aceptados son los mismos del
+# buscador del dashboard admin (api/v1/servicios/busqueda_empresas.py).
 
 
 def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
@@ -129,29 +125,25 @@ def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
 
 @router.get("/empresas/{empresa_id}", response_model=EmpresaPublicaDetalleResponse)
 def obtener_empresa_publica(empresa_id: int):
-    """Ficha pública de una empresa aprobada, con sus productos. Es una sola
-    lectura por clave primaria: los productos viven en el mismo JSON que la
-    empresa (ver api/v1/servicios/productos_empresa.py)."""
-    filas = execute_query(
-        "SELECT id_empresa, razon_social, datos_publico FROM empresas "
-        "WHERE id_empresa = :id AND estado = :estado",
-        {"id": empresa_id, "estado": ESTADO_APROBADA},
-        fetch=True,
-    )
-    if not filas:
+    """Ficha pública de una empresa aprobada, con sus productos. Sale del
+    archivo JSON de la vidriera (ver api/v1/servicios/vidriera_json.py), sin
+    consultar Oracle."""
+    fila = vidriera_json.empresa_publica(empresa_id)
+    if fila is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
-    datos = filas[0][2] if isinstance(filas[0][2], dict) else json.loads(filas[0][2])
-    publica = _fila_a_empresa_publica(filas[0])
-    return EmpresaPublicaDetalleResponse(**publica.model_dump(), productos=listar_productos(datos))
+    try:
+        publica = _fila_a_empresa_publica(fila)
+    except (KeyError, TypeError, ValidationError):
+        # Empresa cargada a mano con el JSON incompleto: el listado la saltea
+        # (ver convertir_filas) y la ficha no existe, en vez de un 500.
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
+    return EmpresaPublicaDetalleResponse(**publica.model_dump(), productos=listar_productos(fila[2]))
 
 
 @router.get("/empresas", response_model=List[EmpresaPublicaResponse])
 def listar_empresas_publicas(filtros: FiltrosEmpresa = Depends(filtros_publicos)):
     """Empresas aprobadas para la vidriera pública (mapa de la landing), opcionalmente
     filtradas por texto, rubro, zona y/o departamento. Devuelve todas las que
-    cumplen (sin paginar): el mapa necesita todos los puntos."""
-    filas, _ = buscar_empresas(
-        "id_empresa, razon_social, datos_publico",
-        replace(filtros, estado=ESTADO_APROBADA),
-    )
-    return convertir_filas(filas, _fila_a_empresa_publica)
+    cumplen (sin paginar): el mapa necesita todos los puntos. Sale del archivo
+    JSON de la vidriera, sin consultar Oracle."""
+    return convertir_filas(vidriera_json.empresas_publicas(filtros), _fila_a_empresa_publica)

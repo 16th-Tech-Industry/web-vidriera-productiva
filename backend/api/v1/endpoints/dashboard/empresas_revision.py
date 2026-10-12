@@ -17,6 +17,7 @@ from api.v1.servicios.busqueda_empresas import (
     convertir_filas,
     filtros_admin,
 )
+from api.v1.servicios import vidriera_json
 from api.v1.servicios.correo import enviar_revision_empresa
 from api.v1.servicios.paginacion import Pagina, Paginacion, armar_pagina, parametros_paginacion
 from db_connector import execute_query
@@ -90,6 +91,8 @@ def aprobar_empresa(empresa_id: int, background_tasks: BackgroundTasks, admin: d
         "UPDATE empresas SET estado = :estado, motivo_rechazo = NULL WHERE id_empresa = :id",
         {"estado": ESTADO_APROBADA, "id": empresa_id},
     )
+    # La empresa entra al archivo del que lee la vidriera pública.
+    vidriera_json.actualizar()
     empresa = _fila_a_response(_obtener_empresa_o_404(empresa_id))
     # Aprobar dos veces lo mismo no manda el aviso de nuevo.
     if estado_previo != ESTADO_APROBADA:
@@ -111,6 +114,8 @@ def rechazar_empresa(
         "UPDATE empresas SET estado = :estado, motivo_rechazo = :motivo WHERE id_empresa = :id",
         {"estado": ESTADO_RECHAZADA, "motivo": payload.motivo_rechazo, "id": empresa_id},
     )
+    # Si estaba aprobada, sale del archivo del que lee la vidriera pública.
+    vidriera_json.actualizar()
     empresa = _fila_a_response(_obtener_empresa_o_404(empresa_id))
     # Un rechazo repetido solo se vuelve a avisar si cambió el motivo.
     if previa[_COL_ESTADO] != ESTADO_RECHAZADA or previa[_COL_MOTIVO] != payload.motivo_rechazo:

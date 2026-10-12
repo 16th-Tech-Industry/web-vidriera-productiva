@@ -17,7 +17,7 @@ backend/
         ├── endpoints/
         │   ├── user.py                 # CRUD de usuarios (id, listar, patch, delete) — todavía MOCK, no lee/escribe la DB
         │   ├── noticias.py             # CRUD de noticias con imagen, exclusivo admin (require_admin)
-        │   ├── landing.py              # Vista pública "mapa": productores/eventos MOCK + GET /landing/empresas (real, filtrable por rubro)
+        │   ├── landing.py              # Vista pública "mapa": productores/eventos MOCK + empresas aprobadas (listado filtrable y ficha), leídas del archivo JSON de la vidriera
         │   ├── notificaciones.py       # WebSocket de notificaciones en vivo + envío (a todos / a usuarios específicos), exclusivo admin; aviso automático de empresa aprobada/rechazada
         │   ├── usuario/
         │   │   ├── register.py         # Registro de cuentas nuevas + mail de bienvenida
@@ -30,6 +30,7 @@ backend/
         ├── servicios/
         │   ├── correo.py               # Envío de mails por SMTP: bienvenida, recupero de contraseña y revisión de empresa
         │   ├── productos_empresa.py    # Productos dentro del JSON de la empresa e imágenes en empresas_repo/
+        │   ├── vidriera_json.py        # Archivo empresas_repo/empresas.json: de donde lee la vidriera pública, regenerado desde Oracle
         │   ├── busqueda_empresas.py    # Filtros combinados del buscador de empresas
         │   ├── paginacion.py           # Paginación de listados
         │   ├── exportacion_empresas.py # Armado del .xlsx
@@ -220,11 +221,28 @@ Pasa la empresa a estado rechazada y le avisa al representante. Body: `{ "motivo
 
 Errores comunes de los tres endpoints de admin: `403` si quien llama no es admin · `404` si la empresa no existe.
 
+### Vidriera pública: archivo JSON regenerado desde Oracle
+
+Los dos endpoints públicos de empresas no consultan Oracle: leen `backend/empresas_repo/empresas.json`, un archivo con el documento de cada empresa **aprobada** (datos públicos y productos). Oracle sigue siendo la fuente de verdad y el respaldo; el archivo es una copia que se puede borrar porque se vuelve a armar (`api/v1/servicios/vidriera_json.py`).
+
+```json
+{
+  "actualizado": "2026-10-12T22:01:18+00:00",
+  "empresas": {
+    "7": { "id_empresa": 7, "razon_social": "Sabores Serranos SRL", "nombre_empresa": "Sabores Serranos", "rubro": "AGROALIMENTO", "ubicacion": { "...": "..." }, "productos": { "1": { "...": "..." } } }
+  }
+}
+```
+
+Se regenera entero desde la tabla `empresas`: cuando un admin aprueba o rechaza una empresa · cuando un representante agrega, edita o borra un producto · cuando el archivo no se encuentra o está dañado (lo arma la primera lectura, por ejemplo después de un despliegue). Si la regeneración falla, el cambio en Oracle no se revierte: se borra el archivo y se arma en la próxima lectura.
+
+Para tener en cuenta: un cambio hecho directo en la base (por ejemplo desde DBeaver) no regenera el archivo; hay que borrarlo para que la vidriera lo tome. Como está dentro de `empresas_repo/`, el archivo también se puede descargar tal cual en `http://localhost:8000/empresas_repo/empresas.json` (solo contiene datos públicos).
+
 ### `GET /api/v1/landing/empresas` — público, sin autenticación
-Empresas **aprobadas**, para el mapa/listado de la landing. Filtro opcional `?rubro=AGROALIMENTO` (usa la columna virtual `rubro_vc` de `db/indices_empresas.sql`, indexada). No expone `estado`, `motivo_rechazo`, `id_representante` ni `cuit` — son datos del circuito de revisión interno, no de cara al visitante. Tampoco trae los productos, para que el listado del mapa siga siendo liviano.
+Empresas **aprobadas**, para el mapa/listado de la landing. Filtros opcionales combinables: `?texto=`, `?rubro=AGROALIMENTO`, `?zona=`, `?departamento=`. No expone `estado`, `motivo_rechazo`, `id_representante` ni `cuit` — son datos del circuito de revisión interno, no de cara al visitante. Tampoco trae los productos, para que el listado del mapa siga siendo liviano.
 
 ### `GET /api/v1/landing/empresas/{id}` — público, sin autenticación
-Ficha de una empresa **aprobada**: los mismos campos que el listado más `productos` (lista, con `imagen_url` lista para un `<img>`). `404` si no existe o no está aprobada.
+Ficha de una empresa **aprobada**: los mismos campos que el listado más `productos` (lista, con `imagen_url` lista para un `<img>`). `404` si no existe, no está aprobada o tiene el JSON incompleto.
 
 ### Notificaciones en vivo: dashboard admin → dashboard usuario
 

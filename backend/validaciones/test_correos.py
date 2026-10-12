@@ -311,11 +311,15 @@ class BaseEmpresas:
 def _revisar(monkeypatch, estado_inicial: int, motivo_inicial=None, rechazo=None):
     base = BaseEmpresas(estado_inicial, motivo_inicial)
     monkeypatch.setattr(empresas_revision, "execute_query", base)
+    actualizaciones = []
+    monkeypatch.setattr(empresas_revision.vidriera_json, "actualizar", lambda: actualizaciones.append(1))
     tareas = BackgroundTasks()
     if rechazo is None:
         empresa = empresas_revision.aprobar_empresa(3, tareas, admin={})
     else:
         empresa = empresas_revision.rechazar_empresa(3, RechazoEmpresaRequest(motivo_rechazo=rechazo), tareas, admin={})
+    # Aprobar o rechazar siempre regenera el archivo del que lee la vidriera pública.
+    assert actualizaciones == [1]
     return empresa, {tarea.func: tarea.args for tarea in tareas.tasks}
 
 
@@ -345,6 +349,7 @@ def test_rechazo_con_otro_motivo_vuelve_a_avisar(monkeypatch):
 
 def test_empresa_inexistente_no_avisa(monkeypatch):
     monkeypatch.setattr(empresas_revision, "execute_query", BaseEmpresas(0))
+    monkeypatch.setattr(empresas_revision.vidriera_json, "actualizar", lambda: pytest.fail("no debe regenerar"))
     tareas = BackgroundTasks()
     with pytest.raises(HTTPException) as error:
         empresas_revision.aprobar_empresa(99, tareas, admin={})

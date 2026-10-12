@@ -79,31 +79,30 @@ siendo la única fuente de verdad; nada se desincroniza.
 Correr `bigbang.sql` y después `indices_empresas.sql` (en ese orden)
 contra el esquema `cba_vidriera`.
 
-### 3. Consultar Oracle en cada carga de página → cachear el listado público (pendiente)
+### 3. Consultar Oracle en cada carga de página → archivo JSON de la vidriera ✅ hecho
 
-`GET /api/v1/landing/empresas` (`backend/api/v1/endpoints/landing.py`) ya
-existe: lista las empresas con `estado = aprobada`, filtrable por
-`rubro` vía la columna virtual `rubro_vc`. Hoy pega contra Oracle en
-cada request — el mapa del frontend (`frontend/src/components/mapa/mapa.tsx`)
-todavía no lo consume, sigue leyendo el JSON estático embebido
-(`frontend/src/assets/db.json`).
+El listado público cambia poco (una empresa entra o sale cuando un admin
+la aprueba o rechaza, y sus productos cuando el representante los edita),
+así que no conviene consultar Oracle en cada carga de página.
 
-La recomendación sigue siendo la misma: cuando el mapa pase a consumir
-este endpoint, **no** conviene consultar Oracle en cada carga de
-página — ese listado público cambia poco (una empresa se da de
-alta/baja cuando un admin la aprueba o rechaza, no en tiempo real), así
-que conviene:
+`GET /api/v1/landing/empresas` y `GET /api/v1/landing/empresas/{id}` leen
+de un archivo, `backend/empresas_repo/empresas.json`, que contiene el
+documento de cada empresa aprobada con sus productos
+(`backend/api/v1/servicios/vidriera_json.py`). Oracle sigue siendo la
+fuente de verdad y el respaldo; el archivo se regenera entero desde la
+tabla:
 
-- una cache en memoria del lado del backend con TTL corto (segundos a
-  minutos), o
-- invalidar/regenerar la cache cuando el admin aprueba/rechaza una
-  empresa desde el dashboard (`PATCH /dashboard/empresas/{id}/aprobar`
-  o `/rechazar`), en vez de por tiempo.
+- cuando un admin aprueba o rechaza una empresa;
+- cuando un representante agrega, edita o borra un producto;
+- cuando el archivo no se encuentra o está dañado (lo arma la primera
+  lectura).
 
-Sigue pendiente porque, con el volumen de datos actual (0 empresas
-reales todavía), no es un problema real hoy — se deja documentado para
-no perder el criterio cuando el frontend se conecte y el volumen
-crezca.
+En una prueba local contra el servidor del proyecto, la consulta que arma
+el archivo desde Oracle tardó 0,19 s y las siguientes, ya leyendo el
+archivo, 0,003 s.
+
+Limitación: un cambio hecho directo en la base (por ejemplo desde DBeaver)
+no regenera el archivo. Para que la vidriera lo tome hay que borrarlo.
 
 ### 4. Bugs de esquema encontrados al usar estos scripts contra una base real
 
@@ -154,6 +153,6 @@ para que el documento no crezca sin tope.
 | Pool de conexiones en `db_connector.py` | ✅ Hecho |
 | Índices para filtros de `empresas` (rubro/zona/departamento) | ✅ Hecho (`indices_empresas.sql`, corregido el bug de `RETURNING`) |
 | Endpoint público que lista `empresas` aprobadas, filtrable por rubro | ✅ Hecho (`GET /api/v1/landing/empresas`) |
-| Cache del listado público de empresas | ⏳ Pendiente (endpoint ya existe; sin cache todavía, volumen actual no lo justifica) |
+| Listado público sin consultar Oracle en cada carga | ✅ Hecho (archivo `empresas_repo/empresas.json`, regenerado desde Oracle) |
 | `PRIMARY KEY` faltante en `representates.id_representante` | ✅ Hecho (`empresas_revision.sql`) |
 | Productos embebidos en `empresas.datos_publico` | ✅ Hecho (`backend/api/v1/servicios/productos_empresa.py`) |

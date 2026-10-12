@@ -9,6 +9,7 @@ imágenes se escriben en una carpeta temporal.
 """
 import copy
 import json
+from decimal import Decimal
 from io import BytesIO
 
 import pytest
@@ -17,7 +18,8 @@ from fastapi import HTTPException, UploadFile
 from api.v1.endpoints import landing
 from api.v1.endpoints.dashboard import empresas, productos
 from api.v1.schemas.productos import MAXIMO_PRODUCTOS
-from api.v1.servicios import productos_empresa
+from api.v1.servicios import productos_empresa, vidriera_json
+from api.v1.servicios.busqueda_empresas import FiltrosEmpresa
 
 DATOS_EMPRESA = {
     "nombre_empresa": "Sabores Serranos",
@@ -33,32 +35,46 @@ USUARIO = {"sub": "7"}
 ID_EMPRESA = 3
 
 
+def _como_oracle(valor):
+    """Oracle devuelve los números de una columna JSON como Decimal."""
+    if isinstance(valor, bool) or valor is None or isinstance(valor, str):
+        return valor
+    if isinstance(valor, (int, float)):
+        return Decimal(str(valor))
+    if isinstance(valor, dict):
+        return {clave: _como_oracle(item) for clave, item in valor.items()}
+    return [_como_oracle(item) for item in valor]
+
+
 class BaseFalsa:
     """Reemplazo de execute_query con la empresa 3 del representante 7."""
 
     def __init__(self, estado: int = 1):
         self.datos = copy.deepcopy(DATOS_EMPRESA)
         self.estado = estado
+        self.consultas = 0
 
     def __call__(self, query, params=None, fetch=False):
         if query.startswith("UPDATE"):
             assert params["id"] == ID_EMPRESA
             self.datos = json.loads(params["datos_publico"])
             return None
+        self.consultas += 1
         if "id_representante = :id_representante" in query:
             if params["id_representante"] != 7:
                 return []
-            return [(ID_EMPRESA, copy.deepcopy(self.datos))]
-        if params["id"] != ID_EMPRESA or params.get("estado", self.estado) != self.estado:
+            return [(ID_EMPRESA, _como_oracle(self.datos))]
+        # Lo que pide vidriera_json.regenerar(): las aprobadas.
+        if params["estado"] != self.estado:
             return []
-        return [(ID_EMPRESA, "Sabores Serranos SRL", copy.deepcopy(self.datos))]
+        return [(Decimal(ID_EMPRESA), "Sabores Serranos SRL", _como_oracle(self.datos))]
 
 
 @pytest.fixture
 def base(monkeypatch, tmp_path):
     falsa = BaseFalsa()
     monkeypatch.setattr(productos, "execute_query", falsa)
-    monkeypatch.setattr(landing, "execute_query", falsa)
+    monkeypatch.setattr(vidriera_json, "execute_query", falsa)
     monkeypatch.setattr(productos_empresa, "BACKEND_DIR", tmp_path)
     monkeypatch.setattr(productos_empresa, "EMPRESAS_REPO_DIR", tmp_path / "empresas_repo")
     monkeypatch.setattr(productos_empresa, "PUBLIC_BASE_URL", "http://api.local")
@@ -202,6 +218,14 @@ def test_ficha_publica_de_empresa_no_aprobada_devuelve_404(base):
     assert error.value.status_code == 404
 
 
+def test_ficha_publica_de_empresa_con_json_incompleto_devuelve_404(base):
+    base.datos = {"rubro": "Agroindustria", "ubicacion": {"zona": "Centro", "departamento": "Capital"}}
+    with pytest.raises(HTTPException) as error:
+        landing.obtener_empresa_publica(ID_EMPRESA)
+    assert error.value.status_code == 404
+    assert landing.listar_empresas_publicas(FiltrosEmpresa()) == []
+
+
 def test_empresa_sin_productos_devuelve_lista_vacia(base):
     assert landing.obtener_empresa_publica(ID_EMPRESA).productos == []
     assert productos.listar_mis_productos(usuario=USUARIO) == []
@@ -211,3 +235,98 @@ def test_mi_empresa_incluye_los_productos():
     datos = {**DATOS_EMPRESA, "productos": {"2": {"id": 2, "nombre": "Miel", "descripcion": "Pura", "ubicacion_imagen": None}}}
     respuesta = empresas._fila_a_response((ID_EMPRESA, 30712345678, "Sabores Serranos SRL", datos, 7, 1, None))
     assert [(p.id, p.nombre) for p in respuesta.productos] == [(2, "Miel")]
+
+
+# --- archivo JSON de la vidriera -----------------------------------------
+
+
+def _archivo(base):
+    return json.loads((base.raiz / "empresas_repo" / "empresas.json").read_text(encoding="utf-8"))
+
+
+def test_si_el_archivo_no_esta_la_primera_lectura_lo_arma_desde_oracle(base):
+    assert not (base.raiz / "empresas_repo" / "empresas.json").exists()
+    assert [fila[0] for fila in vidriera_json.empresas_publicas()] == [ID_EMPRESA]
+    documento = _archivo(base)["empresas"][str(ID_EMPRESA)]
+    assert documento == {**DATOS_EMPRESA, "id_empresa": ID_EMPRESA, "razon_social": "Sabores Serranos SRL"}
+
+
+def test_con_el_archivo_armado_la_vidriera_no_consulta_oracle(base):
+    landing.listar_empresas_publicas(FiltrosEmpresa())
+    consultas = base.consultas
+    landing.listar_empresas_publicas(FiltrosEmpresa())
+    landing.obtener_empresa_publica(ID_EMPRESA)
+    assert base.consultas == consultas
+
+
+def test_el_archivo_sigue_sirviendo_aunque_oracle_no_responda(base, monkeypatch):
+    landing.listar_empresas_publicas(FiltrosEmpresa())
+
+    def caida(*_, **__):
+        raise RuntimeError("sin conexión")
+
+    monkeypatch.setattr(vidriera_json, "execute_query", caida)
+    assert len(landing.listar_empresas_publicas(FiltrosEmpresa())) == 1
+
+
+def test_un_archivo_danado_se_regenera(base):
+    archivo = base.raiz / "empresas_repo" / "empresas.json"
+    archivo.parent.mkdir(parents=True)
+    archivo.write_text("{ esto no es json", encoding="utf-8")
+    assert len(vidriera_json.empresas_publicas()) == 1
+    assert str(ID_EMPRESA) in _archivo(base)["empresas"]
+
+
+def test_cada_cambio_de_productos_actualiza_el_archivo(base):
+    vidriera_json.leer()
+    _crear()
+    assert list(_archivo(base)["empresas"][str(ID_EMPRESA)]["productos"]) == ["1"]
+    productos.editar_producto(1, nombre="Miel", descripcion=None, imagen=None, usuario=USUARIO)
+    assert _archivo(base)["empresas"][str(ID_EMPRESA)]["productos"]["1"]["nombre"] == "Miel"
+    productos.eliminar_producto(1, usuario=USUARIO)
+    assert _archivo(base)["empresas"][str(ID_EMPRESA)]["productos"] == {}
+
+
+def test_una_empresa_que_deja_de_estar_aprobada_sale_del_archivo(base):
+    vidriera_json.leer()
+    base.estado = 2
+    vidriera_json.actualizar()
+    assert _archivo(base)["empresas"] == {}
+    assert vidriera_json.empresa_publica(ID_EMPRESA) is None
+
+
+def test_si_falla_la_actualizacion_se_borra_el_archivo_para_no_servir_datos_viejos(base, monkeypatch):
+    vidriera_json.leer()
+
+    def caida(*_, **__):
+        raise RuntimeError("sin conexión")
+
+    monkeypatch.setattr(vidriera_json, "execute_query", caida)
+    vidriera_json.actualizar()
+    assert not (base.raiz / "empresas_repo" / "empresas.json").exists()
+
+
+@pytest.mark.parametrize(
+    "filtros, encuentra",
+    [
+        (FiltrosEmpresa(), True),
+        (FiltrosEmpresa(texto="SERRANOS"), True),
+        (FiltrosEmpresa(texto="srl"), True),
+        (FiltrosEmpresa(texto="inexistente"), False),
+        (FiltrosEmpresa(rubro="AGROALIMENTO", zona="Zona 5", departamento="CALAMUCHITA"), True),
+        (FiltrosEmpresa(rubro="AGTECH"), False),
+        (FiltrosEmpresa(departamento="CAPITAL"), False),
+    ],
+)
+def test_filtros_del_listado_publico(base, filtros, encuentra):
+    assert bool(landing.listar_empresas_publicas(filtros)) is encuentra
+
+
+def test_los_numeros_de_oracle_se_pueden_volver_a_guardar(base):
+    # Oracle entrega latitud, número e ids como Decimal: el alta de un segundo
+    # producto relee el JSON, lo modifica y lo tiene que poder escribir.
+    _crear()
+    segundo = _crear(nombre="Miel")
+    assert segundo.id == 2
+    assert base.datos["ubicacion"] == DATOS_EMPRESA["ubicacion"]
+    assert type(base.datos["productos"]["1"]["id"]) is int
