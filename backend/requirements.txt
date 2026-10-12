@@ -6,5 +6,8 @@ oracledb==4.0.2
 bcrypt==5.0.0
 PyJWT==2.13.0
 python-multipart==0.0.32
+# WebSocket de notificaciones en vivo: uvicorn lo necesita para aceptar conexiones ws://
 websockets==17.0.1
 openpyxl==3.1.5
+# El envío de mails (api/v1/servicios/correo.py) no agrega dependencias:
+# usa smtplib y email, que vienen con Python.

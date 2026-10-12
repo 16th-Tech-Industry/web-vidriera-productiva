@@ -2,7 +2,9 @@
 Pruebas de los mails transaccionales (api/v1/servicios/correo.py):
 - recuperación de contraseña: el token (security.py) y los endpoints
   forgot/reset (api/v1/endpoints/usuario/login.py);
-- bienvenida al registrarse (api/v1/endpoints/usuario/register.py).
+- bienvenida al registrarse (api/v1/endpoints/usuario/register.py);
+- aviso de empresa aprobada o rechazada, por mail y por WebSocket
+  (api/v1/endpoints/dashboard/empresas_revision.py).
 
 No necesitan Oracle ni un servidor de correo: la base se reemplaza por una
 tabla en memoria y el SMTP por un doble que guarda lo que le mandan.
@@ -13,7 +15,12 @@ import jwt
 import pytest
 from fastapi import BackgroundTasks, HTTPException
 
+import asyncio
+
 import security
+from api.v1.endpoints import notificaciones
+from api.v1.endpoints.dashboard import empresas_revision
+from api.v1.schemas.empresas import RechazoEmpresaRequest
 from api.v1.endpoints.usuario import login, register
 from api.v1.schemas.users import ForgotPasswordRequest, ResetPasswordRequest, UserCreate
 from api.v1.servicios import correo
@@ -202,6 +209,36 @@ def test_falla_del_smtp_no_se_propaga(smtp, monkeypatch):
     correo.enviar_recupero_contrasena(EMAIL, "Ana", "token")
 
 
+def test_rechazo_temporal_del_servidor_se_reintenta(smtp, monkeypatch):
+    intentos = []
+
+    class SMTPSaturado(SMTPFalso):
+        def send_message(self, mensaje):
+            intentos.append(mensaje)
+            if len(intentos) < 3:
+                raise correo.smtplib.SMTPDataError(550, b"5.7.0 Too many emails per second")
+            super().send_message(mensaje)
+
+    esperas = []
+    monkeypatch.setattr(correo.smtplib, "SMTP", SMTPSaturado)
+    monkeypatch.setattr(correo.time, "sleep", esperas.append)
+    correo.enviar_bienvenida(EMAIL, "Ana")
+    assert len(intentos) == 3 and len(smtp.enviados) == 1
+    assert esperas == [correo.ESPERA_ENTRE_INTENTOS_SEGUNDOS] * 2
+
+
+def test_rechazo_definitivo_no_se_reintenta(smtp, monkeypatch):
+    intentos = []
+
+    def rechaza(*_, **__):
+        intentos.append(1)
+        raise correo.smtplib.SMTPAuthenticationError(535, b"5.7.0 Invalid credentials")
+
+    monkeypatch.setattr(correo.smtplib, "SMTP", rechaza)
+    correo.enviar_bienvenida(EMAIL, "Ana")
+    assert len(intentos) == 1
+
+
 def test_sin_smtp_configurado_no_se_propaga(monkeypatch):
     monkeypatch.setattr(correo, "SMTP_HOST", None)
     correo.enviar_recupero_contrasena(EMAIL, "Ana", "token")
@@ -236,3 +273,124 @@ def test_mail_de_bienvenida_lleva_el_link_a_la_plataforma(smtp):
     assert "Bienvenido" in mensaje["Subject"]
     assert "http://localhost:5173/" in mensaje.get_body(("plain",)).get_content()
     assert "Hola Ana" in mensaje.get_body(("html",)).get_content()
+
+
+# --- revisión de empresa -------------------------------------------------
+
+DATOS_EMPRESA = {
+    "nombre_empresa": "Sabores Serranos",
+    "rubro": "AGROALIMENTO",
+    "ubicacion": {
+        "zona": "Zona 5", "departamento": "CALAMUCHITA", "localidad": "Villa General Belgrano",
+        "calle": "San Martín", "numero": 123, "latitud": -31.97, "longitud": -64.55,
+    },
+    "descripcion": "Dulces artesanales",
+    "correo_empresa": "contacto@sabores.com",
+}
+
+
+class BaseEmpresas:
+    """Reemplazo de execute_query con una empresa (id 3) del representante 7."""
+
+    def __init__(self, estado: int, motivo=None):
+        self.estado = estado
+        self.motivo = motivo
+
+    def __call__(self, query, params=None, fetch=False):
+        if query.startswith("UPDATE"):
+            self.estado = params["estado"]
+            self.motivo = params.get("motivo")
+            return None
+        if "FROM representates" in query:
+            return [(EMAIL, "Ana")] if params["id"] == 7 else []
+        if params["id"] != 3:
+            return []
+        return [(3, 30712345678, "Sabores Serranos SRL", DATOS_EMPRESA, 7, self.estado, self.motivo)]
+
+
+def _revisar(monkeypatch, estado_inicial: int, motivo_inicial=None, rechazo=None):
+    base = BaseEmpresas(estado_inicial, motivo_inicial)
+    monkeypatch.setattr(empresas_revision, "execute_query", base)
+    tareas = BackgroundTasks()
+    if rechazo is None:
+        empresa = empresas_revision.aprobar_empresa(3, tareas, admin={})
+    else:
+        empresa = empresas_revision.rechazar_empresa(3, RechazoEmpresaRequest(motivo_rechazo=rechazo), tareas, admin={})
+    return empresa, {tarea.func: tarea.args for tarea in tareas.tasks}
+
+
+def test_aprobar_encola_aviso_en_vivo_y_mail(monkeypatch):
+    empresa, tareas = _revisar(monkeypatch, estado_inicial=0)
+    assert empresa.estado == 1
+    assert tareas[notificaciones.notificar_revision_empresa] == (7, 3, "Sabores Serranos SRL", True, None)
+    assert tareas[correo.enviar_revision_empresa] == (EMAIL, "Ana", "Sabores Serranos SRL", True, None)
+
+
+def test_rechazar_encola_los_avisos_con_el_motivo(monkeypatch):
+    empresa, tareas = _revisar(monkeypatch, estado_inicial=0, rechazo="Falta el logo")
+    assert empresa.estado == 2
+    assert tareas[notificaciones.notificar_revision_empresa] == (7, 3, "Sabores Serranos SRL", False, "Falta el logo")
+    assert tareas[correo.enviar_revision_empresa] == (EMAIL, "Ana", "Sabores Serranos SRL", False, "Falta el logo")
+
+
+def test_repetir_la_misma_decision_no_vuelve_a_avisar(monkeypatch):
+    assert _revisar(monkeypatch, estado_inicial=1)[1] == {}
+    assert _revisar(monkeypatch, estado_inicial=2, motivo_inicial="Falta el logo", rechazo="Falta el logo")[1] == {}
+
+
+def test_rechazo_con_otro_motivo_vuelve_a_avisar(monkeypatch):
+    _, tareas = _revisar(monkeypatch, estado_inicial=2, motivo_inicial="Falta el logo", rechazo="CUIT inválido")
+    assert len(tareas) == 2
+
+
+def test_empresa_inexistente_no_avisa(monkeypatch):
+    monkeypatch.setattr(empresas_revision, "execute_query", BaseEmpresas(0))
+    tareas = BackgroundTasks()
+    with pytest.raises(HTTPException) as error:
+        empresas_revision.aprobar_empresa(99, tareas, admin={})
+    assert error.value.status_code == 404
+    assert tareas.tasks == []
+
+
+class SocketFalso:
+    def __init__(self):
+        self.recibidos = []
+
+    async def send_json(self, datos):
+        self.recibidos.append(datos)
+
+
+def test_aviso_en_vivo_llega_solo_al_representante(monkeypatch):
+    gestor = notificaciones.GestorConexiones()
+    monkeypatch.setattr(notificaciones, "gestor", gestor)
+    suyo, ajeno = SocketFalso(), SocketFalso()
+    gestor.conectar(7, 0, suyo)
+    gestor.conectar(8, 0, ajeno)
+
+    entregado = asyncio.run(notificaciones.notificar_revision_empresa(7, 3, "Sabores Serranos SRL", False, "Falta el logo"))
+
+    assert entregado is True
+    assert ajeno.recibidos == []
+    (aviso,) = suyo.recibidos
+    assert (aviso["tipo"], aviso["evento"], aviso["empresa_id"]) == ("notificacion", "empresa_rechazada", 3)
+    assert "Falta el logo" in aviso["mensaje"]
+
+
+def test_aviso_en_vivo_sin_conexion_no_falla():
+    assert asyncio.run(notificaciones.notificar_revision_empresa(12345, 3, "Sabores Serranos SRL", True)) is False
+
+
+def test_mail_de_empresa_aprobada(smtp):
+    correo.enviar_revision_empresa(EMAIL, "Ana", "Sabores Serranos SRL", True)
+    (mensaje,) = smtp.enviados
+    assert mensaje["Subject"] == "Tu empresa fue aprobada"
+    assert "Sabores Serranos SRL ya está publicada" in mensaje.get_body(("plain",)).get_content()
+    assert "Motivo" not in mensaje.get_body(("html",)).get_content()
+
+
+def test_mail_de_empresa_rechazada_lleva_el_motivo(smtp):
+    correo.enviar_revision_empresa(EMAIL, "Ana", "Sabores Serranos SRL", False, "Falta el <logo>")
+    (mensaje,) = smtp.enviados
+    assert mensaje["Subject"] == "Tu empresa necesita cambios"
+    assert "Motivo: Falta el <logo>" in mensaje.get_body(("plain",)).get_content()
+    assert "Falta el &lt;logo&gt;" in mensaje.get_body(("html",)).get_content()

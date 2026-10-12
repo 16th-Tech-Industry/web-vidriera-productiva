@@ -1,6 +1,6 @@
 # Backend — Vidriera Productiva
 
-API en FastAPI para el registro/login de representantes de empresas, contra una DB Oracle (`freepdb1`, schema `cba_vidriera`, tabla `representates`).
+API en FastAPI para el registro/login de representantes de empresas, la carga y revisión de empresas, noticias, notificaciones en vivo y mails transaccionales, contra una DB Oracle (`freepdb1`, schema `cba_vidriera`).
 
 ## Estructura de carpetas
 
@@ -8,7 +8,9 @@ API en FastAPI para el registro/login de representantes de empresas, contra una 
 backend/
 ├── main.py                        # Entrypoint FastAPI: monta CORS y el router de la v1
 ├── db_connector.py                # Conexión a Oracle (execute_query: SELECT/INSERT/UPDATE/DELETE)
-├── security.py                    # Hashing de passwords (bcrypt) y firma/verificación de JWT (get_current_user/require_admin)
+├── security.py                    # Hashing de passwords (bcrypt), JWT de sesión (get_current_user/require_admin) y token de recupero de contraseña
+├── requirements.txt               # Dependencias (ver "Dependencias" más abajo)
+├── validaciones/                  # Pruebas automáticas con pytest (ver validaciones/README.md)
 └── api/
     └── v1/
         ├── router.py               # Arma el router de la v1, incluye todos los sub-routers de abajo
@@ -16,13 +18,20 @@ backend/
         │   ├── user.py                 # CRUD de usuarios (id, listar, patch, delete) — todavía MOCK, no lee/escribe la DB
         │   ├── noticias.py             # CRUD de noticias con imagen, exclusivo admin (require_admin)
         │   ├── landing.py              # Vista pública "mapa": productores/eventos MOCK + GET /landing/empresas (real, filtrable por rubro)
-        │   ├── notificaciones.py       # WebSocket de notificaciones en vivo + envío (a todos / a usuarios específicos), exclusivo admin
+        │   ├── notificaciones.py       # WebSocket de notificaciones en vivo + envío (a todos / a usuarios específicos), exclusivo admin; aviso automático de empresa aprobada/rechazada
         │   ├── usuario/
-        │   │   ├── register.py         # Registro de cuentas nuevas
-        │   │   └── login.py            # Login + recuperación de contraseña (forgot/reset)
+        │   │   ├── register.py         # Registro de cuentas nuevas + mail de bienvenida
+        │   │   └── login.py            # Login + recuperación de contraseña por mail (forgot/reset)
         │   └── dashboard/
         │       ├── empresas.py             # Alta y consulta de "mi empresa" — cualquier representante logueado (get_current_user)
-        │       └── empresas_revision.py    # Revisión (listar pendientes, aprobar, rechazar) — exclusivo admin (require_admin)
+        │       ├── empresas_revision.py    # Buscador y revisión (pendientes, aprobar, rechazar, con aviso al representante) — exclusivo admin (require_admin)
+        │       └── empresas_exportacion.py # Exportación del listado a .xlsx por cola de trabajos — exclusivo admin
+        ├── servicios/
+        │   ├── correo.py               # Envío de mails por SMTP: bienvenida, recupero de contraseña y revisión de empresa
+        │   ├── busqueda_empresas.py    # Filtros combinados del buscador de empresas
+        │   ├── paginacion.py           # Paginación de listados
+        │   ├── exportacion_empresas.py # Armado del .xlsx
+        │   └── cola_trabajos.py        # Cola de trabajos en segundo plano, en memoria
         └── schemas/
             ├── users.py            # Modelos Pydantic de usuarios/login/registro
             ├── noticias.py         # Modelos Pydantic de noticias
@@ -32,12 +41,59 @@ backend/
 ```
 
 Fuera de `backend/` pero relevante:
-- `../.env` — credenciales de conexión a Oracle y clave de firma de JWT (no versionado).
+- `../.env` — credenciales de conexión a Oracle, clave de firma de JWT y datos del servidor de correo (no versionado; la lista completa de variables está en `../.envexample`).
 - `../db/bigbang.sql` — script de creación del schema `cba_vidriera` y las tablas base (`representates`, `empresas`, geografía).
 - `../db/indices_empresas.sql` — columnas virtuales + índices para filtrar `empresas` por rubro/zona/departamento.
 - `../db/empresas_revision.sql` — agrega el circuito de revisión a `empresas` (`estado`, `motivo_rechazo`, `id_representante`) y la `PRIMARY KEY` que le faltaba a `representates`.
 
 `recursos/` y `.venv/` dentro de `backend/` son entornos virtuales de Python (ignorados por git), no código de la app.
+
+## Dependencias
+
+```bash
+cd backend
+python -m venv .venv
+./.venv/bin/pip install -r requirements.txt
+./.venv/bin/uvicorn main:app          # http://localhost:8000 · documentación en /docs
+```
+
+| Paquete | Para qué |
+| :--- | :--- |
+| `fastapi`, `uvicorn` | La API y el servidor que la corre. |
+| `pydantic[email]` | Validación de los datos de entrada, incluido el formato de email. |
+| `python-dotenv` | Lee las variables del `.env`. |
+| `oracledb` | Conexión a Oracle. |
+| `bcrypt` | Hash de contraseñas. |
+| `PyJWT` | JWT de sesión y token de recupero de contraseña. |
+| `python-multipart` | Subida de imágenes de noticias. |
+| `websockets` | Notificaciones en vivo: sin este paquete uvicorn rechaza las conexiones `ws://`. |
+| `openpyxl` | Exportación de empresas a `.xlsx`. |
+
+El envío de mails no suma ningún paquete: usa `smtplib` y `email`, de la librería estándar de Python.
+
+Para las pruebas hace falta además `pytest` (no está en `requirements.txt`): `./.venv/bin/pip install pytest` y después `./.venv/bin/python -m pytest validaciones`.
+
+## Envío de mails
+
+El backend manda tres mails, todos desde `api/v1/servicios/correo.py` y en segundo plano (después de responder el request):
+
+| Mail | Cuándo sale |
+| :--- | :--- |
+| Bienvenida | Al registrarse (`POST /register/`). |
+| Recupero de contraseña | Al pedirlo (`POST /users/forgot-password`), con un link `FRONTEND_URL/?reset_token=<token>` que abre el formulario de nueva contraseña. |
+| Empresa aprobada o rechazada | Cuando el admin revisa la empresa (`PATCH /dashboard/empresas/{id}/aprobar` o `/rechazar`). |
+
+En desarrollo se usa la casilla de pruebas de [Mailtrap](https://mailtrap.io): recibe los mails por SMTP y los muestra en su web, **sin entregarlos al destinatario real**. Para configurarlo, crear una cuenta, entrar a la casilla (Sandbox) y copiar sus datos SMTP al `.env`:
+
+| Variable | Valor |
+| :--- | :--- |
+| `SMTP_HOST` | Host de la casilla (`sandbox.smtp.mailtrap.io`). Si falta, no se manda nada y queda un aviso en el log. |
+| `SMTP_PORT` | Puerto (`2525`). |
+| `SMTP_USER`, `SMTP_PASSWORD` | Usuario y contraseña de la casilla. |
+| `MAIL_FROM` | Remitente que figura en los mails. |
+| `FRONTEND_URL` | URL del frontend, para armar los links (`http://localhost:5173` en local). |
+
+Un mail que falla nunca rompe el request que lo disparó: queda registrado en el log. El plan gratis de Mailtrap acepta más o menos un mail cada 10 segundos; ante ese rechazo se reintenta hasta 4 veces, con 5 segundos entre intentos, así que una ráfaga de varios mails seguidos puede perder alguno.
 
 ## Endpoints
 
@@ -68,7 +124,7 @@ Response `200`:
 Errores: `401` con el mismo mensaje genérico si el email no existe o la password es incorrecta (evita user enumeration) · `403` si la cuenta está inactiva (`estado != 1`).
 
 ### `POST /api/v1/users/forgot-password`
-Pide recuperar la contraseña mandando solo el email. Si es de una cuenta activa, genera un token de un solo uso (1h de vida) y lo manda por mail (`api/v1/servicios/correo.py`) con un link al frontend: `FRONTEND_URL/?reset_token=<token>`. El mail sale en segundo plano, después de responder. Necesita las variables `SMTP_*` del `.env`; si falta `SMTP_HOST` o el envío falla, queda un aviso en el log y la respuesta es la misma.
+Pide recuperar la contraseña mandando solo el email. Si es de una cuenta activa, genera un token de un solo uso (1h de vida) y lo manda por mail (`api/v1/servicios/correo.py`) con un link al frontend: `FRONTEND_URL/?reset_token=<token>`. El mail sale en segundo plano, después de responder. Necesita las variables `SMTP_*` del `.env`; si falta `SMTP_HOST` o el envío falla, queda un aviso en el log y la respuesta es la misma. La configuración y los reintentos están en "Envío de mails".
 
 Request: `{ "email": "usuario@mail.com" }`
 Response `200` (siempre igual, exista o no el email): `{ "message": "Si el email está registrado, enviamos instrucciones para recuperar la contraseña." }`
@@ -120,10 +176,12 @@ Devuelve **la** empresa del representante logueado (objeto único, no lista — 
 Lista las empresas en estado pendiente, esperando revisión.
 
 #### `PATCH /api/v1/dashboard/empresas/{id}/aprobar` — dashboard admin, exclusivo admin
-Pasa la empresa a estado aprobada (visible en `/landing/empresas`) y limpia cualquier `motivo_rechazo` previo.
+Pasa la empresa a estado aprobada (visible en `/landing/empresas`), limpia cualquier `motivo_rechazo` previo y le avisa al representante.
 
 #### `PATCH /api/v1/dashboard/empresas/{id}/rechazar` — dashboard admin, exclusivo admin
-Pasa la empresa a estado rechazada. Body: `{ "motivo_rechazo": "..." }` (obligatorio, lo ve el usuario en `GET /mia`).
+Pasa la empresa a estado rechazada y le avisa al representante. Body: `{ "motivo_rechazo": "..." }` (obligatorio, lo ve el usuario en `GET /mia` y en el aviso).
+
+**Aviso al representante** (aprobar y rechazar): después de responderle al admin, salen en segundo plano un mail (`api/v1/servicios/correo.py`) y una notificación en vivo por WebSocket si tiene el dashboard abierto. Si el mail falla queda en el log y la revisión no se revierte. Repetir la misma decisión no vuelve a avisar, salvo que cambie el motivo del rechazo.
 
 Errores comunes de los tres endpoints de admin: `403` si quien llama no es admin · `404` si la empresa no existe.
 
@@ -139,6 +197,11 @@ El token va por query string (el WebSocket del navegador no deja mandar `Authori
 ```json
 { "tipo": "notificacion", "alcance": "todos", "titulo": "Aviso", "mensaje": "Texto", "fecha": "2026-09-28T21:00:00+00:00" }
 ```
+Cuando el admin aprueba o rechaza una empresa, el representante recibe ese mismo formato con dos campos más, para que el dashboard pueda refrescar el estado sin recargar:
+```json
+{ "tipo": "notificacion", "alcance": "usuarios", "titulo": "Empresa rechazada", "mensaje": "Sabores SRL no fue aprobada. Motivo: Falta el logo", "fecha": "2026-10-12T18:00:00+00:00", "evento": "empresa_rechazada", "empresa_id": 7 }
+```
+`evento` es `empresa_aprobada` o `empresa_rechazada`.
 
 #### `POST /api/v1/notificaciones/todos` — exclusivo admin
 A todos los usuarios conectados (los admins no la reciben). Request: `{ "titulo": "Aviso", "mensaje": "Texto" }` · Response: `{ "usuarios_notificados": 5, "usuarios_sin_conexion": [] }`

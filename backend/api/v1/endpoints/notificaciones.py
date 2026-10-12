@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 import jwt
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, status
@@ -30,6 +30,10 @@ Notificaciones en tiempo real (admin -> usuarios) — cómo funciona:
 4. Cada dashboard recibe un JSON así:
      {"tipo": "notificacion", "alcance": "todos" | "usuarios",
       "titulo": "...", "mensaje": "...", "fecha": "<ISO 8601>"}
+5. Hay un aviso que no escribe el admin: cuando aprueba o rechaza una
+   empresa, el representante recibe ese mismo JSON con dos campos más,
+   para que el dashboard pueda refrescar el estado sin recargar:
+     {..., "evento": "empresa_aprobada" | "empresa_rechazada", "empresa_id": 7}
 
 Limitaciones (a propósito, por ahora):
 - Las notificaciones NO se guardan en la DB: el que no tiene el dashboard
@@ -99,6 +103,18 @@ def _armar_mensaje(alcance: str, titulo: str, mensaje: str) -> dict:
         "mensaje": mensaje,
         "fecha": datetime.now(timezone.utc).isoformat(),
     }
+
+
+async def notificar_revision_empresa(usuario_id: int, empresa_id: int, razon_social: str, aprobada: bool, motivo: Optional[str] = None) -> bool:
+    """Le avisa en vivo al representante que su empresa fue aprobada o rechazada.
+    La dispara la revisión del admin (dashboard/empresas_revision.py), no un endpoint propio."""
+    if aprobada:
+        datos = _armar_mensaje("usuarios", "Empresa aprobada", f"{razon_social} ya está publicada en la vidriera.")
+    else:
+        datos = _armar_mensaje("usuarios", "Empresa rechazada", f"{razon_social} no fue aprobada. Motivo: {motivo}")
+    datos["evento"] = "empresa_aprobada" if aprobada else "empresa_rechazada"
+    datos["empresa_id"] = empresa_id
+    return await gestor.enviar_a_usuario(usuario_id, datos)
 
 
 @router.websocket("/ws")

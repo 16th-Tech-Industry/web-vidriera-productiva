@@ -15,17 +15,17 @@ módulo de Gestión de Noticias (no está en la planilla original).
 
 `test_correos.py` cubre los mails transaccionales: el token de recuperación,
 los endpoints `forgot-password` / `reset-password`, el mail de bienvenida
-del registro y el envío, con la base y el SMTP reemplazados por dobles. Necesita `bcrypt` y `PyJWT`: se corre con
-`./.venv/bin/python -m pytest validaciones`.
+del registro y el envío, con la base y el SMTP reemplazados por dobles.
 
 ## Cómo ejecutar
 
-Requisito: el entorno virtual del backend con `pytest` y `email-validator`.
+Requisito: el entorno virtual del backend (`.venv`) con las dependencias de
+`requirements.txt` y `pytest`.
 
 ```bash
 cd backend
-./recursos/bin/pip install pytest email-validator   # si faltan
-./recursos/bin/python -m pytest validaciones -v
+./.venv/bin/pip install -r requirements.txt pytest   # si faltan
+./.venv/bin/python -m pytest validaciones -v
 ```
 
 Resultado esperado: todas las pruebas en verde. La última corrida de
