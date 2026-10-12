@@ -13,6 +13,11 @@ Oracle ni levantar el servidor**.
 `test_esquemas_noticias.py` cubre las reglas de título/cuerpo del nuevo
 módulo de Gestión de Noticias (no está en la planilla original).
 
+`test_correos.py` cubre los mails transaccionales: el token de recuperación,
+los endpoints `forgot-password` / `reset-password`, el mail de bienvenida
+del registro y el envío, con la base y el SMTP reemplazados por dobles. Necesita `bcrypt` y `PyJWT`: se corre con
+`./.venv/bin/python -m pytest validaciones`.
+
 ## Cómo ejecutar
 
 Requisito: el entorno virtual del backend con `pytest` y `email-validator`.

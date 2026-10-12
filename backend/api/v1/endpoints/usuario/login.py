@@ -1,7 +1,4 @@
-import secrets
-from datetime import datetime, timedelta, timezone
-
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from api.v1.schemas.users import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
@@ -10,7 +7,15 @@ from api.v1.schemas.users import (
     TokenResponse,
 )
 from db_connector import execute_query
-from security import verify_password, create_access_token, hash_password
+from api.v1.servicios.correo import enviar_recupero_contrasena
+from security import (
+    verify_password,
+    create_access_token,
+    hash_password,
+    create_reset_token,
+    decode_reset_token,
+    reset_token_vigente,
+)
 
 router = APIRouter(prefix="/users", tags=["Login"])
 
@@ -66,70 +71,65 @@ def login(payload: LoginRequest):
 Recuperación de contraseña — cómo funciona:
 
 1. El usuario pide recuperar su clave (forgot_password) mandando solo su email.
-2. Generamos un token random e imposible de adivinar (secrets.token_urlsafe),
-   y lo guardamos junto al email y una fecha de expiración (1 hora).
-   Hoy ese "guardado" es un dict en memoria (_reset_tokens); en producción
-   sería una tabla en la DB, porque un dict en memoria se pierde si el
-   server se reinicia y no funciona si hay más de una instancia corriendo.
-3. Como todavía no hay servicio de mail, el token se imprime por consola
-   (print) simulando el link que en un futuro llegaría al correo del usuario.
-4. El usuario manda ese token + su nueva contraseña (reset_password).
-   Si el token existe en el dict y no está vencido, se considera válido:
-   se "actualiza" la contraseña y se borra el token para que no se
-   pueda reusar (es de un solo uso).
+2. Si el email es de una cuenta activa, generamos un token firmado que vence
+   en 1 hora (security.create_reset_token) y se lo mandamos por mail con un
+   link al frontend. El token no se guarda en ningún lado ni se devuelve en
+   la respuesta: la única forma de tenerlo es leer ese mail.
+3. El mail sale en segundo plano (BackgroundTasks), después de responder: el
+   endpoint tarda lo mismo exista o no el email y no depende de que el
+   servidor de correo conteste.
+4. El usuario manda ese token + su nueva contraseña (reset_password). Si la
+   firma es válida, no venció y la contraseña no cambió desde que se emitió,
+   se actualiza. Con ese cambio el token deja de servir (es de un solo uso).
 5. Nunca confirmamos si el email existe o no: forgot_password siempre
    devuelve el mismo mensaje, exista o no ese email en la DB. Esto evita
    que alguien use el endpoint para averiguar qué emails están registrados
    (ataque conocido como "user enumeration").
 """
 
-# Placeholder en memoria: { token: {"email": ..., "expira_en": ...} }
-# TODO: reemplazar por una tabla `password_reset_tokens` (email, token, expira_en, usado)
-_reset_tokens: dict[str, dict] = {}
-_RESET_TOKEN_TTL = timedelta(hours=1)  # tiempo de vida del token antes de vencer
-
 @router.post("/forgot-password", response_model=MessageResponse)
-def forgot_password(payload: ForgotPasswordRequest):
-    """Genera un token de recuperación de un solo uso y lo entrega (hoy por consola, simulando el mail)."""
-    # TODO: Buscar el representante por email_representante en la DB.
-    # Igual generamos y devolvemos el mismo mensaje si no existe, para no
-    # revelar si un email está registrado (evita user enumeration).
+def forgot_password(payload: ForgotPasswordRequest, background_tasks: BackgroundTasks):
+    """Manda por mail un token de recuperación de un solo uso, si el email es de una cuenta activa."""
+    rows = execute_query(
+        "SELECT id_representante, nombre_representante, contrasenia_representate, estado "
+        "FROM representates WHERE email_representante = :email",
+        {"email": payload.email},
+        fetch=True,
+    )
 
-    # Token largo y aleatorio (256 bits) generado con una fuente criptográficamente
-    # segura -> es la "llave" que después va a probar que el usuario recibió el mail.
-    token = secrets.token_urlsafe(32)
-    _reset_tokens[token] = {
-        "email": payload.email,
-        "expira_en": datetime.now(timezone.utc) + _RESET_TOKEN_TTL,
-    }
-
-    # TODO: reemplazar este print por el envío real del mail cuando exista el servicio.
-    # El token nunca debe devolverse en la respuesta ni loguearse en un entorno real:
-    # acá se imprime solo porque no hay servicio de mail todavía.
-    print(f"[password-reset] link para {payload.email}: /reset-password?token={token}")
+    if rows and rows[0][3] == 1:
+        id_representante, nombre, password_hash, _ = rows[0]
+        token = create_reset_token(id_representante, password_hash)
+        background_tasks.add_task(enviar_recupero_contrasena, payload.email, nombre, token)
 
     return {"message": "Si el email está registrado, enviamos instrucciones para recuperar la contraseña."}
 
 @router.post("/reset-password", response_model=MessageResponse)
 def reset_password(payload: ResetPasswordRequest):
     """Valida el token de recuperación y actualiza la password hasheada del representante."""
-    # Buscamos el token tal cual lo mandó el cliente. Si no está en el dict
-    # (nunca existió, ya se usó, o el server se reinició) o si ya venció
-    # la fecha de expiración, lo tratamos como inválido.
-    data = _reset_tokens.get(payload.token)
-    if not data or data["expira_en"] < datetime.now(timezone.utc):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token inválido o expirado")
+    # Mismo error para token mal firmado, vencido o ya usado: no le damos
+    # pistas a quien esté probando tokens.
+    token_invalido = HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token inválido o expirado")
+
+    datos = decode_reset_token(payload.token)
+    if not datos or not datos["sub"].isdigit():
+        raise token_invalido
+    id_representante = int(datos["sub"])
+
+    rows = execute_query(
+        "SELECT contrasenia_representate FROM representates WHERE id_representante = :id",
+        {"id": id_representante},
+        fetch=True,
+    )
+    if not rows or not reset_token_vigente(datos, rows[0][0]):
+        raise token_invalido
 
     execute_query(
         "UPDATE representates SET contrasenia_representate = :password_hash "
-        "WHERE email_representante = :email",
+        "WHERE id_representante = :id",
         {
             "password_hash": hash_password(payload.new_password),
-            "email": data["email"],
+            "id": id_representante,
         },
     )
-
-    # Token de un solo uso: lo borramos apenas se consume para que no
-    # pueda reutilizarse para cambiar la contraseña una segunda vez.
-    del _reset_tokens[payload.token]
     return {"message": "Contraseña actualizada correctamente"}

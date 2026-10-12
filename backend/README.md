@@ -42,7 +42,7 @@ Fuera de `backend/` pero relevante:
 ## Endpoints
 
 ### `POST /api/v1/register/`
-Crea una cuenta nueva. Hashea la password con bcrypt y la persiste en `representates`.
+Crea una cuenta nueva. Hashea la password con bcrypt y la persiste en `representates`. Después de responder manda el mail de bienvenida en segundo plano (`api/v1/servicios/correo.py`); si el envío falla, la cuenta queda creada igual.
 
 Request:
 ```json
@@ -68,13 +68,13 @@ Response `200`:
 Errores: `401` con el mismo mensaje genérico si el email no existe o la password es incorrecta (evita user enumeration) · `403` si la cuenta está inactiva (`estado != 1`).
 
 ### `POST /api/v1/users/forgot-password`
-Pide recuperar la contraseña mandando solo el email. Genera un token de un solo uso (1h de vida) y lo entrega — hoy por consola (`print`), simulando el mail real que todavía no existe.
+Pide recuperar la contraseña mandando solo el email. Si es de una cuenta activa, genera un token de un solo uso (1h de vida) y lo manda por mail (`api/v1/servicios/correo.py`) con un link al frontend: `FRONTEND_URL/?reset_token=<token>`. El mail sale en segundo plano, después de responder. Necesita las variables `SMTP_*` del `.env`; si falta `SMTP_HOST` o el envío falla, queda un aviso en el log y la respuesta es la misma.
 
 Request: `{ "email": "usuario@mail.com" }`
 Response `200` (siempre igual, exista o no el email): `{ "message": "Si el email está registrado, enviamos instrucciones para recuperar la contraseña." }`
 
 ### `POST /api/v1/users/reset-password`
-Cambia la contraseña usando el token recibido en `forgot-password`.
+Cambia la contraseña usando el token recibido por mail. Errores: `400` con el mismo mensaje si el token está mal firmado, vencido o ya se usó.
 
 Request:
 ```json
@@ -151,7 +151,7 @@ Ids de los usuarios con el dashboard abierto ahora.
 
 ## Notas
 
-- Los tokens de recuperación de contraseña viven en memoria del proceso (`_reset_tokens` en `login.py`): se pierden si el server se reinicia y no funcionan con más de una instancia corriendo. Migrarlos a una tabla en DB es un TODO pendiente.
+- Los tokens de recuperación de contraseña no se guardan en ningún lado: son JWT firmados con una clave derivada de `JWT_SECRET_KEY` (ver `security.py`) que llevan una huella de la contraseña vigente, así que dejan de servir cuando la contraseña cambia. Si se piden dos seguidos, los dos valen hasta que se use uno o pase la hora.
 - El JWT no tiene revocación: un token emitido sigue siendo válido hasta que expira solo, incluso si la cuenta cambió de password después.
 - CORS habilitado en `main.py` solo para `http://localhost:5173` y `http://127.0.0.1:5173` (dev server de Vite).
 - `db/bigbang.sql` creaba `representates.id_representante` como `IDENTITY` pero sin `PRIMARY KEY`/`UNIQUE`. Eso bloqueaba cualquier `FOREIGN KEY` que apuntara a esa columna (`ORA-02270`) — entre ellas, la de `empresas.id_representante`. `db/empresas_revision.sql` agrega esa `PRIMARY KEY` como prerrequisito antes de tocar `empresas`.

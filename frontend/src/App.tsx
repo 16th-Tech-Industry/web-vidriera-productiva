@@ -16,7 +16,10 @@ import ProductosView from './components/dash_usuario/ProductosView';
 type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
 
 function App() {
-  const [currentView, setCurrentView] = useState<AuthView>('mapa');
+  // Link del mail de recupero (/?reset_token=...): la app arranca directo
+  // en el formulario de nueva contraseña con el token ya cargado.
+  const [resetToken, setResetToken] = useState(() => new URLSearchParams(window.location.search).get('reset_token') ?? '');
+  const [currentView, setCurrentView] = useState<AuthView>(resetToken ? 'forgot-password' : 'mapa');
   const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos'>('empresa');
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
   const [isDark, setIsDark] = useState(false);
@@ -32,6 +35,11 @@ function App() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
   }, []);
+
+  // El token no tiene que quedar a la vista en la barra de direcciones ni en el historial.
+  useEffect(() => {
+    if (resetToken) window.history.replaceState({}, '', window.location.pathname);
+  }, [resetToken]);
 
   const navegar = (vista: AuthView, url: string) => {
     setCurrentView(vista);
@@ -107,7 +115,7 @@ function App() {
       )}
 
       {currentView === 'register-user' && <Registro onNavigateToLogin={() => setCurrentView('login')} onRegisterSuccess={() => setCurrentView('login')} />}
-      {currentView === 'forgot-password' && <ForgotPassword onNavigateToLogin={() => setCurrentView('login')} />}
+      {currentView === 'forgot-password' && <ForgotPassword initialToken={resetToken} onNavigateToLogin={() => { setResetToken(''); setCurrentView('login'); }} />}
       {currentView === 'dashboard-admin' && <Dashboard userName={nombreUsuario} userInitials={ObtenerDatosIniciales(nombreUsuario)} onLogout={handleLogout} onGoToLanding={() => navegar('mapa', '/')} />}
 
       {currentView === 'dashboard-usuario' && (

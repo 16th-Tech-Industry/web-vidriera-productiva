@@ -1,14 +1,15 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from api.v1.schemas.users import UserCreate, UserResponse
+from api.v1.servicios.correo import enviar_bienvenida
 from db_connector import execute_query
 from security import hash_password
 
 router = APIRouter(prefix="/register", tags=["Register"])
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user: UserCreate):
-    """Registra un representante nuevo: valida email único, hashea la password y la persiste en `representates`."""
+def create_user(user: UserCreate, background_tasks: BackgroundTasks):
+    """Registra un representante nuevo: valida email único, hashea la password, la persiste en `representates` y manda el mail de bienvenida."""
     existe = execute_query(
         "SELECT id_representante FROM representates WHERE email_representante = :email",
         {"email": user.email},
@@ -42,6 +43,9 @@ def create_user(user: UserCreate):
         {"email": user.email},
         fetch=True,
     )
+    # En segundo plano, después de responder: si el servidor de correo falla,
+    # la cuenta ya quedó creada igual.
+    background_tasks.add_task(enviar_bienvenida, user.email, user.name)
     return {
         "id": nuevo[0][0], 
         "email": user.email, 

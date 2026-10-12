@@ -5,14 +5,16 @@ import './recuperar-contrasena.css';
 
 interface ForgotPasswordProps {
   onNavigateToLogin?: () => void;
+  // Token que llega en el link del mail: si viene, se saltea el paso del email.
+  initialToken?: string;
 }
 
-export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
-  const [step, setStep] = useState<'email' | 'reset'>('email');
+export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotPasswordProps) {
+  const [step, setStep] = useState<'email' | 'reset'>(initialToken ? 'reset' : 'email');
 
   // Campos del formulario
   const [email, setEmail] = useState('');
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(initialToken);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -122,7 +124,7 @@ export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
       ) : step === 'email' ? (
         <>
           <p className="forgot-description">
-            Ingresa tu correo electrónico registrado para generar el token de recuperación.
+            Ingresa tu correo electrónico registrado y te enviaremos un link para restablecer la contraseña.
           </p>
 
           {error && <div className="alert-error">{error}</div>}
@@ -148,7 +150,7 @@ export function ForgotPassword({ onNavigateToLogin }: ForgotPasswordProps) {
       ) : (
         <>
           <p className="forgot-description">
-            Ingresa el token recibido (mira la consola de FastAPI) y tu nueva contraseña.
+            Ingresa el token que recibiste por correo y tu nueva contraseña.
           </p>
 
           {error && <div className="alert-error">{error}</div>}
