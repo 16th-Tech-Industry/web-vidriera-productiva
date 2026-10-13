@@ -257,3 +257,23 @@ body:has(.dashboard-layout) {
     margin-left: 76px;
   }
 }
+/* Corrección de contraste en Permisos (solo para modo oscuro) */
+[data-theme="dark"] div:has(> table) {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] table th {
+  background-color: transparent !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] table td {
+  color: var(--text-dark) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] input[type="text"] {
+  background-color: var(--card-bg) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
