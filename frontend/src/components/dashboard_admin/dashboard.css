@@ -1,4 +1,8 @@
-:root {
+/* ===============================
+   MODO CLARO (Por defecto / data-theme="light")
+   =============================== */
+:root,
+[data-theme="light"] {
   --sidebar-bg: #123b64;
   --topbar-bg: #5b9bd5;
   --bg-page: #eef2f6;
@@ -8,6 +12,18 @@
   --accent-red: #e63946;
 }
 
+/* ===============================
+   MODO OSCURO (data-theme="dark")
+   =============================== */
+[data-theme="dark"] {
+  --sidebar-bg: #123b64;
+  --topbar-bg: #5b9bd5;
+  --bg-page: #0b1329;       
+  --card-bg: #132b45;        /* tarjetas en azul noche */
+  --text-dark: #38bdf8;      /* títulos en celeste */
+  --text-muted: #94a3b8;     /* textos secundarios en gris claro */
+  --accent-red: #e63946;
+}
 /* Anula el centrado/padding de index.css (pensado para el Login)
    cuando el Dashboard está montado en pantalla. */
 body:has(.dashboard-layout) {
