@@ -27,23 +27,32 @@ const crearIconoEstrella = (): L.DivIcon => {
     className: 'marcador-evento-estrella',
     html: `
       <div style="
-        width: 14px;
-        height: 14px;
-        background-color: #ffd700;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
+        width: 48px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        font-size: 14px;
       ">
-        ⭐
+        <div style="
+          width: 18px;
+          height: 18px;
+          background-color: #ffd700;
+          border: 2px solid #ffffff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          font-size: 11px;
+          box-sizing: border-box;
+        ">
+          ⭐
+        </div>
       </div>
     `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-    popupAnchor: [0, -10]
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+    popupAnchor: [0, -24]
   });
 };
 
@@ -98,11 +107,11 @@ export const Mapa: React.FC = () => {
   }, []);
 
   const filtrados = categoria === 'Todas'
-   ? productores
+ ? productores
     : productores.filter(p => p.rubro === categoria);
 
   const eventosFiltrados = categoria === 'Todas'
-   ? eventos
+ ? eventos
     : eventos.filter(ev => ev.categoria === categoria);
 
   const estiloDeptoBase: L.PathOptions = {
@@ -163,18 +172,28 @@ export const Mapa: React.FC = () => {
 
     return L.divIcon({
       className: 'marcador-personalizado',
-      html: `<div style="
-        width: 14px;
-        height: 14px;
-        background-color: ${colorFondo};
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.35);
-        box-sizing: border-box;
-      "></div>`,
-      iconSize: [14, 14],
-      iconAnchor: [7, 7],
-      popupAnchor: [0, -8]
+      html: `
+        <div style="
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div style="
+            width: 14px;
+            height: 14px;
+            background-color: ${colorFondo};
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+            box-sizing: border-box;
+          "></div>
+        </div>
+      `,
+      iconSize: [48, 48],
+      iconAnchor: [24, 24],
+      popupAnchor: [0, -24]
     });
   };
 

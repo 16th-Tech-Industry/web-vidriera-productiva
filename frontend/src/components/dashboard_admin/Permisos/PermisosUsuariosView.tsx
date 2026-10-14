@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
 
-
 interface RepUsuario{
     id: number;
     nombre?: string;
@@ -37,6 +36,7 @@ const obtenerUsuarios= async() =>{
         if(response.ok){
             const data: RepUsuario[]= await response.json();
             setUsuarios(data);
+            setError(null); // <-- CORREGIDO
         } else{
             const errorData= await response.json();
             setError(errorData.detail||"error al obtener datos");
@@ -57,7 +57,6 @@ useEffect(() =>{
 const cambiarRol= async (idUsuario: number, rolActual: boolean) =>{
     const nuevoRol= rolActual? 0:1;
     const accionTexto= rolActual? "Quitar permiso administrador" : "Otorgar permiso administrador";
-
 
 if (!window.confirm(`¿Confirma que desea ${accionTexto} a este usuario?`)){
     return ;
@@ -80,7 +79,7 @@ try {
             prev.map((u)=> (u.id===idUsuario ? {...u, role: nuevoRol}: u))
     );
 
-    setMensajeExito ("Permisos actualzados");
+    setMensajeExito ("Permisos actualizados");
     setTimeout(() => setMensajeExito(null), 3500);
     
     } else {
@@ -105,11 +104,11 @@ const filtroUsuarios= usuarios.filter((usuario) => {
     );
 });
 
-//lo que muestra en pantall
+//lo que muestra en pantalla
 return (
     <div style={{padding: "1.5rem"}}>
         <h1 className="dashboard-heading">Gestión de permisos de usuarios</h1>
-        <p style={{color:"#64748b", marginBottom: "1.5rem"}}>Administración de roles</p>
+        <p style={{color:"var(--text-muted)", marginBottom: "1.5rem"}}>Administración de roles</p>
 
 {/*barra de búsqueda */}
         <div style={{marginBottom: "1.5rem", maxWidth: "500px"}}>
@@ -124,6 +123,9 @@ return (
                 border:"1px solid #cbd5e1",
                 fontSize:"0.95rem",
                 outline:"none",
+                backgroundColor:"var(--card-bg)",
+                color:"var(--text-dark)",
+                boxSizing:"border-box"
             }}
             />
         </div>
@@ -134,7 +136,7 @@ return (
             </div>
         )}
 
-        {error &&(
+        {error && usuarios.length === 0 && (
             <div style={{padding: "0.75rem 1rem", backgroundColor:"#fee2e2", color:"#991b1b", borderRadius:"8px", marginBottom:"1rem"}}>
                 {error}
             </div>
@@ -142,20 +144,20 @@ return (
 
 {/*vista usuarios */}
     {cargando? (
-        <p style={{color: "#64748b"}}>Cargando usuarios</p>
+        <p style={{color: "var(--text-muted)"}}>Cargando usuarios</p>
     ) : filtroUsuarios.length===0?(
-        <p style={{color:"#64748b"}}> No se encoontraron representantes</p>
+        <p style={{color:"var(--text-muted)"}}> No se encontraron representantes</p>
     ) : (
-        <div style={{overflowX:"auto",backgroundColor: "#ffffff", borderRadius:"10px", boxShadow:"0 1px 3px rgba(0,0,0,0.1)"}}>
-            <table style={{width:"100%", borderCollapse:"collapse", textAlign:"left"}}>
+        <div style={{overflowX:"auto", backgroundColor: "var(--card-bg)", borderRadius:"10px", boxShadow:"0 1px 3px rgba(0,0,0,0.1)"}}>
+            <table style={{width:"100%", borderCollapse:"collapse", textAlign:"left", color:"var(--text-dark)"}}>
                 <thead>
-                    <tr style={{backgroundColor:"#f8fafc", borderBottom:"1px solid #e2e8f0"}}>
-                        <th style={{padding:"1rem"}}>Nombre</th>
-                        <th style={{padding:"1rem"}}>Apellido</th>
-                        <th style={{padding:"1rem"}}>Email</th>
-                        <th style={{padding:"1rem"}}>Estado</th>
-                        <th style={{ padding: "1rem" }}>Rol</th>
-                        <th style={{padding:"1rem", textAlign:"center"}}>Cambiar rol</th>
+                    <tr style={{backgroundColor:"var(--bg-page)", borderBottom:"1px solid #e2e8f0"}}>
+                        <th style={{padding:"1rem", fontWeight:"700"}}>Nombre</th>
+                        <th style={{padding:"1rem", fontWeight:"700"}}>Apellido</th>
+                        <th style={{padding:"1rem", fontWeight:"700"}}>Email</th>
+                        <th style={{padding:"1rem", fontWeight:"700"}}>Estado</th>
+                        <th style={{ padding: "1rem", fontWeight:"700" }}>Rol</th>
+                        <th style={{padding:"1rem", textAlign:"center", fontWeight:"700"}}>Cambiar rol</th>
                     </tr>
                 </thead>
                 
@@ -169,8 +171,8 @@ return (
                         const mostrarNombre= usuario.name || usuario.nombre || "-";
                         const mostrarApellido= usuario.apellido || "-";
 
-                        return(/**estado */
-                            <tr key={usuario.id} style={{ borderBottom: "1px solid  #f1f5f9" }}>
+                        return(
+                            <tr key={usuario.id} style={{ borderBottom: "1px solid var(--bg-page)" }}>
                                 <td style={{ padding: "1rem", fontWeight: "500" }}>{mostrarNombre}</td>
                                 <td style={{ padding: "1rem", fontWeight: "500" }}>{mostrarApellido || "-"}</td>
                                 <td style={{ padding: "1rem", fontWeight: "500" }}>{usuario.email || "-"}</td>
@@ -182,9 +184,9 @@ return (
                                     fontWeight: "bold",
                                     fontSize: "0.8rem",
                                     backgroundColor: estaActivo ? "#dcfce7" : "#fef3c7",
-                                    color: estaActivo ? "#15803d" : "#b45309",
+                                    color: estaActivo ? "#15803d" : "#92400e",
                                 }}>
-                                    {estaActivo ? "Activo" : "Intactivo"}
+                                    {estaActivo ? "Activo" : "Inactivo"}
                                 </span>
                             </td>
 
@@ -195,13 +197,12 @@ return (
                                 fontWeight: "bold",
                                 fontSize: "0.8rem",
                                 backgroundColor: esAdmin ? "#dbeafe" : "#f1f5f9",
-                                color: esAdmin ? "#1d4ed8" : "#475569",
+                                color: esAdmin ? "#1e40af" : "#334155",
                             }}>
                                 {esAdmin ? "Administrador" : "Representante"}
                             </span>
                             </td>
 
-                            {/* Botón Cambiar Rol */}
                             <td style={{ padding: "1rem", textAlign: "center" }}>
                                 <button 
                                     onClick={() => cambiarRol(usuario.id, esAdmin)}
@@ -212,7 +213,7 @@ return (
                                             fontSize: "0.85rem",
                                             fontWeight: "600",
                                             cursor: "pointer",
-                                            backgroundColor: esAdmin ? "#ef4444" : "#0284c7",
+                                            backgroundColor: esAdmin ? "#b91c1c" : "#0369a1",
                                             color: "#ffffff",
                                             transition: "background 0.2s",
                                         }}>
@@ -234,4 +235,4 @@ return (
 }
 
     </div>
-)};
+)}

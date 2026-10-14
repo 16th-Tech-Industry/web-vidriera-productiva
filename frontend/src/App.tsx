@@ -41,8 +41,9 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('userData');
-    setCurrentView('login');
+    navegar('mapa', '/');
   };
 
   const ObtenerDatosIniciales = (nombre: string) => {
