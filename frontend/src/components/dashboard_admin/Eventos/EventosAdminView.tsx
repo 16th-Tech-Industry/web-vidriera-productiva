@@ -24,7 +24,7 @@ interface CeldaDia {
 
 function construirGrilla(mesRef: Date): CeldaDia[] {
   const primerDiaMes = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
-  const diaSemanaInicio = primerDiaMes.getDay(); // 0 = domingo
+  const diaSemanaInicio = primerDiaMes.getDay();
   const inicioGrilla = new Date(primerDiaMes);
   inicioGrilla.setDate(primerDiaMes.getDate() - diaSemanaInicio);
 
@@ -42,7 +42,7 @@ function construirGrilla(mesRef: Date): CeldaDia[] {
 }
 
 export function EventosAdminView() {
-  const [mesActual, setMesActual] = useState(() => new Date()); //fecha en sistema
+  const [mesActual, setMesActual] = useState(() => new Date());
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [cargando, setCargando]= useState<boolean>(true);
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
@@ -76,9 +76,10 @@ export function EventosAdminView() {
   const eventosPorFecha = useMemo(() => {
     const mapa = new Map<string, Evento[]>();
     for (const ev of eventos) {
-      const lista = mapa.get(ev.fecha) ?? [];
+      const fechaKey = ev.fecha.slice(0, 10);
+      const lista = mapa.get(fechaKey) ?? [];
       lista.push(ev);
-      mapa.set(ev.fecha, lista);
+      mapa.set(fechaKey, lista);
     }
     return mapa;
   }, [eventos]);
@@ -116,7 +117,6 @@ export function EventosAdminView() {
   };
 
   const handleGuardar = async (datos: Omit<Evento, "id"> & { id?: string }) => {
-    // TODO: conectar con el backend, ej. POST /eventos o PUT /eventos/{id}
     try{
       const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
       const esEdicion= Boolean(datos.id);
@@ -140,7 +140,7 @@ export function EventosAdminView() {
       await cargarEventos();
       setModalAbierto(false);
     } else{
-      alert("error al giardar evento, verifica campos");
+      alert("Error al guardar evento, verificá los campos");
     }
     } catch(err){
       console.error("Error al guardar", err);
@@ -148,7 +148,6 @@ export function EventosAdminView() {
   };
 
   const handleEliminar = async(id: string) => {
-    // TODO: conectar con el backend, ej. DELETE /eventos/{id}
     if (!window.confirm("¿Seguro que querés eliminar este evento?")) return;
     
     try{
@@ -165,7 +164,7 @@ export function EventosAdminView() {
         await cargarEventos();
         setModalAbierto(false);
       } else{
-        alert("No se puede elminar");
+        alert("No se puede eliminar");
       }
     } catch(err){
       console.error("Error al eliminar evento", err);
@@ -187,25 +186,17 @@ export function EventosAdminView() {
       </div>
 
       <div className="eventos-admin-nav">
-        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
-          ‹
-        </button>
+        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">‹</button>
         <span className="eventos-admin-mes">
           {MESES[mesActual.getMonth()]} {mesActual.getFullYear()}
         </span>
-        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">
-          ›
-        </button>
-        <button type="button" className="eventos-admin-btn-hoy" onClick={irAHoy}>
-          Hoy
-        </button>
+        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">›</button>
+        <button type="button" className="eventos-admin-btn-hoy" onClick={irAHoy}>Hoy</button>
       </div>
 
       <div className="eventos-admin-grid">
         {DIAS_SEMANA.map((d) => (
-          <div key={d} className="eventos-admin-dia-header">
-            {d}
-          </div>
+          <div key={d} className="eventos-admin-dia-header">{d}</div>
         ))}
 
         {celdas.map((celda) => {
@@ -223,20 +214,18 @@ export function EventosAdminView() {
                 esHoy && "is-hoy",
                 esSeleccionado && "is-seleccionado",
                 eventosDia.length > 0 && "tiene-eventos",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              ].filter(Boolean).join(" ")}
               onClick={() => setDiaSeleccionado(celda.iso === diaSeleccionado ? null : celda.iso)}
               onDoubleClick={() => abrirNuevoEvento(celda.iso)}
               title="Click para ver eventos, doble click para agregar uno"
             >
               <span>{celda.fecha.getDate()}</span>
               {eventosDia.length > 0 && (
-                <div className="eventos-admin-dots">
+                <span className="eventos-admin-dots">
                   {eventosDia.slice(0, 3).map((ev) => (
                     <span key={ev.id} className={`eventos-admin-dot eventos-admin-dot--${ev.color}`} />
                   ))}
-                </div>
+                </span>
               )}
             </button>
           );
@@ -264,16 +253,12 @@ export function EventosAdminView() {
                 <span className={`eventos-admin-item-color eventos-admin-item-color--${ev.color}`} />
                 <div className="eventos-admin-item-info">
                   <span className="eventos-admin-item-fecha">
-                    {ev.fecha.split("-").reverse().join("/")} {ev.hora && `· ${ev.hora}`}
+                    {ev.fecha.slice(0,10).split("-").reverse().join("/")} {ev.hora && `· ${ev.hora}`}
                   </span>
                   <span className="eventos-admin-item-titulo">{ev.titulo}</span>
                   {ev.lugar && <span className="eventos-admin-item-lugar">📍 {ev.lugar}</span>}
                 </div>
-                <button
-                  type="button"
-                  className="eventos-admin-btn-editar"
-                  onClick={() => abrirEdicion(ev)}
-                >
+                <button type="button" className="eventos-admin-btn-editar" onClick={() => abrirEdicion(ev)}>
                   Editar
                 </button>
               </div>
@@ -293,4 +278,3 @@ export function EventosAdminView() {
     </>
   );
 }
-

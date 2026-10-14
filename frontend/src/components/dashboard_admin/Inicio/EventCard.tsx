@@ -22,13 +22,13 @@ export default function EventCard({
 }: EventCardProps) {
   return (
     <div className="event-card">
-      <div className={`event-date event-date--${badgeColor}`}>
+      <div className={`event-date event-date--${badgeColor}`} aria-hidden="true">
         <span className="event-day">{day}</span>
         <span className="event-month">{month}</span>
       </div>
 
       <div className="event-info">
-        <h4 className="event-title">{title}</h4>
+        <h3 className="event-title">{title}</h3>
         <p className="event-description">{description}</p>
         <div className="event-meta">
           {time && <span>🕒 {time}</span>}
@@ -36,7 +36,12 @@ export default function EventCard({
         </div>
       </div>
 
-      <button type="button" className="event-cta" onClick={onAgendar}>
+      <button
+        type="button"
+        className="event-cta"
+        onClick={onAgendar}
+        aria-label={`Agendar evento: ${title}`}
+      >
         Agendar
       </button>
     </div>

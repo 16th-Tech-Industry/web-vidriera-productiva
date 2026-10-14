@@ -17,7 +17,7 @@ import MisPostulacionesView from './components/dash_usuario/MisPostulacionesView
 type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
 
 function App() {
-  const [currentView, setCurrentView] = useState<AuthView>('dashboard-admin');
+  const [currentView, setCurrentView] = useState<AuthView>('mapa');
   const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos' | 'mis-postulaciones'>('empresa');
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
   const [isDark, setIsDark] = useState(false);
@@ -41,8 +41,9 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('userData');
-    setCurrentView('login');
+    navegar('mapa', '/');
   };
 
   const ObtenerDatosIniciales = (nombre: string) => {

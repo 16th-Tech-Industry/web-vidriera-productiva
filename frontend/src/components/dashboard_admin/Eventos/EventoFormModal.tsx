@@ -33,7 +33,7 @@ export default function EventoFormModal({
     if (!abierto) return;
     if (evento) {
       setForm({
-        fecha: evento.fecha,
+        fecha: evento.fecha.slice(0,10),
         titulo: evento.titulo,
         descripcion: evento.descripcion,
         hora: evento.hora ?? "",
@@ -110,9 +110,7 @@ export default function EventoFormModal({
           onChange={(e) => setForm((prev) => ({ ...prev, color: e.target.value as ColorEvento }))}
         >
           {COLORES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
+            <option key={c.value} value={c.value}>{c.label}</option>
           ))}
         </select>
 
@@ -126,21 +124,13 @@ export default function EventoFormModal({
 
         <div className="evento-modal-footer">
           {evento && onEliminar && (
-            <button
-              type="button"
-              className="evento-modal-btn evento-modal-btn--eliminar"
-              onClick={() => onEliminar(evento.id)}
-            >
+            <button type="button" className="evento-modal-btn evento-modal-btn--eliminar" onClick={() => onEliminar(evento.id)}>
               Eliminar
             </button>
           )}
           <div className="evento-modal-footer-derecha">
-            <button type="button" className="evento-modal-btn evento-modal-btn--cancelar" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="button" className="evento-modal-btn evento-modal-btn--guardar" onClick={handleGuardar}>
-              Guardar
-            </button>
+            <button type="button" className="evento-modal-btn evento-modal-btn--cancelar" onClick={onClose}>Cancelar</button>
+            <button type="button" className="evento-modal-btn evento-modal-btn--guardar" onClick={handleGuardar}>Guardar</button>
           </div>
         </div>
       </div>

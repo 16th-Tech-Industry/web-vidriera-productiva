@@ -8,7 +8,7 @@
   --bg-page: #eef2f6;
   --card-bg: #ffffff;
   --text-dark: #17385c;
-  --text-muted: #8a94a3;
+  --text-muted: #475569;
   --accent-red: #e63946;
 }
 
@@ -19,16 +19,16 @@
   --sidebar-bg: #123b64;
   --topbar-bg: #5b9bd5;
   --bg-page: #0b1329;       
-  --card-bg: #132b45;        /* tarjetas en azul noche */
-  --text-dark: #38bdf8;      /* títulos en celeste */
-  --text-muted: #94a3b8;     /* textos secundarios en gris claro */
+  --card-bg: #132b45;
+  --text-dark: #38bdf8;
+  --text-muted: #cbd5e1;
   --accent-red: #e63946;
 }
-/* Anula el centrado/padding de index.css (pensado para el Login)
-   cuando el Dashboard está montado en pantalla. */
+
 body:has(.dashboard-layout) {
   display: block;
   padding: 0;
+  overflow-x: hidden;
 }
 
 #root:has(.dashboard-layout) {
@@ -37,13 +37,20 @@ body:has(.dashboard-layout) {
   align-items: unset;
   justify-content: unset;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .dashboard-layout {
   display: flex;
-  min-height: 100vh;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100dvh;
   background: var(--bg-page);
   font-family: "Segoe UI", Arial, sans-serif;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .dashboard-main {
@@ -51,10 +58,23 @@ body:has(.dashboard-layout) {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.dashboard-layout > .sidebar {
+  align-self: stretch;
+  height: auto;
+  min-height: 100dvh;
+  box-sizing: border-box;
 }
 
 .dashboard-content {
   padding: 28px 32px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .dashboard-heading {
@@ -95,9 +115,8 @@ body:has(.dashboard-layout) {
 .stat-value {
   font-size: 26px;
   font-weight: 700;
-  color: #445064;
+  color: var(--text-dark);
 }
-
 .stat-label {
   font-size: 12px;
   color: var(--text-muted);
@@ -181,12 +200,12 @@ body:has(.dashboard-layout) {
 
 .event-date--blue {
   background: #dbe9fb;
-  color: #1a4a7a;
+  color: #123b64;
 }
 
 .event-date--green {
   background: #dff5e3;
-  color: #1f7a3f;
+  color: #14532d;
 }
 
 .event-day {
@@ -225,17 +244,30 @@ body:has(.dashboard-layout) {
   gap: 16px;
   font-size: 12px;
   color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
 .event-cta {
   border: none;
   background: transparent;
-  color: #2e9e5b;
+  color: #166534;
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* ---------- Sidebar Fix Contraste ---------- */
+.sidebar-btn {
+  color: #ffffff;
+}
+.sidebar-btn.is-active {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+.sidebar-btn-label {
+  color: #ffffff;
 }
 
 /* ---------- Responsive ---------- */
@@ -245,8 +277,18 @@ body:has(.dashboard-layout) {
     flex-direction: column;
   }
 
+  .dashboard-layout > .sidebar {
+    min-height: auto;
+    width: 100%;
+  }
+
+  .dashboard-main {
+    min-height: auto;
+    width: 100%;
+  }
+
   .dashboard-content {
-    padding: 20px;
+    padding: 20px 16px;
   }
 
   .event-card {
@@ -256,4 +298,44 @@ body:has(.dashboard-layout) {
   .event-cta {
     margin-left: 76px;
   }
+}
+
+/* Corrección de contraste en Permisos (solo para modo oscuro) */
+[data-theme="dark"] div:has(> table) {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] table th {
+  background-color: transparent !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] table td {
+  color: var(--text-dark) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] input[type="text"] {
+  background-color: var(--card-bg) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* FIX Modo Oscuro - Lighthouse */
+[data-theme="dark"] .stat-value {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .event-cta {
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .event-date--blue {
+  background: #1e3a5f !important;
+  color: #e0f2fe !important;
+}
+
+[data-theme="dark"] .event-date--green {
+  background: #14532d !important;
+  color: #dcfce7 !important;
 }
