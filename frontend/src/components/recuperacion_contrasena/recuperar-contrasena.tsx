@@ -10,15 +10,13 @@ interface ForgotPasswordProps {
 }
 
 export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotPasswordProps) {
-  const [step, setStep] = useState<'email' | 'reset'>(initialToken ? 'reset' : 'email');
+  const [step, setStep] = useState<'email' | 'sent' | 'reset'>(initialToken ? 'reset' : 'email');
 
-  // Campos del formulario
   const [email, setEmail] = useState('');
-  const [token, setToken] = useState(initialToken);
+  const [token] = useState(initialToken);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Control de estados
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,33 +25,32 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
   const isPasswordValid = newPassword.length >= 8;
   const doPasswordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
 
-  // Paso 1: Pedir token de recuperación
+  // El token llega en el link del mail (/?reset_token=...): App.tsx lo lee
+  // de la URL y lo pasa como initialToken, así no se muestra en pantalla y
+  // se arranca directo en el paso de la nueva contraseña.
+
+  // PASO 1: Pedir el mail
   const handleRequestToken = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!email.trim() || !isEmailValid) {
       setError('Ingresa un correo electrónico válido.');
       return;
     }
-
     setError('');
     setIsLoading(true);
-
     try {
       const response = await fetch(`${API_URL}/api/v1/users/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         setError(data.detail || 'Error al procesar la solicitud.');
         return;
       }
-
-      setStep('reset');
+      setSuccessMessage('Te enviamos un correo con el enlace para restablecer tu contraseña. Revisá tu bandeja de entrada.');
+      setStep('sent');
     } catch {
       setError('No se pudo conectar con el servidor backend.');
     } finally {
@@ -61,46 +58,41 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
     }
   };
 
-  // Paso 2: Restablecer contraseña con el token
+  // PASO FINAL: Tu código de reset tal cual lo tenías
   const handleResetPassword = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!token.trim()) {
-      setError('Debes ingresar el token de recuperación recibido.');
+    if (!token) {
+      setError('El enlace de recuperación es inválido o ha expirado.');
       return;
     }
-
     if (!isPasswordValid) {
       setError('La nueva contraseña debe tener al menos 8 caracteres.');
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setError('Las contraseñas no coinciden.');
       return;
     }
 
     setIsLoading(true);
-
     try {
       const response = await fetch(`${API_URL}/api/v1/users/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token: token.trim(),
+          token: token,
           new_password: newPassword,
         }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         setError(data.detail || 'El token es inválido o ha expirado.');
         return;
       }
-
       setSuccessMessage('¡Contraseña actualizada correctamente!');
+      setStep('sent');
     } catch {
       setError('No se pudo conectar con el servidor backend.');
     } finally {
@@ -111,10 +103,9 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
   return (
     <div className="login-container">
       <img src={logo} alt="Logo Ministerio de Bioagroindustria" className="login-logo" />
-
       <h2>Recuperar Contraseña</h2>
 
-      {successMessage ? (
+      {step === 'sent' ? (
         <div className="form-feedback-container">
           <div className="alert-success">{successMessage}</div>
           <button type="button" className="btn-submit" onClick={onNavigateToLogin}>
@@ -124,11 +115,9 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
       ) : step === 'email' ? (
         <>
           <p className="forgot-description">
-            Ingresa tu correo electrónico registrado y te enviaremos un link para restablecer la contraseña.
+            Ingresa tu correo electrónico registrado y te enviaremos un enlace de recuperación.
           </p>
-
           {error && <div className="alert-error">{error}</div>}
-
           <form onSubmit={handleRequestToken} noValidate>
             <div className="form-group">
               <label htmlFor="recovery-email">Correo electrónico</label>
@@ -141,33 +130,15 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
                 placeholder="ej. usuario@correo.com"
               />
             </div>
-
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              {isLoading ? 'Generando...' : 'Continuar'}
+              {isLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
             </button>
           </form>
         </>
       ) : (
         <>
-          <p className="forgot-description">
-            Ingresa el token que recibiste por correo y tu nueva contraseña.
-          </p>
-
           {error && <div className="alert-error">{error}</div>}
-
           <form onSubmit={handleResetPassword} noValidate>
-            <div className="form-group">
-              <label htmlFor="token">Token de recuperación</label>
-              <input
-                id="token"
-                type="text"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="input-field"
-                placeholder="Pega el token aquí"
-              />
-            </div>
-
             <div className="form-group">
               <label htmlFor="new-password">Nueva contraseña</label>
               <input
@@ -179,7 +150,6 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
                 placeholder="Mínimo 8 caracteres"
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="confirm-password">Confirmar contraseña</label>
               <input
@@ -191,7 +161,6 @@ export function ForgotPassword({ onNavigateToLogin, initialToken = '' }: ForgotP
                 placeholder="Repite la contraseña"
               />
             </div>
-
             <button type="submit" className="btn-submit" disabled={isLoading}>
               {isLoading ? 'Actualizando...' : 'Restablecer contraseña'}
             </button>
