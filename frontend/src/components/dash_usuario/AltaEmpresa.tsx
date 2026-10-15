@@ -15,6 +15,41 @@ interface Localidad {
   nombre: string;
 }
 
+// Nombre legible de cada campo que valida el backend (para los errores 422)
+const CAMPOS: Record<string, string> = {
+  cuit: "CUIT",
+  razon_social: "Nombre de la empresa",
+  nombre_empresa: "Nombre de fantasía",
+  rubro: "Rubro",
+  correo_empresa: "Correo institucional",
+  descripcion: "Descripción",
+  departamento: "Departamento",
+  localidad: "Localidad",
+  calle: "Calle",
+  numero: "Número de calle",
+};
+
+// Exige texto antes y después de la @ y un punto en el dominio, como el backend
+// (el type="email" del navegador acepta "contacto@empresa", sin punto).
+const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Arma un mensaje que diga qué dato corregir a partir de la respuesta del backend. */
+function mensajeDelBackend(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (!Array.isArray(detail)) return "Error al registrar la empresa. Verifique los datos";
+  const campos = detail.map((d: { loc?: (string | number)[] }) => String(d.loc?.at(-1) ?? ""));
+  if (campos.includes("latitud") || campos.includes("longitud")) {
+    return "La ubicación marcada tiene que estar dentro de la provincia de Córdoba.";
+  }
+  if (campos.includes("correo_empresa")) {
+    return "El correo institucional no es válido (ej.: contacto@empresa.com).";
+  }
+  const nombres = [...new Set(campos.map((c) => CAMPOS[c]).filter(Boolean))];
+  return nombres.length
+    ? `Revisá estos datos: ${nombres.join(", ")}.`
+    : "Error al registrar la empresa. Verifique los datos";
+}
+
 export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) {
   const [depto, setDepto] = useState("");
   const [zona, setZona] = useState("");
@@ -162,6 +197,12 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
       return;
     }
 
+    if (!CORREO_VALIDO.test(form.correoEmpresa.trim())) {
+      setErrorMsg("El correo institucional no es válido (ej.: contacto@empresa.com).");
+      setCargando(false);
+      return;
+    }
+
     const token =
       localStorage.getItem("authToken") ||
       localStorage.getItem("access_token") ||
@@ -189,7 +230,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
         longitud: coordenadas.lng,
       },
       descripcion: form.descripcion || "Sin descripción proporcionada",
-      correo_empresa: form.correoEmpresa,
+      correo_empresa: form.correoEmpresa.trim(),
       redes: {
         numero_contacto: form.telefono || null,
         facebook: null,
@@ -212,13 +253,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
         onComplete();
       } else {
         const errData = await response.json();
-        setErrorMsg(
-          typeof errData.detail === "string"
-            ? errData.detail
-            : Array.isArray(errData.detail) && errData.detail.some((d: { loc?: string[] }) => d.loc?.includes("latitud") || d.loc?.includes("longitud"))
-              ? "La ubicación marcada tiene que estar dentro de la provincia de Córdoba."
-              : "Error al registrar la empresa. Verifique los datos"
-        );
+        setErrorMsg(mensajeDelBackend(errData.detail));
       }
     } catch (err) {
       console.error("Error de conexión", err);

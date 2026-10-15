@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -36,6 +37,16 @@ def _fila_a_response(fila) -> EmpresaResponse:
     )
 
 
+def _zona_del_departamento(departamento: str) -> Optional[str]:
+    filas = execute_query(
+        "SELECT z.nombre_zona FROM departamentos d JOIN zonas z ON z.id_zona = d.id_zona "
+        "WHERE UPPER(d.nombre_departamento) = UPPER(:departamento)",
+        {"departamento": departamento},
+        fetch=True,
+    )
+    return str(filas[0][0]) if filas and filas[0][0] else None
+
+
 @router.post("/", response_model=EmpresaResponse, status_code=status.HTTP_201_CREATED)
 def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_user)):
     """Da de alta la empresa del representante logueado. Nace en estado
@@ -61,37 +72,17 @@ def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_us
     if existe:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ya existe una empresa con ese CUIT")
 
-#obtener la zona dinámicamente
-    traer_zona= empresa.ubicacion.departamento
+    # La zona sale de la base según el departamento (tablas departamentos y
+    # zonas), no de lo que mande el navegador: el buscador filtra por ella.
+    ubicacion = empresa.ubicacion.model_dump()
+    zona = _zona_del_departamento(empresa.ubicacion.departamento)
+    if zona:
+        ubicacion["zona"] = zona
 
-    query_zona= """
-        SELECT z.nombre_zona
-        FROM departamentos d
-        INNER JOIN departamentos d ON z.id_zona = i.id_zona
-        WHERE UPPER (d.nomre_departamento) = UPPER (:depto)"""
-
-    try:
-
-        res_zona = execute_query(
-            query_zona, 
-            {"depto": empresa.ubicacion.departamento}, 
-            fetch=True
-        )
-
-        if res_zona and res_zona[0][0]:
-            zona_calculada = str(res_zona[0][0])
-
-    except Exception as e:
-
-        print(f"Advertencia al consultar la zona en la BD: {e}")
-
-    ubicacion_dict= empresa.ubicacion.model_dump()
-    ubicacion_dict["zona"]= traer_zona
- 
     datos_publico = {
         "nombre_empresa": empresa.nombre_empresa,
         "rubro": empresa.rubro,
-        "ubicacion": empresa.ubicacion.model_dump(),
+        "ubicacion": ubicacion,
         "descripcion": empresa.descripcion,
         "correo_empresa": empresa.correo_empresa,
         "redes": empresa.redes.model_dump(),

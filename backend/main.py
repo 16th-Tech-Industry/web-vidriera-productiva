@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from api.v1.router import api_router_v1
@@ -48,6 +50,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Un 422 deja en la consola qué campos fallaron (sin los valores, que pueden
+# ser contraseñas o datos personales); la respuesta al cliente no cambia.
+@app.exception_handler(RequestValidationError)
+async def registrar_error_de_validacion(request: Request, exc: RequestValidationError):
+    campos = "; ".join(f"{'.'.join(str(p) for p in e['loc'])}: {e['msg']}" for e in exc.errors())
+    print(f"422 en {request.method} {request.url.path} -> {campos}")
+    return await request_validation_exception_handler(request, exc)
+
 
 # Montaje de rutas de la versión 1
 app.include_router(api_router_v1, prefix="/api/v1")

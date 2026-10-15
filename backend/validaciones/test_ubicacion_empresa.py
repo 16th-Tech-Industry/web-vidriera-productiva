@@ -1,9 +1,12 @@
 """Validación de la ubicación en el alta de empresa: el punto tiene que caer
 dentro de Córdoba (api/v1/schemas/empresas.py, UbicacionEmpresaAlta)."""
 
+import json
+
 import pytest
 from pydantic import ValidationError
 
+from api.v1.endpoints.dashboard import empresas
 from api.v1.schemas.empresas import EmpresaCreate, EmpresaResponse
 
 
@@ -46,3 +49,27 @@ def test_la_respuesta_no_exige_cordoba():
     datos = _alta(-34.60, -58.38)
     respuesta = EmpresaResponse(**datos, id_empresa=1, id_representante=1, estado=1, redes={})
     assert respuesta.ubicacion.longitud == -58.38
+
+
+def test_el_alta_guarda_la_zona_de_la_base(monkeypatch):
+    # El navegador manda cualquier zona; se guarda la del departamento en la base.
+    insertados = []
+
+    def execute_query(query, params=None, fetch=False):
+        if "FROM departamentos" in query:
+            return [("Zona 5",)] if params["departamento"] == "CALAMUCHITA" else []
+        if query.startswith("INSERT"):
+            insertados.append(json.loads(params["datos_publico"]))
+            return None
+        if "WHERE cuit" in query and insertados:
+            return [(9, params["cuit"], "Quesos SRL", insertados[0], 7, 0, None)]
+        return []
+
+    monkeypatch.setattr(empresas, "execute_query", execute_query)
+    datos = _alta(-32.17, -64.57)
+    datos["ubicacion"]["zona"] = "CALAMUCHITA"
+
+    empresa = empresas.crear_empresa(EmpresaCreate(**datos), usuario={"sub": "7"})
+
+    assert insertados[0]["ubicacion"]["zona"] == "Zona 5"
+    assert empresa.ubicacion.zona == "Zona 5"
