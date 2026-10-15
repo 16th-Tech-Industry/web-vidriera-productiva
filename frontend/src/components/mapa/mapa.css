@@ -18,6 +18,9 @@
   border-radius: 12px;
   overflow: hidden;
   background-color: #f8fafc;
+  /* Encierra los z-index del mapa (panel de filtros, controles y capas de
+     Leaflet llegan a 1000) para que no pasen por encima de la navbar fija. */
+  isolation: isolate;
 }
 
 /* Forzar al contenedor de Leaflet a expandirse al 100% de la caja.
