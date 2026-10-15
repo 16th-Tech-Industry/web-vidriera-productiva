@@ -81,23 +81,51 @@ contra el esquema `cba_vidriera`.
 
 ### 3. Consultar Oracle en cada carga de página → cachear el listado público (pendiente)
 
-Hoy el mapa público (`frontend/src/components/mapa/mapa.tsx`) ni
-siquiera pega contra el backend: lee un JSON estático embebido en el
-frontend (`frontend/src/assets/db.json`). Es, de hecho, la forma más
-rápida posible de servir ese dato. Cuando se conecte el mapa a datos
-reales de `empresas`, la recomendación es **no** consultar Oracle en
-cada carga de página: ese listado público cambia poco (una empresa se
-da de alta/baja cuando un admin la aprueba o rechaza, no en tiempo
-real), así que conviene:
+`GET /api/v1/landing/empresas` (`backend/api/v1/endpoints/landing.py`) ya
+existe: lista las empresas con `estado = aprobada`, filtrable por
+`rubro` vía la columna virtual `rubro_vc`. Hoy pega contra Oracle en
+cada request — el mapa del frontend (`frontend/src/components/mapa/mapa.tsx`)
+todavía no lo consume, sigue leyendo el JSON estático embebido
+(`frontend/src/assets/db.json`).
+
+La recomendación sigue siendo la misma: cuando el mapa pase a consumir
+este endpoint, **no** conviene consultar Oracle en cada carga de
+página — ese listado público cambia poco (una empresa se da de
+alta/baja cuando un admin la aprueba o rechaza, no en tiempo real), así
+que conviene:
 
 - una cache en memoria del lado del backend con TTL corto (segundos a
   minutos), o
 - invalidar/regenerar la cache cuando el admin aprueba/rechaza una
-  empresa desde el dashboard, en vez de por tiempo.
+  empresa desde el dashboard (`PATCH /dashboard/empresas/{id}/aprobar`
+  o `/rechazar`), en vez de por tiempo.
 
-Esto queda pendiente porque todavía no existe el endpoint que liste
-`empresas` (ver conversación del proyecto) — se deja documentado acá
-para no perder el criterio cuando se implemente.
+Sigue pendiente porque, con el volumen de datos actual (0 empresas
+reales todavía), no es un problema real hoy — se deja documentado para
+no perder el criterio cuando el frontend se conecte y el volumen
+crezca.
+
+### 4. Bugs de esquema encontrados al usar estos scripts contra una base real
+
+Ninguno de los scripts de este directorio se había corrido nunca
+contra una base Oracle real antes de armar el pipeline de revisión de
+empresas. Al hacerlo aparecieron dos bugs latentes:
+
+- `bigbang.sql` crea `representates.id_representante` como `IDENTITY`
+  pero sin `PRIMARY KEY`/`UNIQUE`. Cualquier `FOREIGN KEY` que apunte a
+  esa columna falla con `ORA-02270`. `empresas_revision.sql` agrega esa
+  `PRIMARY KEY` como prerrequisito antes de tocar `empresas`.
+- `indices_empresas.sql` declaraba las columnas virtuales como
+  `VARCHAR2(150)`, pero `JSON_VALUE` sin `RETURNING` devuelve
+  `VARCHAR2(4000)` por default para validar ese tamaño → `ORA-12899`.
+  Se corrigió agregando `RETURNING VARCHAR2(150)` explícito en cada
+  `JSON_VALUE`.
+
+`noticias.sql` no se corrió contra la base de `bauti_dev` usada para
+estas pruebas (se deja así a propósito, es útil para el TP de
+testing), así que no se pudo confirmar si tiene el mismo problema de PK
+que tenía `representates` — si en algún momento se corre, revisar lo
+mismo.
 
 ## Resumen
 
@@ -105,5 +133,7 @@ para no perder el criterio cuando se implemente.
 |---|---|
 | Motor relacional (Oracle) alcanza para este volumen | Confirmado, no se cambia |
 | Pool de conexiones en `db_connector.py` | ✅ Hecho |
-| Índices para filtros de `empresas` (rubro/zona/departamento) | ✅ Hecho (`indices_empresas.sql`) |
-| Cache del listado público de empresas | ⏳ Pendiente (no existe aún el endpoint) |
+| Índices para filtros de `empresas` (rubro/zona/departamento) | ✅ Hecho (`indices_empresas.sql`, corregido el bug de `RETURNING`) |
+| Endpoint público que lista `empresas` aprobadas, filtrable por rubro | ✅ Hecho (`GET /api/v1/landing/empresas`) |
+| Cache del listado público de empresas | ⏳ Pendiente (endpoint ya existe; sin cache todavía, volumen actual no lo justifica) |
+| `PRIMARY KEY` faltante en `representates.id_representante` | ✅ Hecho (`empresas_revision.sql`) |

@@ -163,6 +163,10 @@ flowchart TD
 ### 🐳 Ejecución con Docker + Oracle
 Requisito: Docker Desktop
 
+Antes de levantar: copiar `.envexample` a `.env` (en la raíz) y completar
+`DB_USER`, `DB_CONNECTION`, `PASSWORD` y `JWT_SECRET_KEY`. El backend toma
+esas variables del `.env`.
+
 Levantar:
 docker compose up --build
 

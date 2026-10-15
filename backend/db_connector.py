@@ -11,6 +11,11 @@ env_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path=env_path)
 load_dotenv()  # Fallback adicional
 
+# Las columnas CLOB (ej: noticias.cuerpo) se devuelven como str en vez de
+# como objeto LOB: los schemas de respuesta esperan texto y, con el LOB,
+# Pydantic rechazaba la fila y el endpoint respondía 500.
+oracledb.defaults.fetch_lobs = False
+
 """
 Pool de conexiones Oracle.
 

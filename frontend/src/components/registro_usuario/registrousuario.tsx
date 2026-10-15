@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { API_URL } from '../../config';
 import logo from '../../assets/ministerio+cba.svg';
 import '../Login/login.css';
 import '../registro_usuario/registrousuario.css';
@@ -71,7 +72,7 @@ export function Registro({ onNavigateToLogin, onRegisterSuccess }: RegistroProps
       setSuccessMessage('');
 
       try {
-        const response = await fetch('http://localhost:8000/api/v1/register/', {
+        const response = await fetch(`${API_URL}/api/v1/register/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
