@@ -1,3 +1,7 @@
+import type { EmpresaPendiente } from "../../../api/empresasAdmin";
+
+// Hoy toda empresa pendiente es "nuevo": el backend no tiene todavía un
+// circuito de modificación que la devuelva a revisión.
 export type EstadoEmpresa = "nuevo" | "modificado";
 
 export interface Producto {
@@ -9,10 +13,15 @@ export interface Producto {
 export interface Empresa {
   id: string;
   nombre: string;
+  razonSocial: string;
+  cuit: string;
   logo: string;
   rubro: string;
-  fechaRegistro: string;
+  // La tabla empresas no guarda fecha de alta todavía
+  fechaRegistro?: string;
   estado: EstadoEmpresa;
+  descripcion: string;
+  correo: string;
   representante: {
     nombre: string;
     telefono: string;
@@ -24,68 +33,28 @@ export interface Empresa {
   productos: Producto[];
 }
 
-// TODO: reemplazar por datos reales obtenidos del backend (FastAPI)
-// endpoint sugerido: GET /productores?estado=pendiente
-export const EMPRESAS_PENDIENTES: Empresa[] = [
-  {
-    id: "1",
-    nombre: "NUEVO MUNICH FIAMBRES",
-    logo: "",
-    rubro: "Fiambres y embutidos",
-    fechaRegistro: "12/08/2026",
+/** Convierte una empresa de GET /dashboard/empresas/pendientes a lo que muestran la tarjeta y el detalle. */
+export function aEmpresaVista(e: EmpresaPendiente): Empresa {
+  const { calle, numero, localidad, departamento } = e.ubicacion;
+  const redes = [e.redes.instagram, e.redes.facebook].filter(Boolean).join(" · ");
+  return {
+    id: String(e.id_empresa),
+    nombre: e.nombre_empresa,
+    razonSocial: e.razon_social,
+    cuit: String(e.cuit),
+    logo: e.productos.find((p) => p.imagen_url)?.imagen_url ?? "",
+    rubro: e.rubro,
     estado: "nuevo",
+    descripcion: e.descripcion,
+    correo: e.correo_empresa,
     representante: {
-      nombre: "Jorge Aleman",
-      telefono: "+54 9 351 555-0101",
-      email: "jorge.aleman@nuevomunich.com.ar",
+      nombre: e.representante ? `${e.representante.nombre} ${e.representante.apellido}` : "Sin datos del representante",
+      telefono: e.representante?.telefono || e.redes.numero_contacto || "Sin teléfono",
+      email: e.representante?.email ?? "",
     },
-    direccion: "Ruta 9 Km 15, Colonia Caroya, Córdoba",
-    sitioWeb: "www.nuevomunich.com.ar",
-    redesSociales: "@nuevomunichfiambres",
-    productos: [
-      { id: "p1", nombre: "Jamón crudo artesanal" },
-      { id: "p2", nombre: "Salame tipo Milán" },
-      { id: "p3", nombre: "Bondiola ahumada" },
-    ],
-  },
-  {
-    id: "2",
-    nombre: "DON RAMÓN - Fiambres",
-    logo: "",
-    rubro: "Fiambres y embutidos",
-    fechaRegistro: "10/08/2026",
-    estado: "modificado",
-    representante: {
-      nombre: "Ramón Gómez",
-      telefono: "+54 9 351 555-0202",
-      email: "contacto@donramon.com.ar",
-    },
-    direccion: "Av. San Martín 450, Jesús María, Córdoba",
-    sitioWeb: "www.donramonfiambres.com.ar",
-    redesSociales: "@donramonfiambres",
-    productos: [
-      { id: "p4", nombre: "Chorizo colorado" },
-      { id: "p5", nombre: "Longaniza" },
-      { id: "p6", nombre: "Panceta ahumada" },
-      { id: "p7", nombre: "Queso de cerdo" },
-    ],
-  },
-  {
-    id: "3",
-    nombre: "DON CELESTINO",
-    logo: "",
-    rubro: "Dulces y conservas",
-    fechaRegistro: "05/08/2026",
-    estado: "nuevo",
-    representante: {
-      nombre: "Celestino Ferrero",
-      telefono: "+54 9 351 555-0303",
-      email: "doncelestino@gmail.com",
-    },
-    direccion: "Calle Belgrano 120, Villa General Belgrano, Córdoba",
-    productos: [
-      { id: "p8", nombre: "Dulce de membrillo casero" },
-      { id: "p9", nombre: "Mermelada de frutos rojos" },
-    ],
-  },
-];
+    direccion: `${calle} ${numero}, ${localidad}, ${departamento}, Córdoba`,
+    sitioWeb: e.redes.pagina_web ?? undefined,
+    redesSociales: redes || undefined,
+    productos: e.productos.map((p) => ({ id: String(p.id), nombre: p.nombre, imagen: p.imagen_url ?? undefined })),
+  };
+}

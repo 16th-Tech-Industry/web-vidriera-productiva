@@ -8,6 +8,7 @@ from api.v1.schemas.empresas import (
     ESTADO_APROBADA,
     ESTADO_PENDIENTE,
     ESTADO_RECHAZADA,
+    EmpresaPendienteResponse,
     EmpresaResponse,
     RechazoEmpresaRequest,
 )
@@ -71,15 +72,38 @@ def buscar(
     return armar_pagina(convertir_filas(filas, _fila_a_response), total, paginacion)
 
 
-@router.get("/pendientes", response_model=List[EmpresaResponse])
+def _representantes_de_pendientes() -> dict:
+    """Contacto de los representantes con empresas pendientes, por id."""
+    filas = execute_query(
+        "SELECT id_representante, nombre_representante, apellido_representante, "
+        "email_representante, n_telefono_representante FROM representates "
+        "WHERE id_representante IN (SELECT id_representante FROM empresas WHERE estado = :estado)",
+        {"estado": ESTADO_PENDIENTE},
+        fetch=True,
+    )
+    return {
+        int(id_rep): {"nombre": nombre, "apellido": apellido, "email": email, "telefono": telefono}
+        for id_rep, nombre, apellido, email, telefono in filas
+    }
+
+
+@router.get("/pendientes", response_model=List[EmpresaPendienteResponse])
 def listar_pendientes(admin: dict = Depends(require_admin)):
-    """Empresas cargadas por usuarios que todavía no fueron revisadas. Exclusivo de administradores."""
+    """Empresas cargadas por usuarios que todavía no fueron revisadas, con el
+    contacto de su representante. Exclusivo de administradores."""
     filas = execute_query(
         _SELECT_EMPRESA + " WHERE estado = :estado ORDER BY id_empresa",
         {"estado": ESTADO_PENDIENTE},
         fetch=True,
     )
-    return [_fila_a_response(fila) for fila in filas]
+    representantes = _representantes_de_pendientes()
+    return [
+        EmpresaPendienteResponse(
+            **empresa.model_dump(),
+            representante=representantes.get(empresa.id_representante),
+        )
+        for empresa in convertir_filas(filas, _fila_a_response)
+    ]
 
 
 @router.patch("/{empresa_id}/aprobar", response_model=EmpresaResponse)

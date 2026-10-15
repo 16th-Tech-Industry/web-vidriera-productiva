@@ -38,7 +38,7 @@ export default function EmpresaCard({ empresa, onClick }: EmpresaCardProps) {
       <div className="empresa-card-info">
         <span className="empresa-card-nombre">{empresa.nombre}</span>
         <span className="empresa-card-meta">
-          {empresa.rubro} · Registrado el {empresa.fechaRegistro}
+          {empresa.rubro} · {empresa.fechaRegistro ? `Registrado el ${empresa.fechaRegistro}` : empresa.razonSocial}
         </span>
       </div>
 

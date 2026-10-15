@@ -1,4 +1,5 @@
 import { API_URL } from '../config';
+import { headersAdmin as headersAdminComun, mensajeDeError } from './comun';
 
 // Llamadas a /api/v1/noticias (backend/api/v1/endpoints/noticias.py).
 // Listar es público; crear, editar y eliminar piden el token de un admin,
@@ -15,26 +16,7 @@ export interface Noticia {
 
 const URL_NOTICIAS = `${API_URL}/api/v1/noticias/`;
 
-// FastAPI devuelve `detail` como texto (401, 403, 404) o como lista de
-// errores de validación (422); se arma un mensaje legible en los dos casos.
-async function mensajeDeError(response: Response): Promise<string> {
-  try {
-    const data = await response.json();
-    if (typeof data.detail === 'string') return data.detail;
-    if (Array.isArray(data.detail)) {
-      return data.detail.map((e: { loc?: string[]; msg: string }) => `${e.loc?.at(-1) ?? ''}: ${e.msg}`).join(' · ');
-    }
-  } catch {
-    // respuesta sin JSON
-  }
-  return `Error ${response.status}`;
-}
-
-function headersAdmin(): HeadersInit {
-  const token = localStorage.getItem('authToken');
-  if (!token) throw new Error('Iniciá sesión como administrador para gestionar noticias.');
-  return { Authorization: `Bearer ${token}` };
-}
+const headersAdmin = () => headersAdminComun('Iniciá sesión como administrador para gestionar noticias.');
 
 export async function listarNoticias(): Promise<Noticia[]> {
   const response = await fetch(URL_NOTICIAS);

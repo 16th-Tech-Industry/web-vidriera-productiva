@@ -85,6 +85,21 @@ class EmpresaResponse(BaseModel):
         from_attributes = True
 
 
+# Datos de contacto del representante, para que el admin sepa a quién
+# llamar al revisar una empresa (tabla representates).
+class RepresentanteResumen(BaseModel):
+    nombre: str
+    apellido: str
+    email: str
+    telefono: Optional[str] = None
+
+
+# Empresa en la lista de pendientes del dashboard admin: lo mismo que
+# EmpresaResponse más el representante.
+class EmpresaPendienteResponse(EmpresaResponse):
+    representante: Optional[RepresentanteResumen] = None
+
+
 # Entrada del admin al rechazar una empresa (dashboard admin)
 class RechazoEmpresaRequest(BaseModel):
     motivo_rechazo: str = Field(..., min_length=1, max_length=500)

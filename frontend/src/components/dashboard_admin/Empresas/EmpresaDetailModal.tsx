@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import type { Empresa } from "./empresas.types";
 
 export interface EmpresaDetailModalProps {
   empresa: Empresa | null;
   onClose: () => void;
-  onAprobar?: (empresa: Empresa) => void;
-  onRechazar?: (empresa: Empresa) => void;
+  onAprobar?: (empresa: Empresa) => Promise<void>;
+  onRechazar?: (empresa: Empresa, motivo: string) => Promise<void>;
 }
 
 export default function EmpresaDetailModal({
@@ -14,6 +15,29 @@ export default function EmpresaDetailModal({
   onRechazar,
 }: EmpresaDetailModalProps) {
   const isOpen = empresa !== null;
+  // Rechazar pide un motivo (el backend lo exige y se lo manda al representante)
+  const [rechazando, setRechazando] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const [procesando, setProcesando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRechazando(false);
+    setMotivo("");
+    setError(null);
+  }, [empresa?.id]);
+
+  const ejecutar = async (accion: () => Promise<void> | undefined) => {
+    setProcesando(true);
+    setError(null);
+    try {
+      await accion();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setProcesando(false);
+    }
+  };
 
   return (
     <div className={`empresa-modal-overlay ${isOpen ? "is-open" : ""}`} onClick={onClose}>
@@ -45,10 +69,18 @@ export default function EmpresaDetailModal({
 
               <h2 className="empresa-modal-nombre">{empresa.nombre}</h2>
               <p className="empresa-modal-rubro">{empresa.rubro}</p>
-              <p className="empresa-modal-fecha">Registrado el {empresa.fechaRegistro}</p>
+              {empresa.fechaRegistro && <p className="empresa-modal-fecha">Registrado el {empresa.fechaRegistro}</p>}
             </div>
 
             <div className="empresa-modal-body">
+              <section className="empresa-modal-section">
+                <h3>Datos de la empresa</h3>
+                <p>{empresa.razonSocial}</p>
+                <p>CUIT {empresa.cuit}</p>
+                <p>{empresa.correo}</p>
+                <p>{empresa.descripcion}</p>
+              </section>
+
               <section className="empresa-modal-section">
                 <h3>Representante / Nexo</h3>
                 <p>{empresa.representante.nombre}</p>
@@ -88,22 +120,59 @@ export default function EmpresaDetailModal({
               </section>
             </div>
 
-            <div className="empresa-modal-footer">
-              <button
-                type="button"
-                className="empresa-modal-btn empresa-modal-btn--rechazar"
-                onClick={() => onRechazar?.(empresa)}
-              >
-                Rechazar
-              </button>
-              <button
-                type="button"
-                className="empresa-modal-btn empresa-modal-btn--aprobar"
-                onClick={() => onAprobar?.(empresa)}
-              >
-                Aprobar
-              </button>
-            </div>
+            {error && <p className="empresa-modal-error">{error}</p>}
+
+            {rechazando ? (
+              <div className="empresa-modal-rechazo">
+                <label htmlFor="motivo-rechazo">Motivo del rechazo (lo recibe el representante)</label>
+                <textarea
+                  id="motivo-rechazo"
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Ej.: falta la constancia de CUIT, la dirección no coincide..."
+                  autoFocus
+                />
+                <div className="empresa-modal-footer">
+                  <button
+                    type="button"
+                    className="empresa-modal-btn"
+                    onClick={() => setRechazando(false)}
+                    disabled={procesando}
+                  >
+                    Volver
+                  </button>
+                  <button
+                    type="button"
+                    className="empresa-modal-btn empresa-modal-btn--rechazar"
+                    onClick={() => ejecutar(() => onRechazar?.(empresa, motivo.trim()))}
+                    disabled={procesando || !motivo.trim()}
+                  >
+                    {procesando ? "Rechazando..." : "Confirmar rechazo"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="empresa-modal-footer">
+                <button
+                  type="button"
+                  className="empresa-modal-btn empresa-modal-btn--rechazar"
+                  onClick={() => setRechazando(true)}
+                  disabled={procesando}
+                >
+                  Rechazar
+                </button>
+                <button
+                  type="button"
+                  className="empresa-modal-btn empresa-modal-btn--aprobar"
+                  onClick={() => ejecutar(() => onAprobar?.(empresa))}
+                  disabled={procesando}
+                >
+                  {procesando ? "Aprobando..." : "Aprobar"}
+                </button>
+              </div>
+            )}
           </>
         )}
       </aside>
