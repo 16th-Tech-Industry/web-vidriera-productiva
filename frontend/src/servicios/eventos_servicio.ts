@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 export interface Evento {
   id: string;
   fecha: string;
@@ -19,7 +20,6 @@ export interface EventoCreate {
 
 export type EventoUpdate = Partial<EventoCreate>;
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token') || localStorage.getItem('access_token');
@@ -32,7 +32,7 @@ const getAuthHeaders = () => {
 export const eventosService = {
   // Listado público para landing / calendario
   async getAll(): Promise<Evento[]> {
-    const res = await fetch(`${API_URL}/eventos/`, {
+    const res = await fetch(`${API_URL}/api/v1/eventos/`, {
       headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) throw new Error('Error al cargar los eventos');
@@ -41,7 +41,7 @@ export const eventosService = {
 
   // Obtener detalle de un evento
   async getById(id: string | number): Promise<Evento> {
-    const res = await fetch(`${API_URL}/eventos/${id}`, {
+    const res = await fetch(`${API_URL}/api/v1/eventos/${id}`, {
       headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) throw new Error('Evento no encontrado');
@@ -50,7 +50,7 @@ export const eventosService = {
 
   // Crear evento (requiere admin)
   async create(data: EventoCreate): Promise<Evento> {
-    const res = await fetch(`${API_URL}/eventos/`, {
+    const res = await fetch(`${API_URL}/api/v1/eventos/`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
@@ -64,7 +64,7 @@ export const eventosService = {
 
   // Editar evento (requiere admin)
   async update(id: string | number, data: EventoUpdate): Promise<Evento> {
-    const res = await fetch(`${API_URL}/eventos/${id}`, {
+    const res = await fetch(`${API_URL}/api/v1/eventos/${id}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
@@ -78,7 +78,7 @@ export const eventosService = {
 
   // Eliminar evento (requiere admin)
   async delete(id: string | number): Promise<void> {
-    const res = await fetch(`${API_URL}/eventos/${id}`, {
+    const res = await fetch(`${API_URL}/api/v1/eventos/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });

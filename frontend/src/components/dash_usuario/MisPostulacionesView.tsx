@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./EventosView.css";
 import "./MisPostulacionesView.css";
+import { API_URL } from '../../config';
 
 // 📌 ID temporal de la empresa de prueba (coincide con la creada en Oracle)
 const ID_EMPRESA_ACTIVA = 1;
@@ -88,7 +89,7 @@ export default function MisPostulacionesView() {
       setCargando(true);
       try {
         const response = await fetch(
-          `http://localhost:8000/api/v1/postulaciones/empresa/${ID_EMPRESA_ACTIVA}`
+          `${API_URL}/api/v1/postulaciones/empresa/${ID_EMPRESA_ACTIVA}`
         );
 
         if (response.ok) {

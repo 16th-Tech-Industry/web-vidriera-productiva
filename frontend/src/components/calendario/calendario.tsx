@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './calendario.module.css';
 import {obtenerEventos} from '../../servicios/landing_servicio';
+import { API_URL } from '../../config';
 
 export interface Evento {
   id: number | string;
@@ -17,7 +18,7 @@ interface CalendarioProps {
   onSelectEvento?: (evento: Evento) => void;
 }
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = API_URL;
 
 // Función para normalizar la URL de la imagen
 const resolverImagenUrl = (url?: string | null): string => {

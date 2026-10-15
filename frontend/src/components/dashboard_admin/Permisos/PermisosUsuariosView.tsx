@@ -1,4 +1,5 @@
 import {useState, useEffect} from 'react';
+import { API_URL } from '../../../config';
 
 interface RepUsuario{
     id: number;
@@ -27,7 +28,7 @@ const obtenerUsuarios= async() =>{
     try{
         const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
 
-        const response= await fetch ("http://localhost:8000/api/v1/users/", {
+        const response= await fetch (`${API_URL}/api/v1/users/`, {
             headers:{
                 Authorization: `Bearer ${token}`,
             },
@@ -65,7 +66,7 @@ if (!window.confirm(`¿Confirma que desea ${accionTexto} a este usuario?`)){
 try {
     const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
 
-    const response= await fetch(`http://localhost:8000/api/v1/users/${idUsuario}`,{
+    const response= await fetch(`${API_URL}/api/v1/users/${idUsuario}`,{
         method: 'PATCH',
         headers: {
             "content-type": "application/json",

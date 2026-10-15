@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 export interface NoticiaResponse {
   id: number | string;
   titulo: string;
@@ -7,7 +8,6 @@ export interface NoticiaResponse {
   estado?: number;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const obtenerNoticias = async (soloActivas: boolean = true): Promise<NoticiaResponse[]> => {
     const res = await fetch(`${API_URL}/api/v1/noticias/?solo_activas=${soloActivas}`);

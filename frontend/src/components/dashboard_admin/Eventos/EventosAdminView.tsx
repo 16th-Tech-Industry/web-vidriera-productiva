@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import EventoFormModal from "./EventoFormModal";
 import type { Evento } from "./eventos.types";
 import "./eventosAdmin.css";
+import { API_URL } from '../../../config';
 
 const DIAS_SEMANA = ["D", "L", "M", "X", "J", "V", "S"];
 const MESES = [
@@ -52,7 +53,7 @@ export function EventosAdminView() {
   const cargarEventos= async() =>{
     setCargando(true);
     try{
-      const response= await fetch ("http://localhost:8000/api/v1/eventos/");
+      const response= await fetch (`${API_URL}/api/v1/eventos/`);
       if(response.ok){
         const data= await response.json();
         setEventos(data);
@@ -122,8 +123,8 @@ export function EventosAdminView() {
       const esEdicion= Boolean(datos.id);
 
       const url= esEdicion 
-      ? `http://localhost:8000/api/v1/eventos/${datos.id}`
-      : "http://localhost:8000/api/v1/eventos/";
+      ? `${API_URL}/api/v1/eventos/${datos.id}`
+      : `${API_URL}/api/v1/eventos/`;
       
       const method= esEdicion ? "PATCH" : "POST";
 
@@ -153,7 +154,7 @@ export function EventosAdminView() {
     try{
       const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
 
-      const response= await fetch(`http://localhost:8000/api/v1/eventos/${id}`,{
+      const response= await fetch(`${API_URL}/api/v1/eventos/${id}`,{
         method: "DELETE",
         headers:{
           Authorization: `Bearer ${token}`,

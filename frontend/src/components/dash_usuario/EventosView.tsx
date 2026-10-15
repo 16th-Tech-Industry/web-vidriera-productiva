@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./EventosView.css";
+import { API_URL } from '../../config';
 
 const ID_EMPRESA_ACTIVA = 1;
 
@@ -92,7 +93,7 @@ export default function EventosView() {
 
       try {
         // 📌 CORRECCIÓN 1: Cargar eventos de forma independiente para que NUNCA desaparezcan
-        const resEventos = await fetch("http://localhost:8000/api/v1/eventos/");
+        const resEventos = await fetch(`${API_URL}/api/v1/eventos/`);
         if (!resEventos.ok) {
           console.error("Error al cargar eventos", resEventos.statusText);
           return;
@@ -103,7 +104,7 @@ export default function EventosView() {
         let idsPostuladosBD: string[] = [];
         try {
           const resPostulaciones = await fetch(
-            `http://localhost:8000/api/v1/postulaciones/empresa/${ID_EMPRESA_ACTIVA}`
+            `${API_URL}/api/v1/postulaciones/empresa/${ID_EMPRESA_ACTIVA}`
           );
           if (resPostulaciones.ok) {
             const dataPostulaciones = await resPostulaciones.json();
@@ -161,7 +162,7 @@ export default function EventosView() {
 
     try {
       if (!postuladoActual) {
-        const response = await fetch("http://localhost:8000/api/v1/postulaciones/", {
+        const response = await fetch(`${API_URL}/api/v1/postulaciones/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -173,7 +174,7 @@ export default function EventosView() {
         if (!response.ok) throw new Error("No se pudo registrar su postulación");
       } else {
         const response = await fetch(
-          `http://localhost:8000/api/v1/postulaciones/empresa/${ID_EMPRESA_ACTIVA}/evento/${id}`,
+          `${API_URL}/api/v1/postulaciones/empresa/${ID_EMPRESA_ACTIVA}/evento/${id}`,
           { method: "DELETE" }
         );
         if (!response.ok) throw new Error("Error al cancelar la postulación");

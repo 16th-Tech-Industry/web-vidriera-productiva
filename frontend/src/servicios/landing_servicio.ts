@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 export interface Productor {
   id: number;
   nombre: string;
@@ -28,7 +29,6 @@ export interface LandingResponse {
   eventos: EventoLanding[];
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const obtenerDatosLanding = async (): Promise<LandingResponse> => {
   const res = await fetch(`${API_URL}/api/v1/landing/`);

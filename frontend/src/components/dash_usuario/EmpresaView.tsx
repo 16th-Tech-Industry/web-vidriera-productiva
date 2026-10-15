@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './EmpresaView.css';
 import AltaEmpresa from './AltaEmpresa';
 import type { EstadoEmpresa } from '../dashboard_admin/Empresas/empresas.types';
+import { API_URL } from '../../config';
 
 interface EmpresaBackend {
   id_empresa: number;
@@ -51,7 +52,7 @@ export default function EmpresaView() {
       return;
     }
 
-      const response = await fetch("http://localhost:8000/api/v1/dashboard/empresas/mia", {
+      const response = await fetch(`${API_URL}/api/v1/dashboard/empresas/mia`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

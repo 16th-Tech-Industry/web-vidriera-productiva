@@ -2,6 +2,7 @@ import StatCard from "./StatCard";
 import NewsCard from "./NewsCard";
 import EventCard from "./EventCard";
 import { useEffect, useState } from "react";
+import { API_URL } from '../../../config';
 
 interface Noticias {
   id: number | string;
@@ -53,7 +54,7 @@ export function InicioView() {
   useEffect(() => {
     const obtenerNoticias = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/noticias/");
+        const response = await fetch(`${API_URL}/api/v1/noticias/`);
         if (response.ok) {
           const data: Noticias[] = await response.json();
           setNoticias(data);
@@ -72,7 +73,7 @@ export function InicioView() {
   useEffect(() => {
     const obtenerEventos = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/eventos/");
+        const response = await fetch(`${API_URL}/api/v1/eventos/`);
         if (response.ok) {
           const data: Eventos[] = await response.json();
           setEventos(data);
