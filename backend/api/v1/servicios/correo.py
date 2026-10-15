@@ -1,6 +1,6 @@
 # backend/api/v1/servicios/correo.py
 """
-Envío de mails transaccionales por SMTP.
+Envío de mails transaccionales, por la API HTTPS de Mailtrap o por SMTP.
 
 Para qué: avisos que la app le manda al usuario por correo (hoy, la
 bienvenida al registrarse, el recupero de contraseña y el resultado de la
@@ -17,15 +17,24 @@ Dos niveles:
   pensadas para correr en segundo plano (BackgroundTasks), donde ya se le
   respondió al usuario y no hay a quién devolverle el error.
 
-Variables de entorno (ver .envexample): SMTP_HOST, SMTP_PORT, SMTP_USER,
-SMTP_PASSWORD, MAIL_FROM y FRONTEND_URL.
+Por dónde sale el mail:
+- API de Mailtrap (HTTPS), si están MAILTRAP_API_TOKEN y MAILTRAP_INBOX_ID.
+  Es lo que se usa en Railway, que bloquea SMTP en sus planes Free, Trial y
+  Hobby. Los mails van a la casilla de pruebas, igual que por SMTP.
+- SMTP, si no: SMTP_HOST, SMTP_PORT, SMTP_USER y SMTP_PASSWORD.
+
+Otras variables (ver .envexample): MAIL_FROM y FRONTEND_URL.
 """
 import html
+import json
 import logging
 import os
 import smtplib
 import time
+import urllib.error
+import urllib.request
 from email.message import EmailMessage
+from email.utils import parseaddr
 from typing import Optional
 from urllib.parse import quote
 
@@ -36,6 +45,10 @@ from security import RESET_TOKEN_EXPIRE_MINUTES
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+MAILTRAP_API_TOKEN = os.getenv("MAILTRAP_API_TOKEN")
+MAILTRAP_INBOX_ID = os.getenv("MAILTRAP_INBOX_ID")
+MAILTRAP_API_URL = "https://sandbox.api.mailtrap.io/api/send/{inbox}"
 
 SMTP_HOST = os.getenv("SMTP_HOST")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "2525"))
@@ -54,14 +67,54 @@ ESPERA_ENTRE_INTENTOS_SEGUNDOS = 5
 
 
 class CorreoNoConfigurado(RuntimeError):
-    """Falta SMTP_HOST en el .env: no hay a dónde mandar el mail."""
+    """No hay API de Mailtrap ni SMTP_HOST en el .env: no hay a dónde mandar el mail."""
+
+
+class RechazoTemporalDeLaApi(RuntimeError):
+    """La API respondió 429 (demasiados mails) o un error 5xx: conviene reintentar."""
 
 
 def enviar_correo(destinatario: str, asunto: str, texto: str, cuerpo_html: Optional[str] = None) -> None:
     """Manda un mail. `texto` va siempre; `cuerpo_html` es la versión con formato, opcional."""
-    if not SMTP_HOST:
-        raise CorreoNoConfigurado("SMTP_HOST no está definido")
+    if MAILTRAP_API_TOKEN and MAILTRAP_INBOX_ID:
+        _enviar_por_api(destinatario, asunto, texto, cuerpo_html)
+    elif SMTP_HOST:
+        _enviar_por_smtp(destinatario, asunto, texto, cuerpo_html)
+    else:
+        raise CorreoNoConfigurado("Falta MAILTRAP_API_TOKEN/MAILTRAP_INBOX_ID o SMTP_HOST")
 
+
+def _enviar_por_api(destinatario: str, asunto: str, texto: str, cuerpo_html: Optional[str]) -> None:
+    nombre, direccion = parseaddr(MAIL_FROM)
+    cuerpo = {
+        "from": {"email": direccion, "name": nombre},
+        "to": [{"email": destinatario}],
+        "subject": asunto,
+        "text": texto,
+    }
+    if cuerpo_html:
+        cuerpo["html"] = cuerpo_html
+    pedido = urllib.request.Request(
+        MAILTRAP_API_URL.format(inbox=MAILTRAP_INBOX_ID),
+        data=json.dumps(cuerpo).encode("utf-8"),
+        # User-Agent propio: la API rechaza con 403 el que manda urllib por defecto.
+        headers={
+            "Api-Token": MAILTRAP_API_TOKEN,
+            "Content-Type": "application/json",
+            "User-Agent": "vidriera-productiva-backend",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(pedido, timeout=SMTP_TIMEOUT_SEGUNDOS):
+            pass
+    except urllib.error.HTTPError as error:
+        if error.code == 429 or error.code >= 500:
+            raise RechazoTemporalDeLaApi(f"Mailtrap respondió {error.code}") from error
+        raise
+
+
+def _enviar_por_smtp(destinatario: str, asunto: str, texto: str, cuerpo_html: Optional[str]) -> None:
     mensaje = EmailMessage()
     mensaje["From"] = MAIL_FROM
     mensaje["To"] = destinatario
@@ -81,6 +134,8 @@ def enviar_correo(destinatario: str, asunto: str, texto: str, cuerpo_html: Optio
 
 
 def _es_rechazo_temporal(error: Exception) -> bool:
+    if isinstance(error, RechazoTemporalDeLaApi):
+        return True
     if not isinstance(error, smtplib.SMTPResponseException):
         return False
     return 400 <= error.smtp_code < 500 or b"too many" in bytes(error.smtp_error or b"").lower()
@@ -92,7 +147,7 @@ def _enviar_sin_fallar(escenario: str, destinatario: str, asunto: str, texto: st
             enviar_correo(destinatario, asunto, texto, cuerpo_html)
             return
         except CorreoNoConfigurado:
-            logger.warning("Mail de %s no enviado: falta configurar SMTP_HOST en el .env", escenario)
+            logger.warning("Mail de %s no enviado: falta configurar la API de Mailtrap o SMTP en el .env", escenario)
             return
         except Exception as error:
             if intento < MAXIMO_INTENTOS and _es_rechazo_temporal(error):

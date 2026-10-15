@@ -13,8 +13,11 @@ PUBLIC_BASE_URL=http://localhost:8000
 # URL del backend que usa el frontend (ver frontend/src/config.ts).
 # En un despliegue va la URL pública del backend.
 VITE_API_URL=http://localhost:8000
-# Envío de mails (ver backend/api/v1/servicios/correo.py). En desarrollo van
-# los datos SMTP de la casilla de pruebas de Mailtrap (Sandbox > SMTP Settings).
+# Envío de mails (ver backend/api/v1/servicios/correo.py), a la casilla de
+# pruebas de Mailtrap. Con MAILTRAP_API_TOKEN y MAILTRAP_INBOX_ID sale por la
+# API HTTPS (obligatorio en Railway, que bloquea SMTP); si no, por SMTP.
+MAILTRAP_API_TOKEN=
+MAILTRAP_INBOX_ID=
 SMTP_HOST=sandbox.smtp.mailtrap.io
 SMTP_PORT=2525
 SMTP_USER=

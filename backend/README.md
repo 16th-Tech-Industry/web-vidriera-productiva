@@ -28,7 +28,7 @@ backend/
         │       ├── empresas_revision.py    # Buscador y revisión (pendientes, aprobar, rechazar, con aviso al representante) — exclusivo admin (require_admin)
         │       └── empresas_exportacion.py # Exportación del listado a .xlsx por cola de trabajos — exclusivo admin
         ├── servicios/
-        │   ├── correo.py               # Envío de mails por SMTP: bienvenida, recupero de contraseña y revisión de empresa
+        │   ├── correo.py               # Envío de mails (API de Mailtrap o SMTP): bienvenida, recupero de contraseña y revisión de empresa
         │   ├── productos_empresa.py    # Productos dentro del JSON de la empresa e imágenes en empresas_repo/
         │   ├── vidriera_json.py        # Archivo empresas_repo/empresas.json: de donde lee la vidriera pública, regenerado desde la base
         │   ├── busqueda_empresas.py    # Filtros combinados del buscador de empresas
@@ -86,17 +86,21 @@ El backend manda tres mails, todos desde `api/v1/servicios/correo.py` y en segun
 | Recupero de contraseña | Al pedirlo (`POST /users/forgot-password`), con un link `FRONTEND_URL/?reset_token=<token>` que abre el formulario de nueva contraseña. |
 | Empresa aprobada o rechazada | Cuando el admin revisa la empresa (`PATCH /dashboard/empresas/{id}/aprobar` o `/rechazar`). |
 
-En desarrollo se usa la casilla de pruebas de [Mailtrap](https://mailtrap.io): recibe los mails por SMTP y los muestra en su web, **sin entregarlos al destinatario real**. Para configurarlo, crear una cuenta, entrar a la casilla (Sandbox) y copiar sus datos SMTP al `.env`:
+Se usa la casilla de pruebas de [Mailtrap](https://mailtrap.io): recibe los mails y los muestra en su web, **sin entregarlos al destinatario real**. Hay dos formas de mandárselos, y el backend elige sola según el `.env`:
+
+- **API HTTPS** (la que se usa en Railway, que bloquea SMTP en sus planes Free, Trial y Hobby): se activa si están `MAILTRAP_API_TOKEN` y `MAILTRAP_INBOX_ID`. El token se genera en Mailtrap (*Settings → API Tokens*); el id de la casilla es el número que aparece en su URL (`mailtrap.io/inboxes/<id>/messages`).
+- **SMTP**, si no están esas dos: los datos de la casilla (*Sandbox → SMTP Settings*).
 
 | Variable | Valor |
 | :--- | :--- |
-| `SMTP_HOST` | Host de la casilla (`sandbox.smtp.mailtrap.io`). Si falta, no se manda nada y queda un aviso en el log. |
+| `MAILTRAP_API_TOKEN`, `MAILTRAP_INBOX_ID` | Token de la API y id de la casilla. Con los dos, el mail sale por HTTPS. |
+| `SMTP_HOST` | Host de la casilla (`sandbox.smtp.mailtrap.io`). Si falta (y no está la API), no se manda nada y queda un aviso en el log. |
 | `SMTP_PORT` | Puerto (`2525`). |
 | `SMTP_USER`, `SMTP_PASSWORD` | Usuario y contraseña de la casilla. |
 | `MAIL_FROM` | Remitente que figura en los mails. |
 | `FRONTEND_URL` | URL del frontend, para armar los links (`http://localhost:5173` en local). |
 
-Un mail que falla nunca rompe el request que lo disparó: queda registrado en el log. El plan gratis de Mailtrap acepta más o menos un mail cada 10 segundos; ante ese rechazo se reintenta hasta 4 veces, con 5 segundos entre intentos, así que una ráfaga de varios mails seguidos puede perder alguno.
+Un mail que falla nunca rompe el request que lo disparó: queda registrado en el log. El plan gratis de Mailtrap acepta más o menos un mail cada 10 segundos; ante ese rechazo (por SMTP, o un `429` de la API) se reintenta hasta 4 veces, con 5 segundos entre intentos, así que una ráfaga de varios mails seguidos puede perder alguno.
 
 ## Endpoints
 
@@ -127,7 +131,7 @@ Response `200`:
 Errores: `401` con el mismo mensaje genérico si el email no existe o la password es incorrecta (evita user enumeration) · `403` si la cuenta está inactiva (`estado != 1`).
 
 ### `POST /api/v1/users/forgot-password`
-Pide recuperar la contraseña mandando solo el email. Si es de una cuenta activa, genera un token de un solo uso (1h de vida) y lo manda por mail (`api/v1/servicios/correo.py`) con un link al frontend: `FRONTEND_URL/?reset_token=<token>`. El mail sale en segundo plano, después de responder. Necesita las variables `SMTP_*` del `.env`; si falta `SMTP_HOST` o el envío falla, queda un aviso en el log y la respuesta es la misma. La configuración y los reintentos están en "Envío de mails".
+Pide recuperar la contraseña mandando solo el email. Si es de una cuenta activa, genera un token de un solo uso (1h de vida) y lo manda por mail (`api/v1/servicios/correo.py`) con un link al frontend: `FRONTEND_URL/?reset_token=<token>`. El mail sale en segundo plano, después de responder. Necesita la API de Mailtrap o las variables `SMTP_*` del `.env`; si no hay ninguna o el envío falla, queda un aviso en el log y la respuesta es la misma. La configuración y los reintentos están en "Envío de mails".
 
 Request: `{ "email": "usuario@mail.com" }`
 Response `200` (siempre igual, exista o no el email): `{ "message": "Si el email está registrado, enviamos instrucciones para recuperar la contraseña." }`

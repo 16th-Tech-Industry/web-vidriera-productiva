@@ -168,9 +168,9 @@ Antes de levantar: copiar `.envexample` a `.env` (en la raíz) y completar
 `DATABASE_URL` y `JWT_SECRET_KEY`. El backend toma esas variables del `.env`.
 
 Para que salgan los mails (bienvenida, recupero de contraseña y aviso de
-empresa aprobada o rechazada) hay que completar también `SMTP_HOST`,
-`SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` y `FRONTEND_URL` con los datos de
-una casilla de pruebas de Mailtrap. El detalle está en `backend/README.md`
+empresa aprobada o rechazada) hay que completar también `MAILTRAP_API_TOKEN`
+y `MAILTRAP_INBOX_ID` (o, en local, los `SMTP_*`) y `FRONTEND_URL`, con los
+datos de una casilla de pruebas de Mailtrap. El detalle está en `backend/README.md`
 ("Envío de mails"). Sin esas variables la aplicación funciona igual, pero no
 manda mails.
 

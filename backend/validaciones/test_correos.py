@@ -9,9 +9,11 @@ Pruebas de los mails transaccionales (api/v1/servicios/correo.py):
 No necesitan la base ni un servidor de correo: la base se reemplaza por una
 tabla en memoria y el SMTP por un doble que guarda lo que le mandan.
 """
+import json
 from datetime import datetime, timedelta, timezone
 
 import jwt
+
 import pytest
 from fastapi import BackgroundTasks, HTTPException
 
@@ -184,6 +186,8 @@ class SMTPFalso:
 @pytest.fixture
 def smtp(monkeypatch):
     SMTPFalso.enviados = []
+    # Sin API de Mailtrap (aunque esté en el .env): estos tests van por SMTP.
+    monkeypatch.setattr(correo, "MAILTRAP_API_TOKEN", None)
     monkeypatch.setattr(correo, "SMTP_HOST", "smtp.prueba.local")
     monkeypatch.setattr(correo, "FRONTEND_URL", "http://localhost:5173/")
     monkeypatch.setattr(correo.smtplib, "SMTP", SMTPFalso)
@@ -240,8 +244,78 @@ def test_rechazo_definitivo_no_se_reintenta(smtp, monkeypatch):
 
 
 def test_sin_smtp_configurado_no_se_propaga(monkeypatch):
+    monkeypatch.setattr(correo, "MAILTRAP_API_TOKEN", None)
     monkeypatch.setattr(correo, "SMTP_HOST", None)
     correo.enviar_recupero_contrasena(EMAIL, "Ana", "token")
+
+
+# --- API de Mailtrap -----------------------------------------------------
+
+
+class RespuestaFalsa:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
+
+
+@pytest.fixture
+def api(monkeypatch):
+    pedidos = []
+
+    def urlopen(pedido, timeout=None):
+        pedidos.append(pedido)
+        return RespuestaFalsa()
+
+    monkeypatch.setattr(correo, "MAILTRAP_API_TOKEN", "token-de-prueba")
+    monkeypatch.setattr(correo, "MAILTRAP_INBOX_ID", "123")
+    monkeypatch.setattr(correo, "MAIL_FROM", "Vidriera <no-responder@vidriera.local>")
+    monkeypatch.setattr(correo, "FRONTEND_URL", "http://localhost:5173/")
+    monkeypatch.setattr(correo.urllib.request, "urlopen", urlopen)
+    # Si por error se fuera por SMTP, el test falla.
+    monkeypatch.setattr(correo.smtplib, "SMTP", lambda *_, **__: pytest.fail("no debería usar SMTP"))
+    return pedidos
+
+
+def test_con_api_configurada_el_mail_sale_por_https(api):
+    correo.enviar_recupero_contrasena(EMAIL, "Ana", "tok.en-123")
+    (pedido,) = api
+    assert pedido.full_url == "https://sandbox.api.mailtrap.io/api/send/123"
+    assert pedido.get_header("Api-token") == "token-de-prueba"
+    assert pedido.get_header("User-agent") == "vidriera-productiva-backend"
+    cuerpo = json.loads(pedido.data)
+    assert cuerpo["from"] == {"email": "no-responder@vidriera.local", "name": "Vidriera"}
+    assert cuerpo["to"] == [{"email": EMAIL}]
+    assert "http://localhost:5173/?reset_token=tok.en-123" in cuerpo["text"]
+    assert "reset_token=tok.en-123" in cuerpo["html"]
+
+
+def test_demasiados_mails_en_la_api_se_reintenta(api, monkeypatch):
+    intentos = []
+
+    def urlopen(pedido, timeout=None):
+        intentos.append(pedido)
+        if len(intentos) < 3:
+            raise correo.urllib.error.HTTPError(pedido.full_url, 429, "Too Many Requests", {}, None)
+        return RespuestaFalsa()
+
+    monkeypatch.setattr(correo.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(correo.time, "sleep", lambda _: None)
+    correo.enviar_bienvenida(EMAIL, "Ana")
+    assert len(intentos) == 3
+
+
+def test_token_invalido_en_la_api_no_se_reintenta(api, monkeypatch):
+    intentos = []
+
+    def urlopen(pedido, timeout=None):
+        intentos.append(pedido)
+        raise correo.urllib.error.HTTPError(pedido.full_url, 401, "Unauthorized", {}, None)
+
+    monkeypatch.setattr(correo.urllib.request, "urlopen", urlopen)
+    correo.enviar_bienvenida(EMAIL, "Ana")
+    assert len(intentos) == 1
 
 
 # --- bienvenida ----------------------------------------------------------
