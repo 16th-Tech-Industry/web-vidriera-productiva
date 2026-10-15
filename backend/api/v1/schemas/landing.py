@@ -1,14 +1,12 @@
 # backend/api/v1/schemas/landing.py
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
 # Esquemas de la landing (vista pública "mapa" en el frontend: Mapa +
-# Calendario). Por ahora no tienen tabla propia en Oracle, así que el
-# endpoint (api/v1/endpoints/landing.py) devuelve datos hardcodeados con
-# la misma forma que hoy consume el frontend desde
-# frontend/src/assets/db.json, para poder migrar ese mock a la API sin
-# tocar los componentes.
+# Calendario). Mantienen la forma que ya consumía el frontend; los datos
+# salen de las empresas aprobadas y de la tabla eventos (ver
+# api/v1/endpoints/landing.py).
 
 
 class ProductorResponse(BaseModel):
@@ -32,8 +30,9 @@ class EventoResponse(BaseModel):
     localidad: str
     fechaInicio: str
     fechaFin: str
-    lat: float
-    lng: float
+    # La tabla eventos todavía no guarda coordenadas: null = no va al mapa
+    lat: Optional[float] = None
+    lng: Optional[float] = None
     descripcion: str
     imagen: str
 

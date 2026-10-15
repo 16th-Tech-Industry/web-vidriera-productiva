@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from api.v1.schemas.empresas import EmpresaPublicaDetalleResponse, EmpresaPublicaResponse
 from api.v1.schemas.landing import EventoResponse, LandingResponse, ProductorResponse
+from api.v1.endpoints.eventos import listar_eventos
 from api.v1.servicios import vidriera_json
 from api.v1.servicios.busqueda_empresas import FiltrosEmpresa, convertir_filas, filtros_publicos
 from api.v1.servicios.productos_empresa import listar_productos
@@ -13,91 +14,74 @@ from api.v1.servicios.productos_empresa import listar_productos
 router = APIRouter(prefix="/landing", tags=["Landing"])
 
 """
-Datos hardcodeados para la vista pública "mapa" (Mapa + Calendario en el
-frontend). Igual que users.py, es un mock: no hay tabla `productores` ni
-`eventos` en Oracle todavía, así que se devuelve un diccionario fijo en
-vez de pegarle a la DB. Sirve para que el frontend deje de leer
-frontend/src/assets/db.json y empiece a consumir la API, sin bloquearse
-en el modelado definitivo de esas tablas.
+Vista pública "mapa" (Mapa + Calendario en el frontend). Antes devolvía
+productores y eventos fijos en este archivo; ahora salen de la base:
+
+- productores: las empresas aprobadas, leídas del archivo JSON de la
+  vidriera (ver api/v1/servicios/vidriera_json.py), con la forma que ya
+  consume el frontend (lat/lng en vez de ubicacion.latitud/longitud).
+- eventos: la tabla `eventos` (ver endpoints/eventos.py). Esa tabla todavía
+  no tiene coordenadas ni categoría: lat/lng van en null (el mapa no los
+  dibuja, el calendario sí los muestra) y la categoría vacía.
 """
 
-_PRODUCTORES = [
-    {
-        "id": 1,
-        "nombre": "AgroTech Córdoba",
-        "rubro": "AGTECH",
-        "localidad": "Río Cuarto",
-        "lat": -33.1232,
-        "lng": -64.3492,
-        "descripcion": "Maquinaria de precisión.",
-        "imagen": "src/assets/Agrotech.jpg",
-    },
-    {
-        "id": 2,
-        "nombre": "Sabores Serranos",
-        "rubro": "AGROALIMENTO",
-        "localidad": "Villa General Belgrano",
-        "lat": -31.9774,
-        "lng": -64.5559,
-        "descripcion": "Dulces artesanales.",
-        "imagen": "src/assets/SaboresSerranos.png",
-    },
-]
 
-_EVENTOS = [
-    {
-        "id": 1,
-        "nombre": "Exposición Rural de Río Cuarto",
-        "categoria": "AGROINDUSTRIA",
-        "localidad": "Río Cuarto",
-        "fechaInicio": "2026-09-02",
-        "fechaFin": "2026-09-06",
-        "lat": -33.1245,
-        "lng": -64.3521,
-        "descripcion": "Muestra comercial, industrial y de servicios ganaderos.",
-        "imagen": "http://localhost:8000/uploads/eventos/ruralrio4.jpg",
-    },
-    {
-        "id": 2,
-        "nombre": "Fiesta Nacional de la Cerveza (Oktoberfest)",
-        "categoria": "AGROALIMENTO",
-        "localidad": "Villa General Belgrano",
-        "fechaInicio": "2026-10-02",
-        "fechaFin": "2026-10-12",
-        "lat": -31.9768,
-        "lng": -64.5562,
-        "descripcion": "Tradicional celebración con productores gastronómicos y cerveceros.",
-        "imagen": "http://localhost:8000/uploads/eventos/oktoberfest.jpg",
-    },
-    {
-        "id": 3,
-        "nombre": "Congreso Internacional AgTech Córdoba",
-        "categoria": "AGTECH",
-        "localidad": "Córdoba Capital",
-        "fechaInicio": "2026-11-15",
-        "fechaFin": "2026-11-17",
-        "lat": -31.4201,
-        "lng": -64.1888,
-        "descripcion": "Encuentro de innovación y tecnologías aplicadas al agro.",
-        "imagen": "http://localhost:8000/uploads/eventos/agtech.jpg",
-    },
-]
+def _empresa_a_productor(empresa: EmpresaPublicaResponse, datos_publico) -> dict:
+    # Imagen de la tarjeta del mapa: la del primer producto que tenga foto.
+    imagen = next((p.imagen_url for p in listar_productos(datos_publico) if p.imagen_url), None)
+    return {
+        "id": empresa.id_empresa,
+        "nombre": empresa.nombre_empresa,
+        "rubro": empresa.rubro,
+        "localidad": empresa.ubicacion.localidad,
+        "lat": empresa.ubicacion.latitud,
+        "lng": empresa.ubicacion.longitud,
+        "descripcion": empresa.descripcion,
+        "imagen": imagen or "",
+    }
+
+
+def _productores() -> list[dict]:
+    productores = []
+    for fila in vidriera_json.empresas_publicas():
+        publica = convertir_filas([fila], _fila_a_empresa_publica)
+        if publica:  # las incompletas se saltean (convertir_filas ya avisa por consola)
+            productores.append(_empresa_a_productor(publica[0], fila[2]))
+    return productores
+
+
+def _eventos() -> list[dict]:
+    return [
+        {
+            "id": int(evento.id),
+            "nombre": evento.titulo,
+            "categoria": "",
+            "localidad": evento.lugar,
+            "fechaInicio": evento.fecha,
+            "fechaFin": evento.fecha,
+            "lat": None,
+            "lng": None,
+            "descripcion": evento.descripcion,
+            "imagen": "",
+        }
+        for evento in listar_eventos()
+    ]
 
 
 @router.get("/", response_model=LandingResponse)
 def obtener_landing():
-    """Productores y eventos que muestran el Mapa y el Calendario de la landing."""
-    return {"productores": _PRODUCTORES, "eventos": _EVENTOS}
+    """Productores (empresas aprobadas) y eventos que muestran el Mapa y el Calendario de la landing."""
+    return {"productores": _productores(), "eventos": _eventos()}
 
 
 @router.get("/productores", response_model=list[ProductorResponse])
 def listar_productores():
-    return _PRODUCTORES
+    return _productores()
 
 
 @router.get("/eventos", response_model=list[EventoResponse])
-def listar_eventos():
-    return _EVENTOS
+def listar_eventos_landing():
+    return _eventos()
 
 
 # --- Empresas reales (tabla `empresas`), a diferencia de _PRODUCTORES/_EVENTOS

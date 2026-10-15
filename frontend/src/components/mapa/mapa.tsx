@@ -110,9 +110,14 @@ export const Mapa: React.FC = () => {
  ? productores
     : productores.filter(p => p.rubro === categoria);
 
+  // Los eventos sin coordenadas (la tabla todavía no las guarda) no van al mapa
+  const eventosConUbicacion = eventos.filter(
+    (ev): ev is EventoLanding & { lat: number; lng: number } => ev.lat !== null && ev.lng !== null
+  );
+
   const eventosFiltrados = categoria === 'Todas'
- ? eventos
-    : eventos.filter(ev => ev.categoria === categoria);
+ ? eventosConUbicacion
+    : eventosConUbicacion.filter(ev => ev.categoria === categoria);
 
   const estiloDeptoBase: L.PathOptions = {
     fillColor: '#6ea4d2',

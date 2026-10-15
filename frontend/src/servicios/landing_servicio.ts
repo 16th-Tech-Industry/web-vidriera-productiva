@@ -16,8 +16,9 @@ export interface EventoLanding {
   localidad: string;
   fechaInicio: string;
   fechaFin: string;
-  lat: number;
-  lng: number;
+  // null mientras la tabla eventos no guarde coordenadas (el mapa no lo dibuja)
+  lat: number | null;
+  lng: number | null;
   descripcion: string;
   imagen: string;
 }

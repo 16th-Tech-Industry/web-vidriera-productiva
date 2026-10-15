@@ -4,6 +4,7 @@ import './AltaEmpresa.css';
 interface Departamento {
   id: number;
   nombre: string;
+  zona: string;
 }
 
 interface Localidad {
@@ -23,6 +24,7 @@ const RUBROS = [
 
 export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) {
   const [depto, setDepto] = useState("");
+  const [zona, setZona] = useState("");
   const [idDepto, setIdDepto] = useState<string>("");
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [localidades, setLocalidades] = useState<Localidad[]>([]);
@@ -87,6 +89,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
       : null;
     const nombreDepto = deptoEncontrado ? deptoEncontrado.nombre : "";
     setDepto(nombreDepto);
+    setZona(deptoEncontrado ? deptoEncontrado.zona : "");
 
     setForm((prev) => ({ ...prev, localidad: "" }));
     setBusquedaLocalidad("");
@@ -170,7 +173,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
       nombre_empresa: form.nombreFantasia || form.nombreEmpresa,
       rubro: form.rubro,
       ubicacion: {
-        zona: depto,
+        zona: zona,
         departamento: depto,
         localidad: form.localidad,
         calle: form.direccion,
