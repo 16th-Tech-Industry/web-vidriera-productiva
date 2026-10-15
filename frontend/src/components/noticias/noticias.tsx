@@ -110,3 +110,5 @@ export const CarruselNovedades: React.FC = () => {
     </div>
   );
 };
+
+export default CarruselNovedades;

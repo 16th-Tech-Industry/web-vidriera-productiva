@@ -61,6 +61,33 @@ def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_us
     if existe:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ya existe una empresa con ese CUIT")
 
+#obtener la zona dinámicamente
+    traer_zona= empresa.ubicacion.departamento
+
+    query_zona= """
+        SELECT z.nombre_zona
+        FROM departamentos d
+        INNER JOIN departamentos d ON z.id_zona = i.id_zona
+        WHERE UPPER (d.nomre_departamento) = UPPER (:depto)"""
+
+    try:
+
+        res_zona = execute_query(
+            query_zona, 
+            {"depto": empresa.ubicacion.departamento}, 
+            fetch=True
+        )
+
+        if res_zona and res_zona[0][0]:
+            zona_calculada = str(res_zona[0][0])
+
+    except Exception as e:
+
+        print(f"Advertencia al consultar la zona en la BD: {e}")
+
+    ubicacion_dict= empresa.ubicacion.model_dump()
+    ubicacion_dict["zona"]= traer_zona
+ 
     datos_publico = {
         "nombre_empresa": empresa.nombre_empresa,
         "rubro": empresa.rubro,

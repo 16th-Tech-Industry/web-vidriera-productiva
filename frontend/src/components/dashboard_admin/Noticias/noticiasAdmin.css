@@ -87,7 +87,7 @@
   gap: 10px;
   padding: 16px;
   cursor: pointer;
-  color: var(--text-muted);
+  color: #475569;
   font-size: 13px;
   font-style: italic;
   text-align: center;
@@ -169,7 +169,7 @@
 
 .noticias-admin-editable:empty::before {
   content: attr(data-placeholder);
-  color: var(--text-muted);
+  color: #475569;
   font-style: italic;
 }
 

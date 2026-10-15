@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import EventoFormModal from "./EventoFormModal";
-import { EVENTOS_MOCK, type Evento } from "./eventos.types";
+import type { Evento } from "./eventos.types";
 import "./eventosAdmin.css";
 
 const DIAS_SEMANA = ["D", "L", "M", "X", "J", "V", "S"];
@@ -24,7 +24,7 @@ interface CeldaDia {
 
 function construirGrilla(mesRef: Date): CeldaDia[] {
   const primerDiaMes = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
-  const diaSemanaInicio = primerDiaMes.getDay(); // 0 = domingo
+  const diaSemanaInicio = primerDiaMes.getDay();
   const inicioGrilla = new Date(primerDiaMes);
   inicioGrilla.setDate(primerDiaMes.getDate() - diaSemanaInicio);
 
@@ -42,11 +42,33 @@ function construirGrilla(mesRef: Date): CeldaDia[] {
 }
 
 export function EventosAdminView() {
-  const [mesActual, setMesActual] = useState(() => new Date(2026, 9, 1)); // Octubre 2026, alineado a los mocks
-  const [eventos, setEventos] = useState<Evento[]>(EVENTOS_MOCK);
+  const [mesActual, setMesActual] = useState(() => new Date());
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [cargando, setCargando]= useState<boolean>(true);
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [eventoEditando, setEventoEditando] = useState<Evento | null>(null);
+
+  const cargarEventos= async() =>{
+    setCargando(true);
+    try{
+      const response= await fetch ("http://localhost:8000/api/v1/eventos/");
+      if(response.ok){
+        const data= await response.json();
+        setEventos(data);
+      } else{
+        console.error("error en servidor");
+      }
+    } catch (err){
+        console.error("error al cargar los eventos", err);
+    } finally{
+      setCargando(false);
+    }
+  };
+
+  useEffect(()=> {
+    cargarEventos();
+  },[]);
 
   const celdas = useMemo(() => construirGrilla(mesActual), [mesActual]);
   const hoyISO = toISODate(new Date());
@@ -54,9 +76,10 @@ export function EventosAdminView() {
   const eventosPorFecha = useMemo(() => {
     const mapa = new Map<string, Evento[]>();
     for (const ev of eventos) {
-      const lista = mapa.get(ev.fecha) ?? [];
+      const fechaKey = ev.fecha.slice(0, 10);
+      const lista = mapa.get(fechaKey) ?? [];
       lista.push(ev);
-      mapa.set(ev.fecha, lista);
+      mapa.set(fechaKey, lista);
     }
     return mapa;
   }, [eventos]);
@@ -93,21 +116,58 @@ export function EventosAdminView() {
     setModalAbierto(true);
   };
 
-  const handleGuardar = (datos: Omit<Evento, "id"> & { id?: string }) => {
-    // TODO: conectar con el backend, ej. POST /eventos o PUT /eventos/{id}
-    if (datos.id) {
-      setEventos((prev) => prev.map((ev) => (ev.id === datos.id ? { ...ev, ...datos, id: ev.id } : ev)));
-    } else {
-      setEventos((prev) => [...prev, { ...datos, id: crypto.randomUUID() }]);
+  const handleGuardar = async (datos: Omit<Evento, "id"> & { id?: string }) => {
+    try{
+      const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
+      const esEdicion= Boolean(datos.id);
+
+      const url= esEdicion 
+      ? `http://localhost:8000/api/v1/eventos/${datos.id}`
+      : "http://localhost:8000/api/v1/eventos/";
+      
+      const method= esEdicion ? "PATCH" : "POST";
+
+      const response= await fetch( url, {
+        method,
+        headers:{
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(datos),
+      });
+
+    if (response.ok){
+      await cargarEventos();
+      setModalAbierto(false);
+    } else{
+      alert("Error al guardar evento, verificá los campos");
     }
-    setModalAbierto(false);
+    } catch(err){
+      console.error("Error al guardar", err);
+  }
   };
 
-  const handleEliminar = (id: string) => {
-    // TODO: conectar con el backend, ej. DELETE /eventos/{id}
-    if (window.confirm("¿Seguro que querés eliminar este evento?")) {
-      setEventos((prev) => prev.filter((ev) => ev.id !== id));
-      setModalAbierto(false);
+  const handleEliminar = async(id: string) => {
+    if (!window.confirm("¿Seguro que querés eliminar este evento?")) return;
+    
+    try{
+      const token= localStorage.getItem("authToken") || localStorage.getItem("access_token");
+
+      const response= await fetch(`http://localhost:8000/api/v1/eventos/${id}`,{
+        method: "DELETE",
+        headers:{
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      if (response.ok){
+        await cargarEventos();
+        setModalAbierto(false);
+      } else{
+        alert("No se puede eliminar");
+      }
+    } catch(err){
+      console.error("Error al eliminar evento", err);
     }
   };
 
@@ -126,25 +186,17 @@ export function EventosAdminView() {
       </div>
 
       <div className="eventos-admin-nav">
-        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
-          ‹
-        </button>
+        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">‹</button>
         <span className="eventos-admin-mes">
           {MESES[mesActual.getMonth()]} {mesActual.getFullYear()}
         </span>
-        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">
-          ›
-        </button>
-        <button type="button" className="eventos-admin-btn-hoy" onClick={irAHoy}>
-          Hoy
-        </button>
+        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">›</button>
+        <button type="button" className="eventos-admin-btn-hoy" onClick={irAHoy}>Hoy</button>
       </div>
 
       <div className="eventos-admin-grid">
         {DIAS_SEMANA.map((d) => (
-          <div key={d} className="eventos-admin-dia-header">
-            {d}
-          </div>
+          <div key={d} className="eventos-admin-dia-header">{d}</div>
         ))}
 
         {celdas.map((celda) => {
@@ -162,20 +214,18 @@ export function EventosAdminView() {
                 esHoy && "is-hoy",
                 esSeleccionado && "is-seleccionado",
                 eventosDia.length > 0 && "tiene-eventos",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              ].filter(Boolean).join(" ")}
               onClick={() => setDiaSeleccionado(celda.iso === diaSeleccionado ? null : celda.iso)}
               onDoubleClick={() => abrirNuevoEvento(celda.iso)}
               title="Click para ver eventos, doble click para agregar uno"
             >
               <span>{celda.fecha.getDate()}</span>
               {eventosDia.length > 0 && (
-                <div className="eventos-admin-dots">
+                <span className="eventos-admin-dots">
                   {eventosDia.slice(0, 3).map((ev) => (
                     <span key={ev.id} className={`eventos-admin-dot eventos-admin-dot--${ev.color}`} />
                   ))}
-                </div>
+                </span>
               )}
             </button>
           );
@@ -192,8 +242,10 @@ export function EventosAdminView() {
           )}
         </div>
 
-        {listaAMostrar.length === 0 ? (
-          <p className="eventos-admin-vacio">No hay eventos para mostrar acá.</p>
+      {cargando ? (
+        <p className="eventos-admin-vacio">Cargando Eventos...</p>
+        ): listaAMostrar.length === 0 ? (
+        <p className="eventos-admin-vacio">No hay eventos para mostrar acá.</p>
         ) : (
           <div className="eventos-admin-lista">
             {listaAMostrar.map((ev) => (
@@ -201,16 +253,12 @@ export function EventosAdminView() {
                 <span className={`eventos-admin-item-color eventos-admin-item-color--${ev.color}`} />
                 <div className="eventos-admin-item-info">
                   <span className="eventos-admin-item-fecha">
-                    {ev.fecha.split("-").reverse().join("/")} {ev.hora && `· ${ev.hora}`}
+                    {ev.fecha.slice(0,10).split("-").reverse().join("/")} {ev.hora && `· ${ev.hora}`}
                   </span>
                   <span className="eventos-admin-item-titulo">{ev.titulo}</span>
                   {ev.lugar && <span className="eventos-admin-item-lugar">📍 {ev.lugar}</span>}
                 </div>
-                <button
-                  type="button"
-                  className="eventos-admin-btn-editar"
-                  onClick={() => abrirEdicion(ev)}
-                >
+                <button type="button" className="eventos-admin-btn-editar" onClick={() => abrirEdicion(ev)}>
                   Editar
                 </button>
               </div>

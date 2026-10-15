@@ -16,7 +16,6 @@ Ej:
     ...: Es obligatorio.
 
     min_length / max_length: Pydantic validará la longitud automáticamente.
-
 """
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
@@ -37,13 +36,22 @@ class UserUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=50)
     password: Optional[str] = Field(None, min_length=8)
 
+# Entrada para cambiar el rol (solo admins)
+class UserRoleUpdate(BaseModel):
+    role: int = Field(..., ge=0, le=1)
+
 # Salida (Lo que devuelve la API)
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     id: int
-    is_active: bool
+    email: str
+    name: Optional[str] = None
+    apellido: Optional[str] = None
+    telefono: Optional[str] = None
+    role: int = 0            # 0 = representante, 1 = administrador
+    is_active: bool = True
 
     class Config:
-        from_attributes = True # Necesario si usas SQLAlchemy
+        from_attributes = True
 
 # Recuperación de contraseña
 class ForgotPasswordRequest(BaseModel):
@@ -64,4 +72,4 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    user:Optional[dict]= None 
+    user: Optional[dict] = None

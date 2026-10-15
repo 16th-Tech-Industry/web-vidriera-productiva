@@ -6,6 +6,7 @@ import { EmpresasView } from "./Empresas/EmpresasView";
 import { MapaAdminView } from "./Mapa/MapaAdminView";
 import { NoticiasAdminView } from "./Noticias/NoticiasAdminView";
 import { EventosAdminView } from "./Eventos/EventosAdminView";
+import { PermisosUsuariosView } from "./Permisos/PermisosUsuariosView";
 import "./dashboard.css";
 
 export interface DashboardProps {
@@ -22,6 +23,7 @@ const TITULOS: Record<SidebarItemKey, string> = {
   mapa: "Mapa",
   noticias: "Noticias",
   eventos: "Próximos Eventos",
+  permisos:"Permisos usuarios",
 };
 
 /**
@@ -68,6 +70,7 @@ export function Dashboard({
           {activeItem === "mapa" && <MapaAdminView />}
           {activeItem === "noticias" && <NoticiasAdminView />}
           {activeItem === "eventos" && <EventosAdminView />}
+          {activeItem === "permisos" && <PermisosUsuariosView />}
         </div>
       </div>
     </div>

@@ -1,5 +1,10 @@
 .footer {
-    width: 100%;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
     min-height: 110px;
     color: #ffffff;
     background-color: #6CAEE5;
@@ -8,7 +13,7 @@
     align-items: center;
     padding: 20px 40px;
     box-sizing: border-box;
-    margin-top: 40px;
+    margin-top: 60px;
     flex-wrap: wrap;
     gap: 20px;
 }
@@ -20,17 +25,21 @@
 .logo-footer {
     width: 240px;
     display: flex;
-    align-items: center;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
 }
+
 .logo-footer img {
     width: 180px;
     height: auto;
 }
 
-/* ESTO ES LO QUE TE FALTA - ACOTA LOS ICONOS */
+/* ESTO ARREGLA EL LOGO EN MODO OSCURO */
+[data-theme="dark"] .logo-footer img {
+    filter: brightness(0) invert(1);
+}
+
 .social-footer {
     display: flex;
     align-items: center;
@@ -50,20 +59,20 @@
     border-radius: 6px;
 }
 
-.footer {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    min-height: 90px;
-    color: #ffffff;
-    background-color: #6CAEE5;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 32px;
-    box-sizing: border-box;
-    margin-top: 60px;
+@media (max-width: 600px) {
+    .footer {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 24px 20px;
+    }
+
+    .logo-footer {
+        align-items: center;
+        width: 100%;
+    }
+
+    .social-footer {
+        justify-content: center;
+    }
 }
-[data-theme="dark"] .footer { background-color: #1e3a5f; }
-.logo-footer { width: 200px; }
-.logo-footer img { width: 100%; height: auto; }
-.social-footer img { width: 28px !important; height: 28px !important; }

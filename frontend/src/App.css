@@ -202,3 +202,12 @@ body {
 .dashboard-content {
   background-color: var(--bg) !important;
 }
+
+/* PERMISOS - tabla siempre legible en claro y oscuro */
+.permisos-table th {
+  color: #1e293b !important;
+  background-color: #f8fafc !important;
+}
+.permisos-table td {
+  color: #1e293b !important;
+}

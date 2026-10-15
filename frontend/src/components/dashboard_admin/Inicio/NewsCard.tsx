@@ -7,7 +7,7 @@ export interface NewsCardProps {
 export default function NewsCard({ image, text }: NewsCardProps) {
   return (
     <div className="news-card">
-      <img src={image} alt="" className="news-card-image" />
+      <img src={image} alt={text} className="news-card-image" />
       <p className="news-card-text">{text}</p>
     </div>
   );

@@ -108,9 +108,10 @@
 }
 
 .eventos-admin-celda.is-fuera-de-mes {
-  color: #c3cdd8;
-  background: #f7f9fb;
+  color: var(--text-muted);
+  background: var(--bg-page);
   font-weight: 500;
+  opacity: 0.7;
 }
 
 .eventos-admin-celda.is-hoy {
@@ -126,15 +127,28 @@
   background: #eaf2fb;
 }
 
+[data-theme="dark"] .eventos-admin-celda.tiene-eventos:not(.is-seleccionado) {
+  background: #1e3a5f;
+}
+
+[data-theme="dark"] .eventos-admin-celda:hover {
+  background: #1e3a5f;
+}
+
 .eventos-admin-dots {
   display: flex;
   gap: 3px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2px;
+  height: 6px;
 }
 
 .eventos-admin-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
+  display: block;
 }
 
 .eventos-admin-dot--blue { background: #1a4a7a; }
@@ -286,8 +300,10 @@
   padding: 10px 12px;
   font-size: 13px;
   color: var(--text-dark);
+  background: var(--card-bg);
   width: 100%;
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 .evento-form-input.is-error {

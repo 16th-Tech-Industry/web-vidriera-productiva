@@ -10,11 +10,6 @@ export interface NavbarProps {
   onLogout?: () => void;
 }
 
-/**
- * Navbar del dashboard.
- * Al hacer click en el usuario (avatar + nombre) se abre un
- * desplegable con la opción de "Cerrar sesión".
- */
 export default function Navbar({
   title,
   subtitle,
@@ -25,10 +20,9 @@ export default function Navbar({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Cierra el desplegable si se hace click afuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current &&!menuRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }
@@ -55,14 +49,16 @@ export default function Navbar({
         <button
           type="button"
           className="navbar-user-btn"
-          onClick={() => setOpen((prev) => !prev)}
-          aria-haspopup="true"
+          onClick={() => setOpen((prev) =>!prev)}
+          aria-haspopup="menu"
           aria-expanded={open}
+          aria-label={`Menú de usuario de ${userName}`}
         >
-          <span className="navbar-avatar">{userInitials}</span>
+          <span className="navbar-avatar" aria-hidden="true">{userInitials}</span>
           <span className="navbar-username">{userName}</span>
           <svg
-            className={`navbar-chevron ${open ? "is-open" : ""}`}
+            aria-hidden="true"
+            className={`navbar-chevron ${open? "is-open" : ""}`}
             width="12"
             height="12"
             viewBox="0 0 12 12"
@@ -87,6 +83,7 @@ export default function Navbar({
               role="menuitem"
             >
               <svg
+                aria-hidden="true"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"

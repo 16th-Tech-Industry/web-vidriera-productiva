@@ -12,6 +12,7 @@ import { CarruselNovedades } from './components/noticias/noticias';
 import EventosView from './components/dash_usuario/EventosView';
 import EmpresaView from './components/dash_usuario/EmpresaView';
 import ProductosView from './components/dash_usuario/ProductosView';
+import MisPostulacionesView from './components/dash_usuario/MisPostulacionesView';
 
 type AuthView = 'mapa' | 'login' | 'register-user' | 'forgot-password' | 'dashboard-admin' | 'dashboard-usuario';
 
@@ -20,7 +21,7 @@ function App() {
   // en el formulario de nueva contraseña con el token ya cargado.
   const [resetToken, setResetToken] = useState(() => new URLSearchParams(window.location.search).get('reset_token') ?? '');
   const [currentView, setCurrentView] = useState<AuthView>(resetToken ? 'forgot-password' : 'mapa');
-  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos'>('empresa');
+  const [vistaUsuario, setVistaUsuario] = useState<'empresa' | 'productos' | 'eventos' | 'mis-postulaciones'>('empresa');
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
   const [isDark, setIsDark] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -48,8 +49,9 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('userData');
-    setCurrentView('login');
+    navegar('mapa', '/');
   };
 
   const ObtenerDatosIniciales = (nombre: string) => {
@@ -70,12 +72,12 @@ function App() {
       {currentView === 'mapa' && (
         <>
           <Nav label=" Iniciar Sesión" onLoginClick={() => setCurrentView('login')} onRegisterClick={() => setCurrentView('register-user')} />
-          <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4rem', padding: '2rem 1.5rem 5rem 1.5rem', boxSizing: 'border-box' }}>
+          <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4rem', padding: '2rem 1.5rem 5rem 1.5rem', boxSizing: 'border-box' }}>
             <div style={{ width: '100%' }}><Mapa /></div>
-            <div style={{ width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+            <div style={{ width: '100%', maxWidth: '1100px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
               <div style={{ textAlign: 'center' }}>
                 <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', margin: 0 }}>Agenda de Eventos</h2>
-                <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '0.35rem 0 0 0' }}>Explorá las ferias, exposiciones y congresos</p>
+                <p style={{ fontSize: '0.9rem', color: '#475569', margin: '0.35rem 0 0 0' }}>Explorá las ferias, exposiciones y congresos</p>
               </div>
               <Calendario />
             </div>
@@ -123,38 +125,43 @@ function App() {
           <aside style={{ width: sidebarCollapsed? '72px' : '260px', backgroundColor: sidebarUsuarioBg, color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'width 0.25s ease' }}>
             <div style={{ padding: '0 16px', height: '64px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: `1px solid rgba(255,255,255,0.15)`, boxSizing: 'border-box', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
               <img src={logo} alt="Logo CBA" style={{ height: '40px', width: '40px', objectFit: 'contain', borderRadius: '6px', background: '#fff', padding: '2px' }} />
-              {!sidebarCollapsed && <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#fff', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>CBA | Vidriera</h3>}
+              {!sidebarCollapsed && <span style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>CBA | Vidriera</span>}
             </div>
 
             {!sidebarCollapsed && (
               <div style={{ padding: '15px 20px 0 20px' }}>
-                <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.85rem' }}>Hola,</p>
+                <p style={{ color: '#cbd5e1', margin: 0, fontSize: '0.85rem' }}>Hola,</p>
                 <p style={{ fontWeight: 'bold', margin: '2px 0 0 0', color: '#fff' }}>{nombreUsuario}</p>
               </div>
             )}
 
-            <nav style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-              <button onClick={() => setVistaUsuario('empresa')} title="Mi Empresa" style={{ background: vistaUsuario === 'empresa'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14H3z"/><path d="M9 10h6M9 14h6M9 18h6"/></svg>
+            <nav style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }} aria-label="Navegación principal">
+              <button onClick={() => setVistaUsuario('empresa')} title="Mi Empresa" aria-label="Mi Empresa" aria-current={vistaUsuario === 'empresa'? 'page' : undefined} style={{ background: vistaUsuario === 'empresa'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14H3z"/><path d="M9 10h6M9 14h6M9 18h6"/></svg>
                 {!sidebarCollapsed && 'Mi Empresa'}
               </button>
 
-              <button onClick={() => setVistaUsuario('productos')} title="Productos" style={{ background: vistaUsuario === 'productos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
+              <button onClick={() => setVistaUsuario('productos')} title="Productos" aria-label="Productos" aria-current={vistaUsuario === 'productos'? 'page' : undefined} style={{ background: vistaUsuario === 'productos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
                 {!sidebarCollapsed && 'Productos'}
               </button>
 
-              <button onClick={() => setVistaUsuario('eventos')} title="Eventos" style={{ background: vistaUsuario === 'eventos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <button onClick={() => setVistaUsuario('eventos')} title="Eventos" aria-label="Eventos" aria-current={vistaUsuario === 'eventos'? 'page' : undefined} style={{ background: vistaUsuario === 'eventos'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                 {!sidebarCollapsed && 'Eventos'}
+              </button>
+
+              <button onClick={() => setVistaUsuario('mis-postulaciones')} title="Mis Postulaciones" aria-label="Mis Postulaciones" aria-current={vistaUsuario === 'mis-postulaciones'? 'page' : undefined} style={{ background: vistaUsuario === 'mis-postulaciones'? activeBtnBg : 'transparent', color: '#fff', border: 'none', padding: '12px', textAlign: 'left', cursor: 'pointer', borderRadius: '8px', width: '100%', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 5a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-14z"/><path d="M3 7l18 0"/></svg>
+                {!sidebarCollapsed && 'Mis Postulaciones'}
               </button>
             </nav>
 
             <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ width: '100%', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} aria-label={sidebarCollapsed? "Expandir menú" : "Colapsar menú"} style={{ width: '100%', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {sidebarCollapsed? '>' : '<'}
               </button>
-              <button onClick={handleLogout} style={{ width: '100%', background: '#ef4444', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontSize: sidebarCollapsed? '0.7rem' : '0.9rem' }}>
+              <button onClick={handleLogout} aria-label="Cerrar Sesión" style={{ width: '100%', background: '#b91c1c', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontSize: sidebarCollapsed? '0.7rem' : '0.9rem' }}>
                 {sidebarCollapsed? '↪' : 'Cerrar Sesión'}
               </button>
             </div>
@@ -168,6 +175,7 @@ function App() {
               {vistaUsuario === 'empresa' && <EmpresaView />}
               {vistaUsuario === 'productos' && <ProductosView />}
               {vistaUsuario === 'eventos' && <EventosView />}
+              {vistaUsuario === 'mis-postulaciones' && <MisPostulacionesView />}
             </div>
           </div>
         </div>

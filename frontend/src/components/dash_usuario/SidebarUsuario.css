@@ -41,3 +41,21 @@ html.dark .sidebar {
   background: #1a365d !important; /* azul más oscuro que #123a6d pero NUNCA negro */
   border-right: 1px solid #2d4a6e !important;
 }
+
+/* Badge de estado en Mis Postulaciones */
+.tag b {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-left: 6px;
+}
+
+/* Estado pendiente - amarillo */
+.tag:has(b) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
