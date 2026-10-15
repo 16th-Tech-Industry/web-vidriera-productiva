@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import './AltaEmpresa.css';
+import { SelectorUbicacion, type Coordenadas } from './SelectorUbicacion';
+import { API_URL } from '../../config';
 
 interface Departamento {
   id: number;
@@ -25,6 +27,8 @@ const RUBROS = [
 export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) {
   const [depto, setDepto] = useState("");
   const [zona, setZona] = useState("");
+  // Punto de venta marcado en el mapa del formulario (va como latitud/longitud)
+  const [coordenadas, setCoordenadas] = useState<Coordenadas | null>(null);
   const [idDepto, setIdDepto] = useState<string>("");
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [localidades, setLocalidades] = useState<Localidad[]>([]);
@@ -48,7 +52,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
     descripcion: "",
     localidad: "",
     direccion: "",
-    numero: "123",
+    numero: "",
     telefono: "",
     instagram: "",
     paginaWeb: "",
@@ -65,7 +69,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
   useEffect(() => {
     const cargarDepartamentosBD = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/ubicaciones/departamentos");
+        const res = await fetch(`${API_URL}/api/v1/ubicaciones/departamentos`);
         if (res.ok) {
           const data = await res.json();
           setDepartamentos(Array.isArray(data) ? data : []);
@@ -100,7 +104,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
 
       setCargandoLocalidades(true);
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/ubicaciones/localidades/${idSeleccionado}`);
+        const res = await fetch(`${API_URL}/api/v1/ubicaciones/localidades/${idSeleccionado}`);
         if (res.ok) {
           const data = await res.json();
           setLocalidades(Array.isArray(data) ? data : []);
@@ -146,6 +150,18 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
       return;
     }
 
+    if (!/^\d+$/.test(form.numero.trim())) {
+      setErrorMsg("Ingresá el número de calle (solo números; 0 si no tiene).");
+      setCargando(false);
+      return;
+    }
+
+    if (!coordenadas) {
+      setErrorMsg("Marcá en el mapa la ubicación del punto de venta.");
+      setCargando(false);
+      return;
+    }
+
     const cuitLimpio = form.cuit.replace(/\D/g, "");
     const cuitNumerico = parseInt(cuitLimpio, 10);
 
@@ -177,9 +193,9 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
         departamento: depto,
         localidad: form.localidad,
         calle: form.direccion,
-        numero: parseInt(form.numero, 10) || 0,
-        latitud: -31.42,
-        longitud: -64.18,
+        numero: parseInt(form.numero, 10),
+        latitud: coordenadas.lat,
+        longitud: coordenadas.lng,
       },
       descripcion: form.descripcion || "Sin descripción proporcionada",
       correo_empresa: form.correoEmpresa,
@@ -192,7 +208,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
     };
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/dashboard/empresas/", {
+      const response = await fetch(`${API_URL}/api/v1/dashboard/empresas/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -208,7 +224,9 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
         setErrorMsg(
           typeof errData.detail === "string"
             ? errData.detail
-            : "Error al registrar la empresa. Verifique los datos"
+            : Array.isArray(errData.detail) && errData.detail.some((d: { loc?: string[] }) => d.loc?.includes("latitud") || d.loc?.includes("longitud"))
+              ? "La ubicación marcada tiene que estar dentro de la provincia de Córdoba."
+              : "Error al registrar la empresa. Verifique los datos"
         );
       }
     } catch (err) {
@@ -424,7 +442,27 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
 
           <div>
             <label style={labelStyle}>Dirección de punto de venta</label>
-            <input style={inputStyle} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="ej. Figueroa Alcorta 234" required />
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+              <input style={inputStyle} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Calle, ej. Figueroa Alcorta" aria-label="Calle" required />
+              <input
+                style={inputStyle}
+                value={form.numero}
+                onChange={e => setForm({ ...form, numero: e.target.value.replace(/\D/g, "") })}
+                inputMode="numeric"
+                placeholder="Número"
+                aria-label="Número de calle"
+                required />
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Ubicación en el mapa</label>
+            <SelectorUbicacion valor={coordenadas} onChange={setCoordenadas} />
+            <p style={{ fontSize: '11px', color: labelColor, margin: '6px 4px 0' }}>
+              {coordenadas
+                ? `📍 ${coordenadas.lat}, ${coordenadas.lng} — podés arrastrar el pin para ajustarlo`
+                : 'Hacé click en el mapa donde está tu punto de venta'}
+            </p>
           </div>
 
           <button type="submit" disabled={cargando} style={{

@@ -30,6 +30,22 @@ class UbicacionEmpresa(BaseModel):
     longitud: float = Field(..., ge=-180, le=180)
 
 
+# Rectángulo que contiene a la provincia de Córdoba (el mismo que usa el
+# mapa del frontend, BoundingBoxCordoba en components/mapa/mapa.tsx).
+LATITUD_MIN_CORDOBA, LATITUD_MAX_CORDOBA = -35.05, -29.50
+LONGITUD_MIN_CORDOBA, LONGITUD_MAX_CORDOBA = -65.80, -61.70
+
+
+# Ubicación en el alta: además exige que el punto caiga en Córdoba. Así se
+# rechaza, por ejemplo, latitud y longitud cargadas al revés (-64 es una
+# latitud válida en el mundo, pero queda en la Antártida). Solo aplica a la
+# entrada: las respuestas siguen usando UbicacionEmpresa para no dejar de
+# mostrar una empresa ya guardada con un valor viejo.
+class UbicacionEmpresaAlta(UbicacionEmpresa):
+    latitud: float = Field(..., ge=LATITUD_MIN_CORDOBA, le=LATITUD_MAX_CORDOBA)
+    longitud: float = Field(..., ge=LONGITUD_MIN_CORDOBA, le=LONGITUD_MAX_CORDOBA)
+
+
 class RedesEmpresa(BaseModel):
     numero_contacto: Optional[str] = None
     facebook: Optional[str] = None
@@ -43,7 +59,7 @@ class EmpresaCreate(BaseModel):
     razon_social: str = Field(..., min_length=1, max_length=255)
     nombre_empresa: str = Field(..., min_length=1, max_length=200)
     rubro: str = Field(..., min_length=1, max_length=150)
-    ubicacion: UbicacionEmpresa
+    ubicacion: UbicacionEmpresaAlta
     descripcion: str = Field(..., min_length=1)
     correo_empresa: EmailStr
     redes: RedesEmpresa = RedesEmpresa()
