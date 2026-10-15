@@ -1,0 +1,15 @@
+# Servidor de los archivos compilados del frontend (ver Dockerfile).
+# Escucha en el puerto que asigna Railway (variable PORT); 8080 si no está.
+:{$PORT:8080} {
+	root * /srv
+	encode gzip
+
+	# Los archivos de assets/ llevan un hash en el nombre: cambian de nombre
+	# en cada compilación, así que el navegador los puede guardar sin vencimiento.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Cualquier ruta que no sea un archivo devuelve index.html (la app decide qué mostrar).
+	try_files {path} /index.html
+	file_server
+}

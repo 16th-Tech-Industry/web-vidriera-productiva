@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -26,11 +27,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Orígenes permitidos del frontend (React / Vite)
+# Orígenes permitidos del frontend: el servidor de Vite en local y, si está
+# definida, la URL pública del frontend (FRONTEND_URL, la misma que se usa
+# para los links de los mails). Sin la barra final: el navegador manda el
+# origen sin ella.
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+if os.getenv("FRONTEND_URL"):
+    origins.append(os.getenv("FRONTEND_URL").rstrip("/"))
 
 # Configuración única de CORS
 app.add_middleware(

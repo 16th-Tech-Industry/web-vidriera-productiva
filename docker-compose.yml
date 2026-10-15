@@ -13,7 +13,11 @@ services:
       - ./backend:/app
 
   frontend:
-    build: ./frontend
+    # En local, la etapa de desarrollo (Vite con recarga en caliente); Railway
+    # construye la etapa de producción del mismo Dockerfile.
+    build:
+      context: ./frontend
+      target: desarrollo
     container_name: vidriera_frontend
     ports:
       - "5173:5173"
