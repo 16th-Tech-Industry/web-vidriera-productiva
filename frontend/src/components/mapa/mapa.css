@@ -20,9 +20,11 @@
   background-color: #f8fafc;
 }
 
-/* Forzar al contenedor de Leaflet a expandirse al 100% de la caja */
-.mapaLeaflet,
-.leaflet-container {
+/* Forzar al contenedor de Leaflet a expandirse al 100% de la caja.
+   Solo dentro de .mapaWrapper: este CSS se carga en toda la app y, sin
+   acotarlo, estiraba también otros mapas (ej. el de alta de empresa). */
+.mapaWrapper .mapaLeaflet,
+.mapaWrapper .leaflet-container {
   height: 100% !important;
   width: 100% !important;
   position: absolute !important;
@@ -96,25 +98,12 @@
   gap: 8px;
 }
 
-.dotAgroalimento {
+/* Punto de color de la leyenda; el color sale de constantes/rubros.ts */
+.dotRubro {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #f39200;
-}
-
-.dotAgroindustria {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #00aeef;
-}
-
-.dotAgtech {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #9b5de5;
+  flex-shrink: 0;
 }
 
 /* Ajuste de marcadores Leaflet */
@@ -238,14 +227,3 @@
   color: #475569;
 }
 
-.dotAgroalimento,
-.dotAgroindustria,
-.dotAgtech {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.dotAgroalimento { background-color: #f39200; }
-.dotAgroindustria { background-color: #00aeef; }
-.dotAgtech { background-color: #9b5de5; }

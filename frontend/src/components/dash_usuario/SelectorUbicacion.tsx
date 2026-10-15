@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, Marker, useMapEvents } from 'react-leaflet';
+import { AjustarAlContenedor, CapaBase } from '../mapa/mapaBase';
 import L, { type LatLngBoundsExpression, type LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -55,7 +56,7 @@ export function SelectorUbicacion({
   });
 
   return (
-    <div style={{ height: alto, borderRadius: 10, overflow: 'hidden', border: '1px solid #7aadd6' }}>
+    <div style={{ position: 'relative', height: alto, borderRadius: 10, overflow: 'hidden', border: '1px solid #7aadd6' }}>
       <MapContainer
         bounds={LIMITES_CORDOBA}
         maxBounds={LIMITES_CORDOBA}
@@ -63,10 +64,8 @@ export function SelectorUbicacion({
         minZoom={6}
         style={{ height: '100%', width: '100%', cursor: 'crosshair' }}
       >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          attribution="&copy; OpenStreetMap &copy; CARTO"
-        />
+        <CapaBase />
+        <AjustarAlContenedor />
         <CapturarClick onSeleccionar={(c) => onChange(redondear(c))} />
         {valor && (
           <Marker

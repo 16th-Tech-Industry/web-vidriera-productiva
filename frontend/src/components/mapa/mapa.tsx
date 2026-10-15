@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
+import { MapContainer, Marker, Popup, GeoJSON } from 'react-leaflet';
+import { AjustarAlContenedor, CapaBase } from './mapaBase';
+import { RUBROS, colorDeRubro } from '../../constantes/rubros';
 import L, { type LatLngBoundsExpression, type LeafletMouseEvent } from 'leaflet';
 import proj4 from 'proj4';
 import 'leaflet/dist/leaflet.css';
@@ -170,10 +172,7 @@ export const Mapa: React.FC = () => {
   };
 
   const crearIconoCirculo = (rubro: string): L.DivIcon => {
-    let colorFondo = '#708090';
-    if (rubro === 'AGROALIMENTO') colorFondo = '#f39200';
-    else if (rubro === 'AGROINDUSTRIA') colorFondo = '#00aeef';
-    else if (rubro === 'AGTECH') colorFondo = '#9b5de5';
+    const colorFondo = colorDeRubro(rubro);
 
     return L.divIcon({
       className: 'marcador-personalizado',
@@ -242,21 +241,17 @@ export const Mapa: React.FC = () => {
             onChange={(e) => handleCambioCategoria(e.target.value)}
           >
             <option value="Todas">Todos los Rubros</option>
-            <option value="AGROALIMENTO">Agroalimento</option>
-            <option value="AGROINDUSTRIA">Agroindustria</option>
-            <option value="AGTECH">Agtech</option>
+            {RUBROS.map((r) => (
+              <option key={r.valor} value={r.valor}>{r.etiqueta}</option>
+            ))}
           </select>
 
           <div className="leyenda">
-            <div className="leyendaItem">
-              <div className="dotAgroalimento" /> Agroalimento
-            </div>
-            <div className="leyendaItem">
-              <div className="dotAgroindustria" /> Agroindustria
-            </div>
-            <div className="leyendaItem">
-              <div className="dotAgtech" /> Agtech
-            </div>
+            {RUBROS.map((r) => (
+              <div key={r.valor} className="leyendaItem">
+                <div className="dotRubro" style={{ backgroundColor: r.color }} /> {r.etiqueta}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -269,7 +264,8 @@ export const Mapa: React.FC = () => {
           zoomControl={false}
           ref={setInstanciaMapa}
         >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
+          <CapaBase />
+          <AjustarAlContenedor />
 
           {geoJsonGrados && (
             <GeoJSON key={categoria} data={geoJsonGrados} style={estiloDeptoBase} onEachFeature={alCadaDepartamento} />

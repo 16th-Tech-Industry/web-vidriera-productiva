@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './AltaEmpresa.css';
 import { SelectorUbicacion, type Coordenadas } from './SelectorUbicacion';
 import { API_URL } from '../../config';
+import { RUBROS } from '../../constantes/rubros';
 
 interface Departamento {
   id: number;
@@ -13,16 +14,6 @@ interface Localidad {
   id: number;
   nombre: string;
 }
-
-const RUBROS = [
-  "AGROALIMENTO",
-  "AGROINDUSTRIA",
-  "TEXTIL",
-  "METALURGICA",
-  "MADERA Y MUEBLES",
-  "SERVICIOS",
-  "OTRO",
-];
 
 export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) {
   const [depto, setDepto] = useState("");
@@ -315,7 +306,7 @@ export default function AltaEmpresa({ onComplete }: { onComplete: () => void }) 
               value={form.rubro}
               onChange={(e) => setForm({ ...form, rubro: e.target.value })} required>
               {RUBROS.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r.valor} value={r.valor}>{r.etiqueta}</option>
               ))}
             </select>
           </div>
