@@ -8,13 +8,11 @@ from security import require_admin
 router = APIRouter(prefix="/eventos", tags=["Eventos"])
 
 _SELECT_EVENTO= (
-    "SELECT id_evento, fecha, titulo, TO_CHAR(descripcion), hora, lugar, color FROM eventos"
+    "SELECT id_evento, fecha, titulo, descripcion, hora, lugar, color FROM eventos"
 )
 
 def _fila_a_response(fila) -> EventoResponse:
     id_evento, fecha, titulo, descripcion, hora, lugar, color= fila
-    desc_texto= descripcion.read() if hasattr(descripcion, "read") else str(descripcion or "")
-
     return EventoResponse(
         id= str(id_evento),
         fecha=str(fecha),
@@ -34,7 +32,7 @@ def listar_eventos():
 @router.get("/{evento_id}", response_model=EventoResponse)
 def obtener_evento(evento_id: int):
     filas= execute_query(
-        _SELECT_EVENTO + " WHERE id_evento= :id",
+        _SELECT_EVENTO + " WHERE id_evento= %(id)s",
         {"id": evento_id},
         fetch=True,
     )
@@ -46,7 +44,7 @@ def obtener_evento(evento_id: int):
 def crear_evento(datos: EventoCreate, admin: dict= Depends(require_admin)):
     """crear evento nuevo"""
     execute_query(
-        "INSERT INTO eventos (fecha, titulo, descripcion, hora, lugar, color)" "VALUES (:fecha, :titulo, :descripcion, :hora, :lugar, :color)",
+        "INSERT INTO eventos (fecha, titulo, descripcion, hora, lugar, color)" "VALUES (%(fecha)s, %(titulo)s, %(descripcion)s, %(hora)s, %(lugar)s, %(color)s)",
         {
             "fecha": datos.fecha,
             "titulo": datos.titulo,
@@ -58,7 +56,7 @@ def crear_evento(datos: EventoCreate, admin: dict= Depends(require_admin)):
     )
 
     nuevo= execute_query(
-        _SELECT_EVENTO+ " WHERE titulo= :titulo AND fecha= :fecha ORDER BY fecha ASC",
+        _SELECT_EVENTO+ " WHERE titulo= %(titulo)s AND fecha= %(fecha)s ORDER BY fecha ASC",
         {"titulo": datos.titulo, "fecha": datos.fecha},
         fetch=True,
     )
@@ -72,7 +70,7 @@ def editar_evento(
 ): 
     """editar eventos"""
     filas= execute_query(
-        _SELECT_EVENTO+  " WHERE id_evento= :id",
+        _SELECT_EVENTO+  " WHERE id_evento= %(id)s",
         {"id": evento_id},
         fetch=True,
     )
@@ -80,8 +78,8 @@ def editar_evento(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento no encontrado")
 
     execute_query(
-        "UPDATE eventos SET fecha= :fecha, titulo= :titulo, descripcion= :descripcion,"
-        "hora= :hora, lugar= :lugar, color= :color WHERE id_evento= :id",
+        "UPDATE eventos SET fecha= %(fecha)s, titulo= %(titulo)s, descripcion= %(descripcion)s,"
+        "hora= %(hora)s, lugar= %(lugar)s, color= %(color)s WHERE id_evento= %(id)s",
         {
         "fecha": datos.fecha,
         "titulo": datos.titulo,
@@ -93,7 +91,7 @@ def editar_evento(
         },
 )
     actualizado= execute_query(
-        _SELECT_EVENTO+ " WHERE id_evento= :id",
+        _SELECT_EVENTO+ " WHERE id_evento= %(id)s",
         {"id": evento_id},
         fetch=True,
     )
@@ -103,11 +101,11 @@ def editar_evento(
 def eliminar_evento(evento_id: int, admin: dict= Depends(require_admin)):
     """eliminar eventos"""
     filas= execute_query(
-        "SELECT 1 FROM eventos WHERE id_evento= :id",
+        "SELECT 1 FROM eventos WHERE id_evento= %(id)s",
         {"id": evento_id},
         fetch=True,
     )
     if not filas: raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento no encontrado")
 
-    execute_query("DELETE FROM eventos WHERE id_evento= :id",{"id":evento_id})
+    execute_query("DELETE FROM eventos WHERE id_evento= %(id)s",{"id":evento_id})
     return None

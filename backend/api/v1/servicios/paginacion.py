@@ -9,7 +9,7 @@ Uso en un endpoint:
         filas, total = ...  # consulta con paginacion.offset / paginacion.por_pagina
         return armar_pagina(items, total, paginacion)
 
-No depende de ninguna tabla: lo único propio de Oracle es CLAUSULA_PAGINACION,
+No depende de ninguna tabla: lo único propio del motor es CLAUSULA_PAGINACION,
 que se concatena al final de un SELECT que ya tenga ORDER BY.
 """
 from dataclasses import dataclass
@@ -23,7 +23,7 @@ POR_PAGINA_DEFAULT = 10
 POR_PAGINA_MAXIMO = 100
 
 # Va al final de la consulta, con los binds de Paginacion.binds().
-CLAUSULA_PAGINACION = " OFFSET :pag_offset ROWS FETCH NEXT :pag_limite ROWS ONLY"
+CLAUSULA_PAGINACION = " OFFSET %(pag_offset)s ROWS FETCH NEXT %(pag_limite)s ROWS ONLY"
 
 T = TypeVar("T")
 

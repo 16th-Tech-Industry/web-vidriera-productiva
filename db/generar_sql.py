@@ -11,6 +11,12 @@ output_sql = os.path.join(DIR_BASE, 'insert_geografia.sql')
 df = pd.read_excel(excel_path, sheet_name='Hoja1')
 
 with open(output_sql, 'w', encoding='utf-8') as f:
+    f.write(
+        "-- Zonas, departamentos y localidades de Córdoba (PostgreSQL). Generado por\n"
+        "-- generar_sql.py a partir de Dptos_Loc.xlsx; correr después de esquema.sql.\n"
+        "BEGIN;\n\n"
+    )
+
     # 1. ZONAS
     f.write("-- 1. INSERTAR ZONAS\n")
     for z in range(1, 8):
@@ -47,6 +53,18 @@ with open(output_sql, 'w', encoding='utf-8') as f:
             "INSERT INTO localidades (id_localidad, nombre_localidad,"
             f" id_departamento) VALUES ({int(row['ID_LOCALIDAD'])},"
             f" '{nombre}', {int(row['ID_DEPARTAMENTO'])});\n"
+        )
+
+    # Los INSERT fijan los ids a mano: se adelantan los contadores de las
+    # columnas identidad para que la próxima fila no choque con uno existente.
+    f.write(
+        "\n-- Los INSERT fijan los ids a mano: se adelantan los contadores de las\n"
+        "-- columnas identidad para que la próxima fila no choque con uno existente.\n"
+    )
+    for tabla, columna in (("zonas", "id_zona"), ("departamentos", "id_departamento"), ("localidades", "id_localidad")):
+        f.write(
+            f"SELECT setval(pg_get_serial_sequence('{tabla}', '{columna}'),"
+            f" (SELECT MAX({columna}) FROM {tabla}));\n"
         )
 
     f.write("\nCOMMIT;\n")

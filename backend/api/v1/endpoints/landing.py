@@ -87,7 +87,7 @@ def listar_eventos_landing():
 # --- Empresas reales (tabla `empresas`), a diferencia de _PRODUCTORES/_EVENTOS
 # que siguen siendo mock. Solo se muestran las aprobadas por un admin (ver
 # dashboard/empresas_revision.py). Se leen del archivo JSON de la vidriera
-# (api/v1/servicios/vidriera_json.py), que se regenera desde Oracle cuando
+# (api/v1/servicios/vidriera_json.py), que se regenera desde la base cuando
 # cambia una empresa aprobada; los filtros aceptados son los mismos del
 # buscador del dashboard admin (api/v1/servicios/busqueda_empresas.py).
 
@@ -111,7 +111,7 @@ def _fila_a_empresa_publica(fila) -> EmpresaPublicaResponse:
 def obtener_empresa_publica(empresa_id: int):
     """Ficha pública de una empresa aprobada, con sus productos. Sale del
     archivo JSON de la vidriera (ver api/v1/servicios/vidriera_json.py), sin
-    consultar Oracle."""
+    consultar la base."""
     fila = vidriera_json.empresa_publica(empresa_id)
     if fila is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
@@ -129,5 +129,5 @@ def listar_empresas_publicas(filtros: FiltrosEmpresa = Depends(filtros_publicos)
     """Empresas aprobadas para la vidriera pública (mapa de la landing), opcionalmente
     filtradas por texto, rubro, zona y/o departamento. Devuelve todas las que
     cumplen (sin paginar): el mapa necesita todos los puntos. Sale del archivo
-    JSON de la vidriera, sin consultar Oracle."""
+    JSON de la vidriera, sin consultar la base."""
     return convertir_filas(vidriera_json.empresas_publicas(filtros), _fila_a_empresa_publica)

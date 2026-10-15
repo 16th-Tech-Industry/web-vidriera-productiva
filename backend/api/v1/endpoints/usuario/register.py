@@ -11,7 +11,7 @@ router = APIRouter(prefix="/register", tags=["Register"])
 def create_user(user: UserCreate, background_tasks: BackgroundTasks):
     """Registra un representante nuevo: valida email único, hashea la password, la persiste en `representates` y manda el mail de bienvenida."""
     existe = execute_query(
-        "SELECT id_representante FROM representates WHERE email_representante = :email",
+        "SELECT id_representante FROM representates WHERE email_representante = %(email)s",
         {"email": user.email},
         fetch=True,
     )
@@ -25,7 +25,7 @@ def create_user(user: UserCreate, background_tasks: BackgroundTasks):
         "INSERT INTO representates "
         "(nombre_representante, apellido_representante, email_representante, "
         "n_telefono_representante, contrasenia_representate, fecha_de_creacion, rol, estado) "
-        "VALUES (:nombre, :apellido, :email, :telefono, :password_hash, :fecha, :rol, :estado)",
+        "VALUES (%(nombre)s, %(apellido)s, %(email)s, %(telefono)s, %(password_hash)s, %(fecha)s, %(rol)s, %(estado)s)",
         {
             "nombre": user.name,
             "apellido": user.apellido,
@@ -39,7 +39,7 @@ def create_user(user: UserCreate, background_tasks: BackgroundTasks):
     )
 
     nuevo = execute_query(
-        "SELECT id_representante, rol FROM representates WHERE email_representante = :email",
+        "SELECT id_representante, rol FROM representates WHERE email_representante = %(email)s",
         {"email": user.email},
         fetch=True,
     )

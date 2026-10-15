@@ -1,15 +1,14 @@
-DB_USER=
-DB_CONNECTION=
-PASSWORD=
-# Pool de conexiones Oracle (opcionales, tienen default en db_connector.py)
+# Base PostgreSQL. En Railway la define sola el servicio PostgreSQL; en local,
+# la de docker compose o la que uses (ver db/README.md).
+DATABASE_URL=postgresql://usuario:password@localhost:5432/vidriera
+# Pool de conexiones (opcionales, tienen default en db_connector.py)
 DB_POOL_MIN=2
 DB_POOL_MAX=10
-DB_POOL_INCREMENT=1
 JWT_SECRET_KEY=
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=60
-# URL pública del backend, para armar la URL de las imágenes servidas
-# desde /uploads (ver api/v1/endpoints/noticias.py)
+# URL pública del backend, para armar la URL de las imágenes
+# (/api/v1/imagenes/{id}, ver api/v1/servicios/imagenes.py)
 PUBLIC_BASE_URL=http://localhost:8000
 # URL del backend que usa el frontend (ver frontend/src/config.ts).
 # En un despliegue va la URL pública del backend.

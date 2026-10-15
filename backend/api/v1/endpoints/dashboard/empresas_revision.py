@@ -32,7 +32,7 @@ _COL_MOTIVO = 6
 
 
 def _obtener_empresa_o_404(empresa_id: int):
-    filas = execute_query(_SELECT_EMPRESA + " WHERE id_empresa = :id", {"id": empresa_id}, fetch=True)
+    filas = execute_query(_SELECT_EMPRESA + " WHERE id_empresa = %(id)s", {"id": empresa_id}, fetch=True)
     if not filas:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
     return filas[0]
@@ -48,7 +48,7 @@ def _avisar_al_representante(background_tasks: BackgroundTasks, empresa: Empresa
         empresa.id_representante, empresa.id_empresa, empresa.razon_social, aprobada, empresa.motivo_rechazo,
     )
     representante = execute_query(
-        "SELECT email_representante, nombre_representante FROM representates WHERE id_representante = :id",
+        "SELECT email_representante, nombre_representante FROM representates WHERE id_representante = %(id)s",
         {"id": empresa.id_representante},
         fetch=True,
     )
@@ -77,7 +77,7 @@ def _representantes_de_pendientes() -> dict:
     filas = execute_query(
         "SELECT id_representante, nombre_representante, apellido_representante, "
         "email_representante, n_telefono_representante FROM representates "
-        "WHERE id_representante IN (SELECT id_representante FROM empresas WHERE estado = :estado)",
+        "WHERE id_representante IN (SELECT id_representante FROM empresas WHERE estado = %(estado)s)",
         {"estado": ESTADO_PENDIENTE},
         fetch=True,
     )
@@ -92,7 +92,7 @@ def listar_pendientes(admin: dict = Depends(require_admin)):
     """Empresas cargadas por usuarios que todavía no fueron revisadas, con el
     contacto de su representante. Exclusivo de administradores."""
     filas = execute_query(
-        _SELECT_EMPRESA + " WHERE estado = :estado ORDER BY id_empresa",
+        _SELECT_EMPRESA + " WHERE estado = %(estado)s ORDER BY id_empresa",
         {"estado": ESTADO_PENDIENTE},
         fetch=True,
     )
@@ -112,7 +112,7 @@ def aprobar_empresa(empresa_id: int, background_tasks: BackgroundTasks, admin: d
     vidriera pública y se le avisa al representante. Exclusivo de administradores."""
     estado_previo = _obtener_empresa_o_404(empresa_id)[_COL_ESTADO]
     execute_query(
-        "UPDATE empresas SET estado = :estado, motivo_rechazo = NULL WHERE id_empresa = :id",
+        "UPDATE empresas SET estado = %(estado)s, motivo_rechazo = NULL WHERE id_empresa = %(id)s",
         {"estado": ESTADO_APROBADA, "id": empresa_id},
     )
     # La empresa entra al archivo del que lee la vidriera pública.
@@ -135,7 +135,7 @@ def rechazar_empresa(
     y recibe en el aviso. Exclusivo de administradores."""
     previa = _obtener_empresa_o_404(empresa_id)
     execute_query(
-        "UPDATE empresas SET estado = :estado, motivo_rechazo = :motivo WHERE id_empresa = :id",
+        "UPDATE empresas SET estado = %(estado)s, motivo_rechazo = %(motivo)s WHERE id_empresa = %(id)s",
         {"estado": ESTADO_RECHAZADA, "motivo": payload.motivo_rechazo, "id": empresa_id},
     )
     # Si estaba aprobada, sale del archivo del que lee la vidriera pública.

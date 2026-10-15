@@ -3,7 +3,9 @@ from pydantic import BaseModel
 from typing import Optional
 from db_connector import execute_query
 
-router= APIRouter()
+# El frontend las pide en /api/v1/postulaciones/...: sin prefijo las rutas
+# quedaban en /api/v1/ y respondían 404.
+router= APIRouter(prefix="/postulaciones")
 
 class PostulacionCreate(BaseModel):
     id_empresa: int
@@ -12,7 +14,7 @@ class PostulacionCreate(BaseModel):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def crear_postulacion(data: PostulacionCreate):
     query_check= """ SELECT COUNT(*) FROM POSTULACIONES 
-    WHERE ID_EMPRESA= :id_empresa AND ID_EVENTO= :id_evento """
+    WHERE ID_EMPRESA= %(id_empresa)s AND ID_EVENTO= %(id_evento)s """
     #valida si ya existe la postulacion
     resultado= execute_query(
         query_check,
@@ -21,14 +23,14 @@ def crear_postulacion(data: PostulacionCreate):
          fetch=True
     )
 
-    if resultado and resultado [0][0] > [0]:
+    if resultado and resultado[0][0] > 0:
         raise HTTPException(
             status_code= status.HTTP_400_BAD_REQUEST,
             detail="Ya te postulaste a este evento"
         )
     #insert en tabla
     query_insert= """ INSERT INTO POSTULACIONES (ID_EMPRESA, ID_EVENTO, ESTADO)
-                      VALUES (:id_empresa, :id_evento, "PENDIENTE") """
+                      VALUES (%(id_empresa)s, %(id_evento)s, 'PENDIENTE') """
 
     try:
        execute_query(
@@ -49,12 +51,12 @@ def crear_postulacion(data: PostulacionCreate):
 @router.get("/empresa/{id_empresa}")
 def obtener_postulaciones(id_empresa: int):
       query= """ SELECT p.ID_POSTULACION, p.ID_EMPRESA, p.ID_EVENTO,
-                  TO_CHAR(p.FECHA_POSTULACION, 'YYYY-MM-DD') AS FECHA_POSTULACION, p.ESTADO
+                  TO_CHAR(p.FECHA_POSTULACION, 'YYYY-MM-DD') AS FECHA_POSTULACION, p.ESTADO,
                   p.MOTIVO_RECHAZO, e.TITULO, e.DESCRIPCION, e.FECHA, e.HORA, e.LUGAR, e.COLOR
                 FROM POSTULACIONES p
                 INNER JOIN EVENTOS e ON p.ID_EVENTO=e.ID_EVENTO
-                WHERE p.ID_EMPRESA= :id_empresa
-                ORDER BY p.FECHA_POSTULACION DES
+                WHERE p.ID_EMPRESA= %(id_empresa)s
+                ORDER BY p.FECHA_POSTULACION DESC
              """
       filas= execute_query(query, {"id_empresa":id_empresa}, fetch=True)
 
@@ -84,6 +86,6 @@ def obtener_postulaciones(id_empresa: int):
                status_code=status.HTTP_204_NO_CONTENT)
 def cancelar_postulacion(id_empresa: int, id_evento: int):
     query= """ DELETE FROM POSTULACIONES
-                WHERE ID_EMPRESA=:id_empresa AND ID_EVENTO=:id_evento """
+                WHERE ID_EMPRESA=%(id_empresa)s AND ID_EVENTO=%(id_evento)s """
     execute_query(query, {"id_empresa":id_empresa, "id_evento":id_evento})
     return None

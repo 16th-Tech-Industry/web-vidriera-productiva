@@ -16,9 +16,8 @@ _SELECT_EMPRESA = f"SELECT {_COLUMNAS_EMPRESA} FROM empresas"
 
 def _fila_a_response(fila) -> EmpresaResponse:
     id_empresa, cuit, razon_social, datos_publico, id_representante, estado, motivo_rechazo = fila
-    # datos_publico es una columna JSON nativa de Oracle: python-oracledb
-    # la devuelve ya decodificada (dict), pero si en algún momento vuelve
-    # como texto (driver/versión distinta) lo parseamos igual.
+    # datos_publico es una columna jsonb: psycopg la devuelve ya decodificada
+    # (dict), pero si en algún momento vuelve como texto lo parseamos igual.
     datos = datos_publico if isinstance(datos_publico, dict) else json.loads(datos_publico)
     return EmpresaResponse(
         id_empresa=id_empresa,
@@ -40,7 +39,7 @@ def _fila_a_response(fila) -> EmpresaResponse:
 def _zona_del_departamento(departamento: str) -> Optional[str]:
     filas = execute_query(
         "SELECT z.nombre_zona FROM departamentos d JOIN zonas z ON z.id_zona = d.id_zona "
-        "WHERE UPPER(d.nombre_departamento) = UPPER(:departamento)",
+        "WHERE UPPER(d.nombre_departamento) = UPPER(%(departamento)s)",
         {"departamento": departamento},
         fetch=True,
     )
@@ -54,7 +53,7 @@ def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_us
     (ver empresas_revision.py). Cada representante tiene una sola empresa, así
     que esto es alta única (ver obtener_mi_empresa/GET /mia más abajo)."""
     ya_tiene_empresa = execute_query(
-        "SELECT id_empresa FROM empresas WHERE id_representante = :id_representante",
+        "SELECT id_empresa FROM empresas WHERE id_representante = %(id_representante)s",
         {"id_representante": int(usuario["sub"])},
         fetch=True,
     )
@@ -65,7 +64,7 @@ def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_us
         )
 
     existe = execute_query(
-        "SELECT id_empresa FROM empresas WHERE cuit = :cuit",
+        "SELECT id_empresa FROM empresas WHERE cuit = %(cuit)s",
         {"cuit": empresa.cuit},
         fetch=True,
     )
@@ -90,7 +89,7 @@ def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_us
 
     execute_query(
         "INSERT INTO empresas (cuit, razon_social, datos_publico, id_representante, estado) "
-        "VALUES (:cuit, :razon_social, :datos_publico, :id_representante, :estado)",
+        "VALUES (%(cuit)s, %(razon_social)s, CAST(%(datos_publico)s AS jsonb), %(id_representante)s, %(estado)s)",
         {
             "cuit": empresa.cuit,
             "razon_social": empresa.razon_social,
@@ -103,7 +102,7 @@ def crear_empresa(empresa: EmpresaCreate, usuario: dict = Depends(get_current_us
     # Mismo patrón que noticias.py/register.py: execute_query no expone el
     # id generado, así que se busca de nuevo por cuit (único de negocio).
     nueva = execute_query(
-        _SELECT_EMPRESA + " WHERE cuit = :cuit",
+        _SELECT_EMPRESA + " WHERE cuit = %(cuit)s",
         {"cuit": empresa.cuit},
         fetch=True,
     )
@@ -117,7 +116,7 @@ def obtener_mi_empresa(usuario: dict = Depends(get_current_user)):
     quedó su alta. Es un objeto único, no una lista: un representante tiene como
     máximo una empresa (ver crear_empresa/POST más arriba)."""
     filas = execute_query(
-        _SELECT_EMPRESA + " WHERE id_representante = :id_representante",
+        _SELECT_EMPRESA + " WHERE id_representante = %(id_representante)s",
         {"id_representante": int(usuario["sub"])},
         fetch=True,
     )

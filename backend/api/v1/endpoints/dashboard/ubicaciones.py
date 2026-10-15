@@ -20,7 +20,7 @@ def obtener_departamentos():
     try:
         filas = execute_query(query, fetch=True) or []
     except Exception as e:
-        print(f"Error al obtener departamentos en Oracle: {e}")
+        print(f"Error al obtener departamentos en la base: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al consultar los departamentos",
@@ -32,12 +32,12 @@ def obtener_departamentos():
 def obtener_localidades_por_departamento(id_departamento: int):
     query = (
         "SELECT id_localidad, nombre_localidad FROM localidades "
-        "WHERE id_departamento = :id_depto ORDER BY nombre_localidad ASC"
+        "WHERE id_departamento = %(id_depto)s ORDER BY nombre_localidad ASC"
     )
     try:
         filas = execute_query(query, {"id_depto": id_departamento}, fetch=True) or []
     except Exception as e:
-        print(f"Error al obtener localidades en Oracle: {e}")
+        print(f"Error al obtener localidades en la base: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al consultar las localidades",

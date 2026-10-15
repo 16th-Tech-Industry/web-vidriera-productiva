@@ -5,14 +5,14 @@ Archivo JSON de la vidriera pública — el contenedor de lectura.
 Qué es: un único archivo, backend/empresas_repo/empresas.json, con el
 documento de cada empresa APROBADA (sus datos públicos y sus productos).
 Es de donde lee la vidriera: el listado del mapa y la ficha de cada
-empresa salen de este archivo, sin consultar Oracle.
+empresa salen de este archivo, sin consultar la base.
 
-Quién manda: Oracle. La tabla `empresas` es la fuente de verdad y el
+Quién manda: la base de datos. La tabla `empresas` es la fuente de verdad y el
 respaldo; el archivo es una copia que se puede borrar en cualquier momento
 porque se vuelve a armar desde la tabla. Nunca se edita a mano ni se
-escribe en él un dato que no esté antes en Oracle.
+escribe en él un dato que no esté antes en la base.
 
-Cuándo se actualiza (siempre regenerándolo entero desde Oracle, que con
+Cuándo se actualiza (siempre regenerándolo entero desde la base, que con
 este volumen es una sola consulta):
 - cuando un admin aprueba o rechaza una empresa (empresas_revision.py);
 - cuando un representante agrega, edita o borra un producto (productos.py);
@@ -54,7 +54,7 @@ NOMBRE_ARCHIVO = "empresas.json"
 _candado = threading.Lock()
 
 # (id_empresa, razon_social, datos_publico): la misma forma de fila que
-# devolvía la consulta a Oracle, así los endpoints no cambian su conversión.
+# devolvía la consulta a la base, así los endpoints no cambian su conversión.
 Fila = Tuple[int, str, dict]
 
 
@@ -63,11 +63,11 @@ def ruta_archivo() -> Path:
 
 
 def regenerar() -> dict:
-    """Arma el archivo desde Oracle con todas las empresas aprobadas y devuelve su contenido."""
+    """Arma el archivo desde la base con todas las empresas aprobadas y devuelve su contenido."""
     with _candado:
         filas = execute_query(
             "SELECT id_empresa, razon_social, datos_publico FROM empresas "
-            "WHERE estado = :estado ORDER BY id_empresa",
+            "WHERE estado = %(estado)s ORDER BY id_empresa",
             {"estado": ESTADO_APROBADA},
             fetch=True,
         )
@@ -89,7 +89,7 @@ def regenerar() -> dict:
 
 def actualizar() -> None:
     """Regenera el archivo después de un cambio. Nunca lanza: el cambio ya
-    quedó guardado en Oracle y no se revierte porque falle la copia."""
+    quedó guardado en la base y no se revierte porque falle la copia."""
     try:
         regenerar()
     except Exception:
@@ -99,7 +99,7 @@ def actualizar() -> None:
 
 
 def leer() -> dict:
-    """Contenido del archivo. Si no está o está dañado, lo arma desde Oracle."""
+    """Contenido del archivo. Si no está o está dañado, lo arma desde la base."""
     try:
         contenido = json.loads(ruta_archivo().read_text(encoding="utf-8"))
         if isinstance(contenido.get("empresas"), dict):

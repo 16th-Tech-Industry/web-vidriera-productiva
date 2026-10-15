@@ -6,7 +6,7 @@ Pruebas de los mails transaccionales (api/v1/servicios/correo.py):
 - aviso de empresa aprobada o rechazada, por mail y por WebSocket
   (api/v1/endpoints/dashboard/empresas_revision.py).
 
-No necesitan Oracle ni un servidor de correo: la base se reemplaza por una
+No necesitan la base ni un servidor de correo: la base se reemplaza por una
 tabla en memoria y el SMTP por un doble que guarda lo que le mandan.
 """
 from datetime import datetime, timedelta, timezone
@@ -41,7 +41,7 @@ class BaseFalsa:
             assert params["id"] == 7
             self.password_hash = params["password_hash"]
             return None
-        if "email_representante = :email" in query:
+        if "email_representante = %(email)s" in query:
             return [(7, "Ana", self.password_hash, self.estado)] if params["email"] == EMAIL else []
         return [(self.password_hash,)] if params["id"] == 7 else []
 

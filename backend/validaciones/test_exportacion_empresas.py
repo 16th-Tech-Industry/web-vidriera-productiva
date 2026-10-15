@@ -3,7 +3,7 @@ Pruebas de la exportación de empresas a Excel
 (api/v1/servicios/exportacion_empresas.py) y de la cola de trabajos
 (api/v1/servicios/cola_trabajos.py).
 
-No necesitan Oracle ni levantar el server: el .xlsx se arma a partir de
+No necesitan la base ni levantar el server: el .xlsx se arma a partir de
 filas escritas a mano y la cola se prueba con funciones comunes.
 """
 import threading

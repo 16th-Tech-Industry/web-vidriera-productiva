@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
-import oracledb
+
 from dotenv import load_dotenv
+from psycopg_pool import ConnectionPool
 
 # Fuerza la búsqueda del .env en la raíz del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,63 +12,40 @@ env_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path=env_path)
 load_dotenv()  # Fallback adicional
 
-# Las columnas CLOB (ej: noticias.cuerpo) se devuelven como str en vez de
-# como objeto LOB: los schemas de respuesta esperan texto y, con el LOB,
-# Pydantic rechazaba la fila y el endpoint respondía 500.
-oracledb.defaults.fetch_lobs = False
-
 """
-Pool de conexiones Oracle.
+Pool de conexiones PostgreSQL (psycopg 3).
 
-Antes, execute_query() abría y cerraba una conexión Oracle nueva en
-CADA llamada (oracledb.connect(...)). El handshake de conexión (TCP +
-negociación TNS + autenticación) es, para el volumen de datos que
-maneja este proyecto (decenas/cientos de empresas), mucho más lento
-que la query en sí: terminaba siendo el cuello de botella real de la
-velocidad de carga de la web, no el motor de base de datos.
+Abrir una conexión nueva en cada consulta (TCP + autenticación) es, para el
+volumen de datos de este proyecto, más lento que la consulta en sí. El pool
+abre unas pocas conexiones una sola vez (en el primer request) y cada llamada
+a execute_query() toma una prestada y la devuelve al terminar.
 
-La solución estándar es un POOL: se abren unas pocas conexiones una
-sola vez (perezosamente, en el primer request) y cada llamada a
-execute_query() "toma prestada" una (pool.acquire()) y la devuelve al
-salir del `with` (no se cierra la conexión física, vuelve al pool para
-que la use el próximo request).
+La conexión sale de DATABASE_URL, que es la variable que define Railway al
+agregar el servicio PostgreSQL, por ejemplo:
+    postgresql://usuario:password@host:5432/base
 
-Ver db/README.md para la justificación completa de por qué esto
-alcanza sin migrar a una base no relacional.
+Las consultas usan parámetros con nombre al estilo psycopg: %(nombre)s.
+Un % literal dentro del SQL se escribe %%.
 """
 
-_pool: oracledb.ConnectionPool | None = None
+_pool: ConnectionPool | None = None
 
 
-def _get_pool() -> oracledb.ConnectionPool:
+def _get_pool() -> ConnectionPool:
     """Crea el pool la primera vez que se necesita y lo reutiliza después."""
     global _pool
     if _pool is not None:
         return _pool
 
-    user = os.getenv('DB_USER')
-    dsn = os.getenv('DB_CONNECTION')
-    pwd = os.getenv('PASSWORD') or os.getenv('DB_PASSWORD')
+    url = os.getenv('DATABASE_URL')
+    if not url:
+        raise ValueError("Falta DATABASE_URL en el .env (ej: postgresql://usuario:password@host:5432/base)")
 
-    if not user or not pwd or not dsn:
-        raise ValueError(f"Credenciales incompletas en .env: user={user}, dsn={dsn}, password_ok={bool(pwd)}")
-
-    pool_min = int(os.getenv('DB_POOL_MIN', '2'))
-    pool_max = int(os.getenv('DB_POOL_MAX', '10'))
-    pool_increment = int(os.getenv('DB_POOL_INCREMENT', '1'))
-
-    print(
-        f"DEBUG DB -> Creando pool. User: '{user}', DSN: '{dsn}', "
-        f"Password cargada: {bool(pwd)}, min={pool_min}, max={pool_max}"
-    )
-
-    _pool = oracledb.create_pool(
-        user=user,
-        password=pwd,
-        dsn=dsn,
-        min=pool_min,
-        max=pool_max,
-        increment=pool_increment,
+    _pool = ConnectionPool(
+        conninfo=url,
+        min_size=int(os.getenv('DB_POOL_MIN', '2')),
+        max_size=int(os.getenv('DB_POOL_MAX', '10')),
+        open=True,
     )
     return _pool
 
@@ -76,16 +54,16 @@ def close_pool() -> None:
     """Cierra el pool y libera las conexiones. Se llama al apagar la app (ver main.py)."""
     global _pool
     if _pool is not None:
-        _pool.close(force=True)
+        _pool.close()
         _pool = None
 
 
 def execute_query(query: str, params=None, fetch=False):
-    pool = _get_pool()
-    with pool.acquire() as connection:
+    # El bloque `with pool.connection()` hace commit al salir sin error y
+    # rollback si hubo una excepción.
+    with _get_pool().connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute(query, params or {})
+            cursor.execute(query, params or None)
             if fetch:
                 return cursor.fetchall()
-            connection.commit()
             return None

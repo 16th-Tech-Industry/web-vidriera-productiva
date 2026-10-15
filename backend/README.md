@@ -1,13 +1,13 @@
 # Backend — Vidriera Productiva
 
-API en FastAPI para el registro/login de representantes de empresas, la carga y revisión de empresas, noticias, notificaciones en vivo y mails transaccionales, contra una DB Oracle (`freepdb1`, schema `cba_vidriera`).
+API en FastAPI para el registro/login de representantes de empresas, la carga y revisión de empresas, noticias, notificaciones en vivo y mails transaccionales, contra una base PostgreSQL (ver `../db/README.md`).
 
 ## Estructura de carpetas
 
 ```
 backend/
 ├── main.py                        # Entrypoint FastAPI: monta CORS y el router de la v1
-├── db_connector.py                # Conexión a Oracle (execute_query: SELECT/INSERT/UPDATE/DELETE)
+├── db_connector.py                # Pool de conexiones PostgreSQL (execute_query: SELECT/INSERT/UPDATE/DELETE)
 ├── security.py                    # Hashing de passwords (bcrypt), JWT de sesión (get_current_user/require_admin) y token de recupero de contraseña
 ├── requirements.txt               # Dependencias (ver "Dependencias" más abajo)
 ├── validaciones/                  # Pruebas automáticas con pytest (ver validaciones/README.md)
@@ -30,7 +30,7 @@ backend/
         ├── servicios/
         │   ├── correo.py               # Envío de mails por SMTP: bienvenida, recupero de contraseña y revisión de empresa
         │   ├── productos_empresa.py    # Productos dentro del JSON de la empresa e imágenes en empresas_repo/
-        │   ├── vidriera_json.py        # Archivo empresas_repo/empresas.json: de donde lee la vidriera pública, regenerado desde Oracle
+        │   ├── vidriera_json.py        # Archivo empresas_repo/empresas.json: de donde lee la vidriera pública, regenerado desde la base
         │   ├── busqueda_empresas.py    # Filtros combinados del buscador de empresas
         │   ├── paginacion.py           # Paginación de listados
         │   ├── exportacion_empresas.py # Armado del .xlsx
@@ -45,12 +45,11 @@ backend/
 ```
 
 Fuera de `backend/` pero relevante:
-- `../.env` — credenciales de conexión a Oracle, clave de firma de JWT y datos del servidor de correo (no versionado; la lista completa de variables está en `../.envexample`).
-- `../db/bigbang.sql` — script de creación del schema `cba_vidriera` y las tablas base (`representates`, `empresas`, geografía).
-- `../db/indices_empresas.sql` — columnas virtuales + índices para filtrar `empresas` por rubro/zona/departamento.
-- `../db/empresas_revision.sql` — agrega el circuito de revisión a `empresas` (`estado`, `motivo_rechazo`, `id_representante`) y la `PRIMARY KEY` que le faltaba a `representates`.
+- `../.env` — `DATABASE_URL` de la base, clave de firma de JWT y datos del servidor de correo (no versionado; la lista completa de variables está en `../.envexample`).
+- `../db/esquema.sql` — crea todas las tablas (usuarios, geografía, empresas con sus índices, noticias, eventos y postulaciones).
+- `../db/insert_geografia.sql` — carga zonas, departamentos y localidades. Cómo correr los dos está en `../db/README.md`.
 
-`recursos/` y `.venv/` dentro de `backend/` son entornos virtuales de Python (ignorados por git), no código de la app. `uploads/` (imágenes de noticias) y `empresas_repo/` (imágenes de productos, una carpeta por empresa) guardan archivos subidos por los usuarios y tampoco se versionan.
+`recursos/` y `.venv/` dentro de `backend/` son entornos virtuales de Python (ignorados por git), no código de la app. `empresas_repo/` guarda el archivo JSON de la vidriera, que se regenera desde la base, y tampoco se versiona. Las imágenes subidas (noticias y productos) no van a disco: se guardan en la tabla `imagenes` de la base y se sirven en `GET /api/v1/imagenes/{id}` (`api/v1/servicios/imagenes.py`).
 
 ## Dependencias
 
@@ -66,7 +65,7 @@ python -m venv .venv
 | `fastapi`, `uvicorn` | La API y el servidor que la corre. |
 | `pydantic[email]` | Validación de los datos de entrada, incluido el formato de email. |
 | `python-dotenv` | Lee las variables del `.env`. |
-| `oracledb` | Conexión a Oracle. |
+| `psycopg[binary]`, `psycopg-pool` | Conexión a PostgreSQL y pool de conexiones. |
 | `bcrypt` | Hash de contraseñas. |
 | `PyJWT` | JWT de sesión y token de recupero de contraseña. |
 | `python-multipart` | Subida de imágenes de noticias. |
@@ -186,13 +185,13 @@ Los productos no tienen tabla propia: viven **adentro del JSON de la empresa** (
   "rubro": "AGROALIMENTO",
   "ubicacion": { "...": "..." },
   "productos": {
-    "1": { "id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "ubicacion_imagen": "empresas_repo/7/0d68a117.png" },
-    "2": { "id": 2, "nombre": "Miel", "descripcion": "Pura de monte", "ubicacion_imagen": null }
+    "1": { "id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "id_imagen": 12 },
+    "2": { "id": 2, "nombre": "Miel", "descripcion": "Pura de monte", "id_imagen": null }
   }
 }
 ```
 
-Las imágenes no van a la base: se guardan en disco en `backend/empresas_repo/<id_empresa>/` con un nombre aleatorio, y el JSON guarda solo la ubicación. `main.py` sirve esa carpeta como estático, así que `ubicacion_imagen` es también la ruta de la URL (`http://localhost:8000/empresas_repo/7/0d68a117.png`).
+Las imágenes se guardan en la tabla `imagenes` de la base y el JSON guarda solo su id (`id_imagen`). Se sirven en `GET /api/v1/imagenes/{id}`, que es la `imagen_url` que devuelve la API.
 
 | Endpoint | Qué hace |
 | :--- | :--- |
@@ -203,7 +202,7 @@ Las imágenes no van a la base: se guardan en disco en `backend/empresas_repo/<i
 
 Cada producto se devuelve así (la API entrega una lista ordenada por id, aunque en la base sea un diccionario):
 ```json
-{ "id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "ubicacion_imagen": "empresas_repo/7/0d68a117.png", "imagen_url": "http://localhost:8000/empresas_repo/7/0d68a117.png" }
+{ "id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "id_imagen": 12, "imagen_url": "http://localhost:8000/api/v1/imagenes/12" }
 ```
 
 Reglas: imagen `.jpg`, `.jpeg`, `.png`, `.webp` o `.gif` de hasta 5 MB · máximo 50 productos por empresa · el representante solo llega a su propia empresa (sale de su JWT) · los cambios se publican directo, sin volver a revisión. Errores: `400` formato o tamaño de imagen, o tope de productos · `404` si no cargó su empresa o el producto no existe · `422` si falta `nombre` o `descripcion`.
@@ -221,9 +220,9 @@ Pasa la empresa a estado rechazada y le avisa al representante. Body: `{ "motivo
 
 Errores comunes de los tres endpoints de admin: `403` si quien llama no es admin · `404` si la empresa no existe.
 
-### Vidriera pública: archivo JSON regenerado desde Oracle
+### Vidriera pública: archivo JSON regenerado desde la base
 
-Los dos endpoints públicos de empresas no consultan Oracle: leen `backend/empresas_repo/empresas.json`, un archivo con el documento de cada empresa **aprobada** (datos públicos y productos). Oracle sigue siendo la fuente de verdad y el respaldo; el archivo es una copia que se puede borrar porque se vuelve a armar (`api/v1/servicios/vidriera_json.py`).
+Los dos endpoints públicos de empresas no consultan la base: leen `backend/empresas_repo/empresas.json`, un archivo con el documento de cada empresa **aprobada** (datos públicos y productos). La base sigue siendo la fuente de verdad y el respaldo; el archivo es una copia que se puede borrar porque se vuelve a armar (`api/v1/servicios/vidriera_json.py`).
 
 ```json
 {
@@ -234,7 +233,7 @@ Los dos endpoints públicos de empresas no consultan Oracle: leen `backend/empre
 }
 ```
 
-Se regenera entero desde la tabla `empresas`: cuando un admin aprueba o rechaza una empresa · cuando un representante agrega, edita o borra un producto · cuando el archivo no se encuentra o está dañado (lo arma la primera lectura, por ejemplo después de un despliegue). Si la regeneración falla, el cambio en Oracle no se revierte: se borra el archivo y se arma en la próxima lectura.
+Se regenera entero desde la tabla `empresas`: cuando un admin aprueba o rechaza una empresa · cuando un representante agrega, edita o borra un producto · cuando el archivo no se encuentra o está dañado (lo arma la primera lectura, por ejemplo después de un despliegue). Si la regeneración falla, el cambio en la base no se revierte: se borra el archivo y se arma en la próxima lectura.
 
 Para tener en cuenta: un cambio hecho directo en la base (por ejemplo desde DBeaver) no regenera el archivo; hay que borrarlo para que la vidriera lo tome. Como está dentro de `empresas_repo/`, el archivo también se puede descargar tal cual en `http://localhost:8000/empresas_repo/empresas.json` (solo contiene datos públicos).
 
@@ -273,7 +272,4 @@ Ids de los usuarios con el dashboard abierto ahora.
 - Los tokens de recuperación de contraseña no se guardan en ningún lado: son JWT firmados con una clave derivada de `JWT_SECRET_KEY` (ver `security.py`) que llevan una huella de la contraseña vigente, así que dejan de servir cuando la contraseña cambia. Si se piden dos seguidos, los dos valen hasta que se use uno o pase la hora.
 - El JWT no tiene revocación: un token emitido sigue siendo válido hasta que expira solo, incluso si la cuenta cambió de password después.
 - CORS habilitado en `main.py` solo para `http://localhost:5173` y `http://127.0.0.1:5173` (dev server de Vite).
-- `db/bigbang.sql` creaba `representates.id_representante` como `IDENTITY` pero sin `PRIMARY KEY`/`UNIQUE`. Eso bloqueaba cualquier `FOREIGN KEY` que apuntara a esa columna (`ORA-02270`) — entre ellas, la de `empresas.id_representante`. `db/empresas_revision.sql` agrega esa `PRIMARY KEY` como prerrequisito antes de tocar `empresas`.
-- `db/indices_empresas.sql` (columnas virtuales `rubro_vc`/`zona_vc`/`departamento_vc`) tenía un bug latente: `JSON_VALUE` sin `RETURNING` devuelve `VARCHAR2(4000)` por default, y Oracle rechazaba declarar la columna virtual como `VARCHAR2(150)` (`ORA-12899`). Se corrigió agregando `RETURNING VARCHAR2(150)` explícito en cada `JSON_VALUE`.
-- La tabla `noticias` (`db/noticias.sql`) no existe todavía en la base de `bauti_dev` contra la que se corrió esto — se deja así a propósito (es útil como caso de "bug" para el TP de testing), no confundir con un olvido.
-- El endpoint de alta de empresa (`POST /dashboard/empresas/`) y el de CUIT duplicado tienen la misma condición de carrera teórica que `register.py` con el email: el chequeo "ya existe" y el `INSERT` no son atómicos porque ni `empresas.cuit` ni `representates.email_representante` tienen `UNIQUE` en la base. Bajo carga concurrente podría colarse un duplicado; queda pendiente agregar esas constraints si se lo quiere blindar de verdad.
+- El alta de empresa (`POST /dashboard/empresas/`) y el registro (`register.py`) chequean "ya existe" antes del `INSERT`, y ese chequeo no es atómico. La base igual impide el duplicado (`empresas.cuit` y `representates.email_representante` son `UNIQUE` en `db/esquema.sql`): si dos pedidos simultáneos pasaran el chequeo, el segundo fallaría con error 500 en lugar del 400 habitual.

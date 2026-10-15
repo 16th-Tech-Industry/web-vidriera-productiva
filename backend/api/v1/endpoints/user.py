@@ -45,7 +45,7 @@ def _fila_a_response(fila) -> UserResponse:
 
 def _existe_usuario(user_id: int) -> bool:
     filas = execute_query(
-        "SELECT 1 FROM representates WHERE id_representante = :id",
+        "SELECT 1 FROM representates WHERE id_representante = %(id)s",
         {"id": user_id},
         fetch=True,
     )
@@ -55,7 +55,7 @@ def _existe_usuario(user_id: int) -> bool:
 @router.get("/", response_model=List[UserResponse])
 def get_users(skip: int = 0, limit: int = 100, admin: dict = Depends(require_admin)):
     filas = execute_query(
-        _SELECT_USER + " ORDER BY id_representante OFFSET :skip ROWS FETCH NEXT :limit ROWS ONLY",
+        _SELECT_USER + " ORDER BY id_representante OFFSET %(skip)s ROWS FETCH NEXT %(limit)s ROWS ONLY",
         {"skip": skip, "limit": limit},
         fetch=True,
     )
@@ -65,7 +65,7 @@ def get_users(skip: int = 0, limit: int = 100, admin: dict = Depends(require_adm
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, admin: dict = Depends(require_admin)):
     filas = execute_query(
-        _SELECT_USER + " WHERE id_representante = :id",
+        _SELECT_USER + " WHERE id_representante = %(id)s",
         {"id": user_id},
         fetch=True,
     )
@@ -86,12 +86,12 @@ def update_user(user_id: int, data: UserRoleUpdate, admin: dict = Depends(requir
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
 
     execute_query(
-        "UPDATE representates SET rol = :rol WHERE id_representante = :id",
+        "UPDATE representates SET rol = %(rol)s WHERE id_representante = %(id)s",
         {"rol": data.role, "id": user_id},
     )
 
     actualizado = execute_query(
-        _SELECT_USER + " WHERE id_representante = :id",
+        _SELECT_USER + " WHERE id_representante = %(id)s",
         {"id": user_id},
         fetch=True,
     )
@@ -106,5 +106,5 @@ def delete_user(user_id: int, admin: dict = Depends(require_admin)):
     if not _existe_usuario(user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
 
-    execute_query("UPDATE representates SET estado = 0 WHERE id_representante = :id", {"id": user_id})
+    execute_query("UPDATE representates SET estado = 0 WHERE id_representante = %(id)s", {"id": user_id})
     return None

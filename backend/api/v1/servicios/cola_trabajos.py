@@ -109,7 +109,7 @@ class ColaTrabajos:
 
     def _asegurar_hilo(self) -> None:
         # El hilo se crea recién con el primer trabajo (igual que el pool de
-        # Oracle en db_connector.py). daemon=True: no impide apagar el server.
+        # la base en db_connector.py). daemon=True: no impide apagar el server.
         if self._hilo is None or not self._hilo.is_alive():
             self._hilo = threading.Thread(target=self._trabajar, name=f"cola-{self._nombre}", daemon=True)
             self._hilo.start()

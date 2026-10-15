@@ -28,7 +28,7 @@ def login(payload: LoginRequest):
     """Valida email + password contra `representates` y devuelve un JWT de sesión."""
     rows = execute_query(
         "SELECT id_representante, nombre_representante, contrasenia_representate, estado, rol "
-        "FROM representates WHERE email_representante = :email",
+        "FROM representates WHERE email_representante = %(email)s",
         {"email": payload.email},
         fetch=True,
     )
@@ -52,8 +52,7 @@ def login(payload: LoginRequest):
     if estado != 1:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cuenta inactiva")
 
-    # int(rol): NUMBER(1) puede volver como Decimal, y eso no serializa a JSON
-    # dentro del JWT. "rol" es lo que después chequea security.require_admin().
+    # "rol" va dentro del JWT: es lo que después chequea security.require_admin().
     token = create_access_token({"sub": str(id_representante), "email": payload.email, "rol": int(rol)})
 
     return {
@@ -92,7 +91,7 @@ def forgot_password(payload: ForgotPasswordRequest, background_tasks: Background
     """Manda por mail un token de recuperación de un solo uso, si el email es de una cuenta activa."""
     rows = execute_query(
         "SELECT id_representante, nombre_representante, contrasenia_representate, estado "
-        "FROM representates WHERE email_representante = :email",
+        "FROM representates WHERE email_representante = %(email)s",
         {"email": payload.email},
         fetch=True,
     )
@@ -117,7 +116,7 @@ def reset_password(payload: ResetPasswordRequest):
     id_representante = int(datos["sub"])
 
     rows = execute_query(
-        "SELECT contrasenia_representate FROM representates WHERE id_representante = :id",
+        "SELECT contrasenia_representate FROM representates WHERE id_representante = %(id)s",
         {"id": id_representante},
         fetch=True,
     )
@@ -125,8 +124,8 @@ def reset_password(payload: ResetPasswordRequest):
         raise token_invalido
 
     execute_query(
-        "UPDATE representates SET contrasenia_representate = :password_hash "
-        "WHERE id_representante = :id",
+        "UPDATE representates SET contrasenia_representate = %(password_hash)s "
+        "WHERE id_representante = %(id)s",
         {
             "password_hash": hash_password(payload.new_password),
             "id": id_representante,

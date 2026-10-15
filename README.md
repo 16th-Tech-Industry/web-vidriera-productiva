@@ -52,7 +52,7 @@ usuario:
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![Oracle](https://img.shields.io/badge/Oracle-F80000?style=for-the-badge&logo=oracle&logoColor=white)](https://www.oracle.com/database/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 
@@ -89,7 +89,7 @@ El sistema sustituye los procesos manuales y descentralizados (Google Forms / Sh
 | :--- | :--- | :--- |
 | **Frontend** | **React (SPA)** | Arquitectura modular basada en componentes, Virtual DOM y navegación fluida sin recargas. |
 | **Backend** | **FastAPI (Python)** | Framework asíncrono de alto rendimiento, comunicación en tiempo real con WebSockets y documentación OpenAPI/Swagger. |
-| **Base de Datos** | **Oracle Database** | Motor relacional robusto para garantizar integridad, seguridad y disponibilidad de datos gubernamentales. |
+| **Base de Datos** | **PostgreSQL** | Motor relacional con documentos `jsonb`: integridad para usuarios y geografía, y el perfil de cada empresa como documento JSON. |
 | **DevOps / Despliegue** | **Docker & Docker Compose** | Empaquetado en contenedores y despliegue modular/monolítico adaptado a la infraestructura ministerial. |
 
 ---
@@ -160,12 +160,12 @@ flowchart TD
     *   **🌿 heyme_dev:** Database Administration (DBA), Modelado Relacional y Oracle SQL.
 
 
-### 🐳 Ejecución con Docker + Oracle
-Requisito: Docker Desktop
+### 🐳 Ejecución con Docker + PostgreSQL
+Requisito: Docker Desktop y una base PostgreSQL con las tablas creadas (cómo
+crearla y cargarla, en local o en Railway, está en `db/README.md`).
 
 Antes de levantar: copiar `.envexample` a `.env` (en la raíz) y completar
-`DB_USER`, `DB_CONNECTION`, `PASSWORD` y `JWT_SECRET_KEY`. El backend toma
-esas variables del `.env`.
+`DATABASE_URL` y `JWT_SECRET_KEY`. El backend toma esas variables del `.env`.
 
 Para que salgan los mails (bienvenida, recupero de contraseña y aviso de
 empresa aprobada o rechazada) hay que completar también `SMTP_HOST`,
@@ -180,7 +180,7 @@ docker compose up --build
 Accesos:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
-- Oracle DB: lo realizamos utilizando una VPN que nos conecta con un servidor propio que aloja la DB
+- Base de datos: la de `DATABASE_URL` (PostgreSQL; ver `db/README.md`)
 
 
 ## 📄 Justificación: documentos JSON en lugar de MongoDB
@@ -192,8 +192,8 @@ no usa MongoDB: ese lugar lo ocupan los documentos JSON de las empresas.
 **Qué reemplaza a MongoDB.** Cada empresa es un documento JSON con sus
 datos públicos y sus productos. Los documentos de las empresas aprobadas se
 guardan en un archivo, `backend/empresas_repo/empresas.json`, que es de
-donde lee la vidriera pública. El mismo documento está guardado en Oracle,
-en la columna JSON nativa `empresas.datos_publico`, que funciona como
+donde lee la vidriera pública. El mismo documento está guardado en
+PostgreSQL, en la columna `jsonb` `empresas.datos_publico`, que funciona como
 fuente de verdad y respaldo: si el archivo se pierde, se vuelve a armar
 desde la tabla.
 
@@ -212,27 +212,26 @@ exigió modificar la estructura de la base: el documento admitió la clave
 nueva.
 
 **Rápida disposición.** La vidriera pública no consulta la base en cada
-visita: lee el archivo JSON ya armado. En una prueba local, la consulta que
-arma el archivo desde Oracle tardó 0,19 s y las siguientes, leyendo el
+visita: lee el archivo JSON ya armado. En una prueba local (todavía con
+Oracle), la consulta que arma el archivo tardó 0,19 s y las siguientes, leyendo el
 archivo, 0,003 s. El archivo se actualiza solo cuando un administrador
 aprueba o rechaza una empresa, cuando un representante modifica sus
 productos y cuando el archivo no se encuentra.
 
-**La ventaja de Oracle como respaldo.** Oracle 21c o superior ofrece JSON
-nativo, consultable e indexable. Esto permite un modelo híbrido: relacional
+**La ventaja de PostgreSQL como respaldo.** PostgreSQL ofrece JSON nativo
+(`jsonb`), consultable e indexable. Esto permite un modelo híbrido: relacional
 para usuarios y geografía, donde hay relaciones e integridad que cuidar, y
 documental para el perfil de la empresa. Al quedar guardado dentro de
-Oracle, el documento hereda sin infraestructura adicional sus garantías:
+PostgreSQL, el documento hereda sin infraestructura adicional sus garantías:
 transacciones, respaldo junto al resto de los datos e integridad
 referencial con el representante dueño de la empresa. Los filtros del panel
 de administración (rubro, zona y departamento) usan índices sobre campos
 internos del documento.
 
 **Validación.** La forma del documento se valida en el backend antes de
-guardar. Oracle permite además validarla en la propia base con un esquema
-JSON (`IS JSON VALIDATE`), que rechaza documentos incompletos o con valores
-fuera de rango. Probado con consultas de solo lectura contra el servidor
-del proyecto (Oracle 23.26 Free):
+guardar, y la base la vuelve a validar con una restricción sobre la columna
+(`ck_empresas_documento` en `db/esquema.sql`), que rechaza documentos
+incompletos o con valores fuera de rango. Probado sobre PostgreSQL 17:
 
 | Documento | Resultado |
 | :--- | :--- |
@@ -240,9 +239,6 @@ del proyecto (Oracle 23.26 Free):
 | Sin `correo_empresa` | Rechazado |
 | Latitud fuera de rango (120) | Rechazado |
 | Producto sin `nombre` | Rechazado |
-
-La restricción todavía no está aplicada a la tabla: la empresa de prueba
-cargada a mano (id 1) no cumple el esquema y hay que corregirla antes.
 
 **Por qué no un segundo motor.** No se espera una cantidad de empresas que
 haga crecer demasiado los documentos ni el conjunto de datos, y la carga
@@ -256,7 +252,7 @@ ellos. Sumar MongoDB implicaría:
   almacenamiento, cuando los planes disponibles ya son limitados, sin que
   eso ayude a guardar mejor los datos. El archivo JSON, en cambio, no
   necesita almacenamiento persistente: si el disco del hosting se reinicia,
-  se regenera desde Oracle;
+  se regenera desde la base;
 - mantener sincronizadas dos bases distintas.
 
 Incorporarlo en la última entrega habría puesto en riesgo la estabilidad de

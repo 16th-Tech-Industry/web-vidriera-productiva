@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr, Field
 from api.v1.schemas.productos import ProductoResponse
 
 # Forma del JSON que se persiste en empresas.datos_publico (columna JSON
-# nativa de Oracle, ver db/bigbang.sql). Espeja exactamente el ejemplo de
+# jsonb de PostgreSQL, ver db/esquema.sql). Espeja exactamente el ejemplo de
 # db/empresas.json: cuit y razon_social son columnas propias de la tabla,
 # el resto vive adentro del JSON. Los productos también viven en ese JSON,
 # en la clave "productos" (ver api/v1/schemas/productos.py); no se cargan

@@ -4,7 +4,7 @@ Pruebas sencillas de los schemas de Pydantic usados por los endpoints de
 login, registro (`backend/api/v1/schemas/users.py`) y noticias
 (`backend/api/v1/schemas/noticias.py`). Pydantic valida los datos ANTES
 de tocar la base de datos, así que estas pruebas **no necesitan la base
-Oracle ni levantar el servidor**.
+ni levantar el servidor**.
 
 `test_esquemas_usuario.py` respalda los casos **TC-L-08…11**,
 **TC-R-08…12** y **TC-RC-01…02** de la planilla de casos de prueba
@@ -21,7 +21,7 @@ del registro y el envío, con la base y el SMTP reemplazados por dobles.
 se guarda dentro del JSON, las imágenes en `empresas_repo/` (en una carpeta
 temporal), los endpoints del dashboard y de la ficha pública, y el archivo
 JSON de la vidriera (se arma si falta, se actualiza con cada cambio y sigue
-sirviendo aunque Oracle no responda).
+sirviendo aunque la base no responda).
 
 ## Cómo ejecutar
 

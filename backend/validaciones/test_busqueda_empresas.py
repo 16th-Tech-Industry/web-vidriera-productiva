@@ -3,7 +3,7 @@ Pruebas del buscador de empresas (api/v1/servicios/busqueda_empresas.py) y
 de la paginación (api/v1/servicios/paginacion.py).
 
 Solo prueban la parte que NO toca la base: cómo se traducen los filtros a
-SQL y cómo se calculan las páginas. No necesitan Oracle ni levantar el server.
+SQL y cómo se calculan las páginas. No necesitan la base ni levantar el server.
 """
 from api.v1.servicios.busqueda_empresas import FiltrosEmpresa, armar_where
 from api.v1.servicios.paginacion import Paginacion, armar_pagina
@@ -15,7 +15,7 @@ def test_sin_filtros_no_hay_where():
 
 def test_un_solo_filtro():
     where, binds = armar_where(FiltrosEmpresa(rubro="AGTECH"))
-    assert where == " WHERE rubro_vc = :f_rubro"
+    assert where == " WHERE rubro_vc = %(f_rubro)s"
     assert binds == {"f_rubro": "AGTECH"}
 
 
@@ -35,14 +35,14 @@ def test_filtros_combinados_se_unen_con_and():
 
 def test_estado_cero_pendiente_no_se_ignora():
     where, binds = armar_where(FiltrosEmpresa(estado=0))
-    assert where == " WHERE estado = :f_estado"
+    assert where == " WHERE estado = %(f_estado)s"
     assert binds == {"f_estado": 0}
 
 
 def test_texto_busca_en_razon_social_y_nombre():
     where, _ = armar_where(FiltrosEmpresa(texto="serranos"))
-    assert "LOWER(razon_social) LIKE :f_texto" in where
-    assert "$.nombre_empresa" in where
+    assert "LOWER(razon_social) LIKE %(f_texto)s" in where
+    assert "datos_publico ->> 'nombre_empresa'" in where
 
 
 def test_texto_escapa_los_comodines_de_like():

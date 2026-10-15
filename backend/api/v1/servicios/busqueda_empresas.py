@@ -87,21 +87,21 @@ def armar_where(filtros: FiltrosEmpresa) -> Tuple[str, dict]:
 
     if filtros.texto and filtros.texto.strip():
         condiciones.append(
-            "(LOWER(razon_social) LIKE :f_texto ESCAPE '\\' "
-            "OR LOWER(JSON_VALUE(datos_publico, '$.nombre_empresa')) LIKE :f_texto ESCAPE '\\')"
+            "(LOWER(razon_social) LIKE %(f_texto)s ESCAPE '\\' "
+            "OR LOWER(datos_publico ->> 'nombre_empresa') LIKE %(f_texto)s ESCAPE '\\')"
         )
         binds["f_texto"] = _patron_like(filtros.texto)
     if filtros.rubro:
-        condiciones.append("rubro_vc = :f_rubro")
+        condiciones.append("rubro_vc = %(f_rubro)s")
         binds["f_rubro"] = filtros.rubro
     if filtros.zona:
-        condiciones.append("zona_vc = :f_zona")
+        condiciones.append("zona_vc = %(f_zona)s")
         binds["f_zona"] = filtros.zona
     if filtros.departamento:
-        condiciones.append("departamento_vc = :f_departamento")
+        condiciones.append("departamento_vc = %(f_departamento)s")
         binds["f_departamento"] = filtros.departamento
     if filtros.estado is not None:
-        condiciones.append("estado = :f_estado")
+        condiciones.append("estado = %(f_estado)s")
         binds["f_estado"] = filtros.estado
 
     if not condiciones:

@@ -4,7 +4,7 @@ Pruebas automáticas SENCILLAS de las validaciones del Backend (FastAPI + Pydant
 Qué se prueba: los "schemas" de Pydantic que usan los endpoints de
 login y registro (backend/api/v1/schemas/users.py). Pydantic valida el
 JSON que llega ANTES de tocar la base de datos, así que estas pruebas
-NO necesitan la base Oracle ni levantar el servidor.
+NO necesitan la base ni levantar el servidor.
 
 Cómo ejecutar:
     cd backend

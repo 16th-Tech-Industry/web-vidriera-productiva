@@ -8,7 +8,7 @@ from pydantic import BaseModel
 #
 #   "productos": {
 #     "1": {"id": 1, "nombre": "...", "descripcion": "...",
-#           "ubicacion_imagen": "empresas_repo/7/ab12.jpg"},
+#           "id_imagen": 12},   # tabla imagenes; None si no tiene
 #     "2": {...}
 #   }
 #
@@ -25,8 +25,8 @@ class ProductoResponse(BaseModel):
     id: int
     nombre: str
     descripcion: str
-    # Dónde quedó guardada la imagen, relativo a la carpeta del backend
-    # (empresas_repo/<id_empresa>/<archivo>). None si el producto no tiene.
-    ubicacion_imagen: Optional[str] = None
-    # URL lista para usar en un <img>, armada a partir de ubicacion_imagen.
+    # Id de la imagen en la tabla imagenes (ver api/v1/servicios/imagenes.py).
+    # None si el producto no tiene.
+    id_imagen: Optional[int] = None
+    # URL lista para usar en un <img>, armada a partir de id_imagen.
     imagen_url: Optional[str] = None

@@ -1,24 +1,24 @@
 """
 Pruebas de los productos de una empresa: el diccionario que vive adentro
-de empresas.datos_publico y las imágenes en disco
+de empresas.datos_publico y sus imágenes en la tabla imagenes
 (api/v1/servicios/productos_empresa.py), más los endpoints del dashboard
 (api/v1/endpoints/dashboard/productos.py) y la ficha pública (landing.py).
 
-No necesitan Oracle: la base se reemplaza por una fila en memoria y las
-imágenes se escriben en una carpeta temporal.
+No necesitan la base: la fila de la empresa y la tabla imagenes se
+reemplazan por datos en memoria.
 """
 import copy
 import json
-from decimal import Decimal
 from io import BytesIO
 
 import pytest
 from fastapi import HTTPException, UploadFile
 
+from api.v1.endpoints import imagenes as endpoint_imagenes
 from api.v1.endpoints import landing
 from api.v1.endpoints.dashboard import empresas, productos
 from api.v1.schemas.productos import MAXIMO_PRODUCTOS
-from api.v1.servicios import productos_empresa, vidriera_json
+from api.v1.servicios import imagenes, productos_empresa, vidriera_json
 from api.v1.servicios.busqueda_empresas import FiltrosEmpresa
 
 DATOS_EMPRESA = {
@@ -35,15 +35,9 @@ USUARIO = {"sub": "7"}
 ID_EMPRESA = 3
 
 
-def _como_oracle(valor):
-    """Oracle devuelve los números de una columna JSON como Decimal."""
-    if isinstance(valor, bool) or valor is None or isinstance(valor, str):
-        return valor
-    if isinstance(valor, (int, float)):
-        return Decimal(str(valor))
-    if isinstance(valor, dict):
-        return {clave: _como_oracle(item) for clave, item in valor.items()}
-    return [_como_oracle(item) for item in valor]
+def _como_la_base(valor):
+    """Copia del documento, como la que entrega psycopg en cada lectura del jsonb."""
+    return copy.deepcopy(valor)
 
 
 class BaseFalsa:
@@ -60,14 +54,35 @@ class BaseFalsa:
             self.datos = json.loads(params["datos_publico"])
             return None
         self.consultas += 1
-        if "id_representante = :id_representante" in query:
+        if "id_representante = %(id_representante)s" in query:
             if params["id_representante"] != 7:
                 return []
-            return [(ID_EMPRESA, _como_oracle(self.datos))]
+            return [(ID_EMPRESA, _como_la_base(self.datos))]
         # Lo que pide vidriera_json.regenerar(): las aprobadas.
         if params["estado"] != self.estado:
             return []
-        return [(Decimal(ID_EMPRESA), "Sabores Serranos SRL", _como_oracle(self.datos))]
+        return [(ID_EMPRESA, "Sabores Serranos SRL", _como_la_base(self.datos))]
+
+
+class ImagenesFalsas:
+    """Reemplazo de execute_query para la tabla imagenes (api/v1/servicios/imagenes.py)."""
+
+    def __init__(self):
+        self.guardadas = {}
+        self.proximo_id = 1
+
+    def __call__(self, query, params=None, fetch=False):
+        if query.startswith("INSERT"):
+            id_imagen = self.proximo_id
+            self.proximo_id += 1
+            self.guardadas[id_imagen] = (params["contenido"], params["tipo"])
+            return [(id_imagen,)]
+        if query.startswith("SELECT"):
+            imagen = self.guardadas.get(params["id"])
+            return [imagen] if imagen else []
+        if query.startswith("DELETE"):
+            self.guardadas.pop(params["id"], None)
+        return None
 
 
 @pytest.fixture
@@ -75,9 +90,10 @@ def base(monkeypatch, tmp_path):
     falsa = BaseFalsa()
     monkeypatch.setattr(productos, "execute_query", falsa)
     monkeypatch.setattr(vidriera_json, "execute_query", falsa)
-    monkeypatch.setattr(productos_empresa, "BACKEND_DIR", tmp_path)
     monkeypatch.setattr(productos_empresa, "EMPRESAS_REPO_DIR", tmp_path / "empresas_repo")
-    monkeypatch.setattr(productos_empresa, "PUBLIC_BASE_URL", "http://api.local")
+    falsa.imagenes = ImagenesFalsas()
+    monkeypatch.setattr(imagenes, "execute_query", falsa.imagenes)
+    monkeypatch.setattr(imagenes, "PUBLIC_BASE_URL", "http://api.local")
     falsa.raiz = tmp_path
     return falsa
 
@@ -97,18 +113,18 @@ def test_el_producto_se_guarda_como_diccionario_dentro_del_json_de_la_empresa(ba
     creado = _crear()
     assert creado.id == 1
     assert base.datos["productos"] == {
-        "1": {"id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "ubicacion_imagen": None}
+        "1": {"id": 1, "nombre": "Dulce de Leche", "descripcion": "Artesanal", "id_imagen": None}
     }
     # El resto del JSON de la empresa queda intacto.
     assert {clave: valor for clave, valor in base.datos.items() if clave != "productos"} == DATOS_EMPRESA
 
 
-def test_la_imagen_va_a_la_carpeta_de_la_empresa(base):
+def test_la_imagen_se_guarda_en_la_base(base):
     creado = _crear(imagen=_imagen())
-    assert creado.ubicacion_imagen.startswith(f"empresas_repo/{ID_EMPRESA}/")
-    assert creado.ubicacion_imagen.endswith(".jpg")
-    assert creado.imagen_url == f"http://api.local/{creado.ubicacion_imagen}"
-    assert (base.raiz / creado.ubicacion_imagen).read_bytes() == b"imagen"
+    assert creado.id_imagen == 1
+    assert creado.imagen_url == "http://api.local/api/v1/imagenes/1"
+    assert base.imagenes.guardadas[1] == (b"imagen", "image/jpeg")
+    assert base.datos["productos"]["1"]["id_imagen"] == 1
 
 
 def test_los_ids_son_correlativos(base):
@@ -121,12 +137,12 @@ def test_formato_de_imagen_no_permitido_no_guarda_nada(base):
         _crear(imagen=_imagen("virus.exe"))
     assert error.value.status_code == 400
     assert "productos" not in base.datos
-    assert not (base.raiz / "empresas_repo").exists()
+    assert base.imagenes.guardadas == {}
 
 
 def test_tope_de_productos_por_empresa(base):
     base.datos["productos"] = {
-        str(i): {"id": i, "nombre": "x", "descripcion": "x", "ubicacion_imagen": None}
+        str(i): {"id": i, "nombre": "x", "descripcion": "x", "id_imagen": None}
         for i in range(1, MAXIMO_PRODUCTOS + 1)
     }
     with pytest.raises(HTTPException) as error:
@@ -148,7 +164,7 @@ def test_si_falla_la_base_la_imagen_no_queda_huerfana(base, monkeypatch):
     monkeypatch.setattr(productos, "_guardar_datos", falla)
     with pytest.raises(RuntimeError):
         _crear(imagen=_imagen())
-    assert list((base.raiz / "empresas_repo" / str(ID_EMPRESA)).iterdir()) == []
+    assert base.imagenes.guardadas == {}
 
 
 # --- edición y baja ------------------------------------------------------
@@ -156,29 +172,23 @@ def test_si_falla_la_base_la_imagen_no_queda_huerfana(base, monkeypatch):
 
 def test_editar_cambia_solo_lo_que_se_envia(base):
     _crear(imagen=_imagen())
-    ubicacion = base.datos["productos"]["1"]["ubicacion_imagen"]
     editado = productos.editar_producto(1, nombre="Dulce de Leche Repostero", descripcion=None, imagen=None, usuario=USUARIO)
-    assert (editado.nombre, editado.descripcion, editado.ubicacion_imagen) == (
-        "Dulce de Leche Repostero", "Artesanal", ubicacion,
-    )
+    assert (editado.nombre, editado.descripcion, editado.id_imagen) == ("Dulce de Leche Repostero", "Artesanal", 1)
 
 
 def test_reemplazar_la_imagen_borra_la_anterior(base):
     _crear(imagen=_imagen(contenido=b"vieja"))
-    vieja = base.datos["productos"]["1"]["ubicacion_imagen"]
     editado = productos.editar_producto(1, nombre=None, descripcion=None, imagen=_imagen("otra.png", b"nueva"), usuario=USUARIO)
-    assert editado.ubicacion_imagen != vieja
-    assert not (base.raiz / vieja).exists()
-    assert (base.raiz / editado.ubicacion_imagen).read_bytes() == b"nueva"
+    assert editado.id_imagen == 2
+    assert base.imagenes.guardadas == {2: (b"nueva", "image/png")}
 
 
 def test_eliminar_saca_el_producto_y_su_imagen(base):
     _crear(imagen=_imagen())
     _crear()
-    ubicacion = base.datos["productos"]["1"]["ubicacion_imagen"]
     productos.eliminar_producto(1, usuario=USUARIO)
     assert list(base.datos["productos"]) == ["2"]
-    assert not (base.raiz / ubicacion).exists()
+    assert base.imagenes.guardadas == {}
 
 
 def test_producto_inexistente_devuelve_404(base):
@@ -191,13 +201,18 @@ def test_producto_inexistente_devuelve_404(base):
         assert error.value.status_code == 404
 
 
-def test_no_se_borran_archivos_fuera_de_la_carpeta_de_la_empresa(base):
-    ajeno = base.raiz / "empresas_repo" / "9" / "ajeno.jpg"
-    ajeno.parent.mkdir(parents=True)
-    ajeno.write_bytes(b"de otra empresa")
-    productos_empresa.eliminar_imagen(ID_EMPRESA, "empresas_repo/9/ajeno.jpg")
-    productos_empresa.eliminar_imagen(ID_EMPRESA, f"empresas_repo/{ID_EMPRESA}/../9/ajeno.jpg")
-    assert ajeno.exists()
+def test_la_imagen_se_sirve_con_su_tipo_y_cache_larga(base):
+    _crear(imagen=_imagen("foto.png", b"contenido-png"))
+    respuesta = endpoint_imagenes.obtener_imagen(1)
+    assert respuesta.body == b"contenido-png"
+    assert respuesta.media_type == "image/png"
+    assert "immutable" in respuesta.headers["cache-control"]
+
+
+def test_imagen_inexistente_devuelve_404(base):
+    with pytest.raises(HTTPException) as error:
+        endpoint_imagenes.obtener_imagen(99)
+    assert error.value.status_code == 404
 
 
 # --- lectura -------------------------------------------------------------
@@ -208,7 +223,7 @@ def test_ficha_publica_trae_la_empresa_con_sus_productos(base):
     ficha = landing.obtener_empresa_publica(ID_EMPRESA)
     assert ficha.nombre_empresa == "Sabores Serranos"
     assert [p.nombre for p in ficha.productos] == ["Dulce de Leche"]
-    assert ficha.productos[0].imagen_url.startswith("http://api.local/empresas_repo/3/")
+    assert ficha.productos[0].imagen_url == "http://api.local/api/v1/imagenes/1"
 
 
 def test_ficha_publica_de_empresa_no_aprobada_devuelve_404(base):
@@ -232,7 +247,7 @@ def test_empresa_sin_productos_devuelve_lista_vacia(base):
 
 
 def test_mi_empresa_incluye_los_productos():
-    datos = {**DATOS_EMPRESA, "productos": {"2": {"id": 2, "nombre": "Miel", "descripcion": "Pura", "ubicacion_imagen": None}}}
+    datos = {**DATOS_EMPRESA, "productos": {"2": {"id": 2, "nombre": "Miel", "descripcion": "Pura", "id_imagen": None}}}
     respuesta = empresas._fila_a_response((ID_EMPRESA, 30712345678, "Sabores Serranos SRL", datos, 7, 1, None))
     assert [(p.id, p.nombre) for p in respuesta.productos] == [(2, "Miel")]
 
@@ -244,14 +259,14 @@ def _archivo(base):
     return json.loads((base.raiz / "empresas_repo" / "empresas.json").read_text(encoding="utf-8"))
 
 
-def test_si_el_archivo_no_esta_la_primera_lectura_lo_arma_desde_oracle(base):
+def test_si_el_archivo_no_esta_la_primera_lectura_lo_arma_desde_la_base(base):
     assert not (base.raiz / "empresas_repo" / "empresas.json").exists()
     assert [fila[0] for fila in vidriera_json.empresas_publicas()] == [ID_EMPRESA]
     documento = _archivo(base)["empresas"][str(ID_EMPRESA)]
     assert documento == {**DATOS_EMPRESA, "id_empresa": ID_EMPRESA, "razon_social": "Sabores Serranos SRL"}
 
 
-def test_con_el_archivo_armado_la_vidriera_no_consulta_oracle(base):
+def test_con_el_archivo_armado_la_vidriera_no_consulta_la_base(base):
     landing.listar_empresas_publicas(FiltrosEmpresa())
     consultas = base.consultas
     landing.listar_empresas_publicas(FiltrosEmpresa())
@@ -259,7 +274,7 @@ def test_con_el_archivo_armado_la_vidriera_no_consulta_oracle(base):
     assert base.consultas == consultas
 
 
-def test_el_archivo_sigue_sirviendo_aunque_oracle_no_responda(base, monkeypatch):
+def test_el_archivo_sigue_sirviendo_aunque_la_base_no_responda(base, monkeypatch):
     landing.listar_empresas_publicas(FiltrosEmpresa())
 
     def caida(*_, **__):
@@ -322,9 +337,8 @@ def test_filtros_del_listado_publico(base, filtros, encuentra):
     assert bool(landing.listar_empresas_publicas(filtros)) is encuentra
 
 
-def test_los_numeros_de_oracle_se_pueden_volver_a_guardar(base):
-    # Oracle entrega latitud, número e ids como Decimal: el alta de un segundo
-    # producto relee el JSON, lo modifica y lo tiene que poder escribir.
+def test_el_alta_de_un_segundo_producto_conserva_el_resto_del_documento(base):
+    # El alta relee el JSON de la base, lo modifica y lo vuelve a escribir entero.
     _crear()
     segundo = _crear(nombre="Miel")
     assert segundo.id == 2

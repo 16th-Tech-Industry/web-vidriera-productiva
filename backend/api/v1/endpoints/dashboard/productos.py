@@ -1,17 +1,15 @@
 import json
-from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
-from api.v1.endpoints.noticias import EXTENSIONES_PERMITIDAS, TAMANIO_MAXIMO_MB
 from api.v1.schemas.productos import (
     DESCRIPCION_MAX_LENGTH,
     MAXIMO_PRODUCTOS,
     NOMBRE_MAX_LENGTH,
     ProductoResponse,
 )
-from api.v1.servicios import productos_empresa, vidriera_json
+from api.v1.servicios import imagenes, productos_empresa, vidriera_json
 from api.v1.servicios.productos_empresa import LimiteDeProductos, ProductoNoEncontrado
 from db_connector import execute_query
 from security import get_current_user
@@ -26,8 +24,7 @@ Productos de "mi empresa" — cómo funciona:
    el JSON de la empresa del representante logueado, le aplica el cambio y
    lo vuelve a guardar entero.
 2. La imagen viaja como archivo (multipart/form-data, igual que noticias),
-   se guarda en backend/empresas_repo/<id_empresa>/ y en el JSON queda solo
-   su ubicación.
+   se guarda en la tabla imagenes y en el JSON queda solo su id.
 3. El representante solo llega a su propia empresa: sale de su JWT, no de
    un id en la URL.
 4. Los cambios se publican directo: agregar o editar un producto no manda
@@ -40,7 +37,7 @@ Productos de "mi empresa" — cómo funciona:
 def _mi_empresa(usuario: dict):
     """Devuelve (id_empresa, datos_publico) de la empresa del representante logueado."""
     filas = execute_query(
-        "SELECT id_empresa, datos_publico FROM empresas WHERE id_representante = :id_representante",
+        "SELECT id_empresa, datos_publico FROM empresas WHERE id_representante = %(id_representante)s",
         {"id_representante": int(usuario["sub"])},
         fetch=True,
     )
@@ -52,28 +49,11 @@ def _mi_empresa(usuario: dict):
 
 def _guardar_datos(id_empresa: int, datos: dict) -> None:
     execute_query(
-        "UPDATE empresas SET datos_publico = :datos_publico WHERE id_empresa = :id",
+        "UPDATE empresas SET datos_publico = CAST(%(datos_publico)s AS jsonb) WHERE id_empresa = %(id)s",
         {"datos_publico": json.dumps(datos, ensure_ascii=False), "id": id_empresa},
     )
     # Los productos también figuran en el archivo del que lee la vidriera pública.
     vidriera_json.actualizar()
-
-
-def _leer_imagen(imagen: UploadFile):
-    """Valida extensión y tamaño. Devuelve (contenido, extension)."""
-    extension = Path(imagen.filename or "").suffix.lower()
-    if extension not in EXTENSIONES_PERMITIDAS:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Formato de imagen no permitido. Usá: {', '.join(sorted(EXTENSIONES_PERMITIDAS))}",
-        )
-    contenido = imagen.file.read()
-    if len(contenido) > TAMANIO_MAXIMO_MB * 1024 * 1024:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"La imagen supera el tamaño máximo permitido ({TAMANIO_MAXIMO_MB} MB)",
-        )
-    return contenido, extension
 
 
 def _producto_o_404(datos: dict, producto_id: int) -> dict:
@@ -108,14 +88,13 @@ def crear_producto(
         )
 
     if imagen is not None:
-        contenido, extension = _leer_imagen(imagen)
-        producto["ubicacion_imagen"] = productos_empresa.guardar_imagen(id_empresa, contenido, extension)
+        producto["id_imagen"] = imagenes.guardar(*imagenes.leer_subida(imagen))
 
     try:
         _guardar_datos(id_empresa, datos)
     except Exception:
-        # Si no se pudo guardar el producto, la imagen no queda huérfana en disco.
-        productos_empresa.eliminar_imagen(id_empresa, producto["ubicacion_imagen"])
+        # Si no se pudo guardar el producto, la imagen no queda huérfana.
+        imagenes.borrar(producto["id_imagen"])
         raise
     return productos_empresa.producto_a_response(producto)
 
@@ -139,18 +118,17 @@ def editar_producto(
 
     imagen_anterior = None
     if imagen is not None:
-        contenido, extension = _leer_imagen(imagen)
-        imagen_anterior = producto.get("ubicacion_imagen")
-        producto["ubicacion_imagen"] = productos_empresa.guardar_imagen(id_empresa, contenido, extension)
+        imagen_anterior = producto.get("id_imagen")
+        producto["id_imagen"] = imagenes.guardar(*imagenes.leer_subida(imagen))
 
     try:
         _guardar_datos(id_empresa, datos)
     except Exception:
         if imagen is not None:
-            productos_empresa.eliminar_imagen(id_empresa, producto["ubicacion_imagen"])
+            imagenes.borrar(producto["id_imagen"])
         raise
-    # La imagen vieja se borra recién cuando la nueva ya quedó guardada en la base.
-    productos_empresa.eliminar_imagen(id_empresa, imagen_anterior)
+    # La imagen vieja se borra recién cuando el producto ya apunta a la nueva.
+    imagenes.borrar(imagen_anterior)
     return productos_empresa.producto_a_response(producto)
 
 
@@ -161,4 +139,4 @@ def eliminar_producto(producto_id: int, usuario: dict = Depends(get_current_user
     _producto_o_404(datos, producto_id)
     producto = productos_empresa.quitar_producto(datos, producto_id)
     _guardar_datos(id_empresa, datos)
-    productos_empresa.eliminar_imagen(id_empresa, producto.get("ubicacion_imagen"))
+    imagenes.borrar(producto.get("id_imagen"))

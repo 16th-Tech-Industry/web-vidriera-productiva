@@ -1,3 +1,7 @@
+-- Zonas, departamentos y localidades de Córdoba (PostgreSQL). Generado por
+-- generar_sql.py a partir de Dptos_Loc.xlsx; correr después de esquema.sql.
+BEGIN;
+
 -- 1. INSERTAR ZONAS
 INSERT INTO zonas (id_zona, nombre_zona) VALUES (1, 'Zona 1');
 INSERT INTO zonas (id_zona, nombre_zona) VALUES (2, 'Zona 2');
@@ -1454,5 +1458,11 @@ INSERT INTO localidades (id_localidad, nombre_localidad, id_departamento) VALUES
 INSERT INTO localidades (id_localidad, nombre_localidad, id_departamento) VALUES (26077, 'SAN SEVERO', 26);
 INSERT INTO localidades (id_localidad, nombre_localidad, id_departamento) VALUES (26078, 'WENCESLAO ESCALANTE', 26);
 INSERT INTO localidades (id_localidad, nombre_localidad, id_departamento) VALUES (26079, 'COLONIA BISMARCK', 26);
+
+-- Los INSERT fijan los ids a mano: se adelantan los contadores de las
+-- columnas identidad para que la próxima fila no choque con uno existente.
+SELECT setval(pg_get_serial_sequence('zonas', 'id_zona'), (SELECT MAX(id_zona) FROM zonas));
+SELECT setval(pg_get_serial_sequence('departamentos', 'id_departamento'), (SELECT MAX(id_departamento) FROM departamentos));
+SELECT setval(pg_get_serial_sequence('localidades', 'id_localidad'), (SELECT MAX(id_localidad) FROM localidades));
 
 COMMIT;
