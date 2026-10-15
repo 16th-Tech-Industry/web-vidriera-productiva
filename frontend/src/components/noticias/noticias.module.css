@@ -40,6 +40,11 @@
   color: inherit;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
+  /* Es un <button>: se le quitan los estilos de botón del navegador */
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
 }
 
 .card:hover {
@@ -132,4 +137,79 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
+}
+/* Mensaje de carga, error o sin noticias */
+.estado {
+  text-align: center;
+  color: #64748b;
+  margin: 1.5rem 0;
+}
+
+/* Noticia completa al hacer click en una tarjeta */
+.modalFondo {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2000;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modalCerrar {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #00457F;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.modalImagen {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.modalCuerpo {
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.modalFecha {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.modalTitulo {
+  margin: 0.4rem 0 1rem 0;
+  font-size: 1.3rem;
+  color: #00457F;
+}
+
+.modalTexto {
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.6;
+  white-space: pre-line; /* respeta los renglones del cuerpo */
 }

@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import StatCard from "./StatCard";
 import NewsCard from "./NewsCard";
 import EventCard from "./EventCard";
 import fotoEjemplo from "../../../assets/foto_ejemplo.png";
+import { listarNoticias, type Noticia } from "../../../api/noticias";
 
 // TODO: reemplazar por datos reales que vengan del backend (FastAPI)
 const STATS = [
@@ -9,21 +11,6 @@ const STATS = [
   { icon: "✅", value: 245, label: "PyMEs en el mapa" },
   { icon: "🕒", value: 12, label: "Correcciones pendientes" },
   { icon: "📅", value: "02", label: "Ferias este mes" },
-];
-
-const NEWS = [
-  {
-    image: fotoEjemplo,
-    text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
-  },
-  {
-    image: fotoEjemplo,
-    text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
-  },
-  {
-    image: fotoEjemplo,
-    text: "There is no one who loves pain itself, who seeks after it and wants to have it, simply because it is pain...",
-  },
 ];
 
 const EVENTS: Array<{
@@ -59,6 +46,15 @@ const EVENTS: Array<{
 
 /** Vista de Inicio del Dashboard: tarjetas de estadísticas, noticias y próximos eventos. */
 export function InicioView() {
+  // Las 3 noticias más recientes (GET /api/v1/noticias/ ya viene ordenado por fecha)
+  const [noticias, setNoticias] = useState<Noticia[]>([]);
+
+  useEffect(() => {
+    listarNoticias()
+      .then((lista) => setNoticias(lista.slice(0, 3)))
+      .catch((error) => console.error("Error al cargar las noticias:", error));
+  }, []);
+
   return (
     <>
       <h1 className="dashboard-heading">Panel de control - Administrador</h1>
@@ -72,8 +68,9 @@ export function InicioView() {
       <section className="dashboard-section">
         <h2 className="section-heading">Noticias</h2>
         <div className="news-grid">
-          {NEWS.map((item) => (
-            <NewsCard key={item.text} {...item} />
+          {noticias.length === 0 && <p>Todavía no hay noticias publicadas.</p>}
+          {noticias.map((noticia) => (
+            <NewsCard key={noticia.id} image={noticia.imagen_url ?? fotoEjemplo} text={noticia.titulo} />
           ))}
         </div>
       </section>

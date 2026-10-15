@@ -1,9 +1,20 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DragEvent } from "react";
+import {
+  crearNoticia,
+  editarNoticia,
+  eliminarNoticia,
+  listarNoticias,
+  type Noticia,
+} from "../../../api/noticias";
 import "./noticiasAdmin.css";
 
 /**
  * Vista "Noticias" del Dashboard Administrador.
+ *
+ * Publica, edita y elimina noticias contra /api/v1/noticias (ver
+ * src/api/noticias.ts); lo que se publica acá aparece en el carrusel
+ * de novedades de la landing.
  *
  * El editor de cuerpo usa contentEditable + document.execCommand
  * como base simple para negrita/cursiva/alineación/imagen/link, sin
@@ -14,17 +25,50 @@ import "./noticiasAdmin.css";
  */
 export function NoticiasAdminView() {
   const [titulo, setTitulo] = useState("");
+  const [imagenArchivo, setImagenArchivo] = useState<File | null>(null);
   const [imagenPreview, setImagenPreview] = useState<string | null>(null);
-  const [publicado, setPublicado] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null);
+  const [mensajeError, setMensajeError] = useState<string | null>(null);
   const [errores, setErrores] = useState<{ titulo?: boolean; cuerpo?: boolean }>({});
+  const [guardando, setGuardando] = useState(false);
+
+  const [noticias, setNoticias] = useState<Noticia[]>([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
+  // Noticia que se está editando; null = el formulario publica una nueva
+  const [editando, setEditando] = useState<Noticia | null>(null);
 
   const cuerpoRef = useRef<HTMLDivElement>(null);
   const inputImagenRef = useRef<HTMLInputElement>(null);
 
+  const cargarNoticias = () => {
+    setCargandoLista(true);
+    listarNoticias()
+      .then(setNoticias)
+      .catch((e: Error) => setMensajeError(`No se pudieron cargar las noticias: ${e.message}`))
+      .finally(() => setCargandoLista(false));
+  };
+
+  useEffect(cargarNoticias, []);
+
+  const mostrarExito = (mensaje: string) => {
+    setMensajeExito(mensaje);
+    setTimeout(() => setMensajeExito(null), 3000);
+  };
+
+  const limpiarFormulario = () => {
+    setTitulo("");
+    setImagenArchivo(null);
+    setImagenPreview(null);
+    setErrores({});
+    setEditando(null);
+    if (cuerpoRef.current) cuerpoRef.current.innerHTML = "";
+    if (inputImagenRef.current) inputImagenRef.current.value = "";
+  };
+
   const handleArchivoImagen = (file: File | undefined) => {
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImagenPreview(url);
+    setImagenArchivo(file);
+    setImagenPreview(URL.createObjectURL(file));
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -47,34 +91,80 @@ export function NoticiasAdminView() {
     if (url) ejecutarComando("createLink", url);
   };
 
-  const handlePublicar = () => {
+  const handlePublicar = async () => {
     const cuerpoVacio = !cuerpoRef.current?.innerText.trim();
     const tituloVacio = !titulo.trim();
     setErrores({ titulo: tituloVacio, cuerpo: cuerpoVacio });
+    setMensajeError(null);
     if (tituloVacio || cuerpoVacio) return;
 
-    // TODO: conectar con el backend, ej. POST /noticias
-    const noticia = {
-      titulo,
-      imagen: imagenPreview,
-      cuerpoHtml: cuerpoRef.current?.innerHTML ?? "",
+    const datos = {
+      titulo: titulo.trim(),
+      cuerpo: cuerpoRef.current?.innerHTML ?? "",
+      imagen: imagenArchivo,
     };
-    console.log("Publicar noticia:", noticia);
 
-    setPublicado(true);
-    setTimeout(() => setPublicado(false), 3000);
+    setGuardando(true);
+    try {
+      if (editando) {
+        await editarNoticia(editando.id, datos);
+        mostrarExito("✅ Noticia actualizada correctamente.");
+      } else {
+        await crearNoticia(datos);
+        mostrarExito("✅ Noticia publicada correctamente.");
+      }
+      limpiarFormulario();
+      cargarNoticias();
+    } catch (e) {
+      setMensajeError((e as Error).message);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleEditar = (noticia: Noticia) => {
+    setEditando(noticia);
+    setTitulo(noticia.titulo);
+    setImagenArchivo(null);
+    setImagenPreview(noticia.imagen_url);
+    setErrores({});
+    setMensajeError(null);
+    if (cuerpoRef.current) cuerpoRef.current.innerHTML = noticia.cuerpo;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleEliminar = async (noticia: Noticia) => {
+    if (!window.confirm(`¿Eliminar la noticia "${noticia.titulo}"? No se puede deshacer.`)) return;
+    setMensajeError(null);
+    try {
+      await eliminarNoticia(noticia.id);
+      if (editando?.id === noticia.id) limpiarFormulario();
+      setNoticias((prev) => prev.filter((n) => n.id !== noticia.id));
+      mostrarExito("🗑️ Noticia eliminada.");
+    } catch (e) {
+      setMensajeError((e as Error).message);
+    }
   };
 
   return (
     <>
       <div className="noticias-admin-header">
         <h1 className="dashboard-heading">Gestión de Noticias</h1>
-        <button type="button" className="noticias-admin-publicar" onClick={handlePublicar}>
-          Publicar Noticia
-        </button>
+        <div className="noticias-admin-acciones">
+          {editando && (
+            <button type="button" className="noticias-admin-cancelar" onClick={limpiarFormulario} disabled={guardando}>
+              Cancelar edición
+            </button>
+          )}
+          <button type="button" className="noticias-admin-publicar" onClick={handlePublicar} disabled={guardando}>
+            {guardando ? "Guardando..." : editando ? "Guardar Cambios" : "Publicar Noticia"}
+          </button>
+        </div>
       </div>
 
-      {publicado && <p className="noticias-admin-exito">✅ Noticia publicada correctamente.</p>}
+      {mensajeExito && <p className="noticias-admin-exito">{mensajeExito}</p>}
+      {mensajeError && <p className="noticias-admin-error">{mensajeError}</p>}
+      {editando && <p className="noticias-admin-editando">Editando: «{editando.titulo}»</p>}
 
       <div className="noticias-admin-form">
         <label className="noticias-admin-label">
@@ -85,6 +175,7 @@ export function NoticiasAdminView() {
           className={`noticias-admin-input ${errores.titulo ? "is-error" : ""}`}
           placeholder="Escribí el título de la noticia aquí..."
           value={titulo}
+          maxLength={200}
           onChange={(e) => setTitulo(e.target.value)}
         />
 
@@ -107,7 +198,7 @@ export function NoticiasAdminView() {
           )}
           <input
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.webp,.gif"
             ref={inputImagenRef}
             className="noticias-admin-input-file"
             onChange={(e) => handleArchivoImagen(e.target.files?.[0])}
@@ -151,6 +242,41 @@ export function NoticiasAdminView() {
           />
         </div>
       </div>
+
+      <section className="noticias-admin-publicadas">
+        <h2 className="section-heading">Noticias publicadas</h2>
+        {cargandoLista ? (
+          <p className="noticias-admin-vacio">Cargando...</p>
+        ) : noticias.length === 0 ? (
+          <p className="noticias-admin-vacio">Todavía no hay noticias publicadas.</p>
+        ) : (
+          <ul className="noticias-admin-lista">
+            {noticias.map((noticia) => (
+              <li key={noticia.id} className="noticias-admin-item">
+                {noticia.imagen_url ? (
+                  <img src={noticia.imagen_url} alt="" className="noticias-admin-item-imagen" />
+                ) : (
+                  <div className="noticias-admin-item-imagen" aria-hidden />
+                )}
+                <div className="noticias-admin-item-texto">
+                  <strong>{noticia.titulo}</strong>
+                  <span>{new Date(noticia.fecha_creacion).toLocaleDateString("es-AR")}</span>
+                </div>
+                <button type="button" className="noticias-admin-item-boton" onClick={() => handleEditar(noticia)}>
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  className="noticias-admin-item-boton is-peligro"
+                  onClick={() => handleEliminar(noticia)}
+                >
+                  Eliminar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </>
   );
 }

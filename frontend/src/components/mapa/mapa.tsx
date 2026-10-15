@@ -3,11 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import L, { type LatLngBoundsExpression, type LeafletMouseEvent } from 'leaflet';
 import proj4 from 'proj4';
 import 'leaflet/dist/leaflet.css';
-import db from '../../assets/db.json';
 import mapaMetros from '../../assets/dataMap.json';
 import './mapa.css';
 import 'leaflet/dist/leaflet.css';
 import { InfoCard } from '../infoProductor/infoProductor';
+import { API_URL } from '../../config';
 
 type TipoCapa = 'todos' | 'empresas' | 'eventos';
 
@@ -16,6 +16,19 @@ interface Productor {
   nombre: string;
   rubro: string;
   localidad: string;
+  lat: number;
+  lng: number;
+  imagen: string;
+  descripcion: string;
+}
+
+interface Evento {
+  id: number;
+  nombre: string;
+  categoria: string;
+  localidad: string;
+  fechaInicio: string;
+  fechaFin: string;
   lat: number;
   lng: number;
   imagen: string;
@@ -35,6 +48,22 @@ export const Mapa: React.FC = () => {
   const [tipoFiltro, setTipoFiltro] = useState<TipoCapa>('todos');
   const [geoJsonGrados, setGeoJsonGrados] = useState<any>(null);
   const [instanciaMapa, setInstanciaMapa] = useState<L.Map | null>(null);
+  const [productores, setProductores] = useState<Productor[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
+
+  // Productores y eventos salen del backend (GET /api/v1/landing/), ya no de assets/db.json
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/landing/`)
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data: { productores: Productor[]; eventos: Evento[] }) => {
+        setProductores(data.productores);
+        setEventos(data.eventos);
+      })
+      .catch((error) => console.error("Error al cargar los puntos del mapa:", error));
+  }, []);
 
   useEffect(() => {
     if (mapaMetros && mapaMetros.features) {
@@ -64,14 +93,13 @@ export const Mapa: React.FC = () => {
     }
   }, []);
 
-  const productores: Productor[] = db.productores;
   const filtrados = categoria === 'Todas' 
     ? productores 
     : productores.filter(p => p.rubro === categoria);
 
   const eventosFiltrados = categoria === 'Todas'
-    ? db.eventos
-    : db.eventos.filter(ev => ev.categoria === categoria);
+    ? eventos
+    : eventos.filter(ev => ev.categoria === categoria);
 
   const estiloDeptoBase: L.PathOptions = {
     fillColor: '#6ea4d2',
@@ -223,7 +251,7 @@ export const Mapa: React.FC = () => {
           </Marker>
         ))}
         {/* Marcadores de Eventos (Estrellas) */}
-        {(tipoFiltro === 'todos' || tipoFiltro === 'eventos') && db.eventos.map((ev) => (
+        {(tipoFiltro === 'todos' || tipoFiltro === 'eventos') && eventosFiltrados.map((ev) => (
           <Marker key={`ev-${ev.id}`} position={[ev.lat, ev.lng]} icon={crearIconoEstrella()}>
             <Popup maxWidth={260}>
               <div style={{ padding: '0.8rem 1rem', fontFamily: 'sans-serif' }}>

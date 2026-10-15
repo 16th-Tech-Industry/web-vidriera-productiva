@@ -179,7 +179,141 @@
   margin: 6px 0;
 }
 
+/* ---------- Edición y errores ---------- */
+
+.noticias-admin-acciones {
+  display: flex;
+  gap: 10px;
+}
+
+.noticias-admin-publicar:disabled,
+.noticias-admin-cancelar:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.noticias-admin-cancelar {
+  background: var(--card-bg);
+  color: var(--text-dark);
+  border: 1px solid #dde4ec;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.noticias-admin-error {
+  background: #fde8ea;
+  color: #b42332;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: -10px 0 20px;
+}
+
+.noticias-admin-editando {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--topbar-bg, #5b9bd5);
+  margin: -10px 0 10px;
+}
+
+/* ---------- Noticias publicadas ---------- */
+
+.noticias-admin-publicadas {
+  margin-top: 36px;
+  max-width: 720px;
+}
+
+.noticias-admin-vacio {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.noticias-admin-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.noticias-admin-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  background: var(--card-bg);
+  border: 1px solid #dde4ec;
+  border-radius: 8px;
+}
+
+.noticias-admin-item-imagen {
+  width: 72px;
+  height: 48px;
+  flex: 0 0 72px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #eef2f6;
+}
+
+.noticias-admin-item-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.noticias-admin-item-texto strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noticias-admin-item-texto span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.noticias-admin-item-boton {
+  background: transparent;
+  border: 1px solid #dde4ec;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.noticias-admin-item-boton:hover {
+  background: #eaf2fb;
+}
+
+.noticias-admin-item-boton.is-peligro {
+  color: var(--accent-red, #e63946);
+}
+
+.noticias-admin-item-boton.is-peligro:hover {
+  background: #fde8ea;
+}
+
 @media (max-width: 600px) {
+  .noticias-admin-acciones {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .noticias-admin-item {
+    flex-wrap: wrap;
+  }
+
   .noticias-admin-header {
     flex-direction: column;
     align-items: flex-start;
