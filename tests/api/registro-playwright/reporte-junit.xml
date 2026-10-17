@@ -1,0 +1,22 @@
+<testsuites id="" name="" tests="9" failures="0" skipped="0" errors="0" time="2.6734480000000005">
+<testsuite name="registro.spec.ts" timestamp="2026-10-17T00:15:11.559Z" hostname="" tests="9" failures="0" skipped="0" time="1.69" errors="0">
+<testcase name="API - Registro de representantes › API-REG-01: registro válido devuelve 201 y los datos del usuario" classname="registro.spec.ts" time="0.347">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-02: la respuesta no expone la contraseña ni su hash" classname="registro.spec.ts" time="0.323">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-03: email ya registrado devuelve 400" classname="registro.spec.ts" time="0.403">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-04: contraseña de menos de 8 caracteres devuelve 422" classname="registro.spec.ts" time="0.008">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-05: email con formato inválido devuelve 422" classname="registro.spec.ts" time="0.009">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-06: nombre de 1 caracter devuelve 422" classname="registro.spec.ts" time="0.009">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-07: falta el apellido devuelve 422" classname="registro.spec.ts" time="0.005">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-08: body vacío devuelve 422 con los 4 campos obligatorios" classname="registro.spec.ts" time="0.007">
+</testcase>
+<testcase name="API - Registro de representantes › API-REG-09: el usuario registrado puede iniciar sesión" classname="registro.spec.ts" time="0.579">
+</testcase>
+</testsuite>
+</testsuites>

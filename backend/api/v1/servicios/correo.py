@@ -44,6 +44,9 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 MAIL_FROM = os.getenv("MAIL_FROM", "Córdoba Vidriera Productiva <no-responder@vidrieraproductiva.local>")
 # URL pública del frontend, para armar los links que van dentro de los mails.
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+# Con CORREO_DESACTIVADO=1 no se manda nada (para tests automáticos: el plan
+# gratis de Mailtrap no aguanta ráfagas y no queremos llenar la casilla).
+CORREO_DESACTIVADO = os.getenv("CORREO_DESACTIVADO", "").lower() in ("1", "true", "si", "sí")
 
 SMTP_TIMEOUT_SEGUNDOS = 10
 # Reintentos ante un rechazo temporal del servidor. El plan gratis de Mailtrap
@@ -59,6 +62,9 @@ class CorreoNoConfigurado(RuntimeError):
 
 def enviar_correo(destinatario: str, asunto: str, texto: str, cuerpo_html: Optional[str] = None) -> None:
     """Manda un mail. `texto` va siempre; `cuerpo_html` es la versión con formato, opcional."""
+    if CORREO_DESACTIVADO:
+        logger.info("Correo desactivado (CORREO_DESACTIVADO=1): no se envía '%s' a %s", asunto, destinatario)
+        return
     if not SMTP_HOST:
         raise CorreoNoConfigurado("SMTP_HOST no está definido")
 

@@ -23,3 +23,5 @@ SMTP_PASSWORD=
 MAIL_FROM=Córdoba Vidriera Productiva <no-responder@vidrieraproductiva.local>
 # URL pública del frontend, para armar los links que van dentro de los mails.
 FRONTEND_URL=http://localhost:5173
+# 1 = no manda ningún mail (tests automáticos)
+CORREO_DESACTIVADO=0
