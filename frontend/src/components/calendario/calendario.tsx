@@ -26,6 +26,23 @@ const resolverImagenUrl = (url?: string | null): string => {
   return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
+// Fecha de hoy en hora local como YYYY-MM-DD (toISOString usa UTC y puede dar el día siguiente)
+const hoyLocal = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+// Evento a mostrar al abrir la landing: el que está en curso hoy; si no hay,
+// el próximo; y si ya pasaron todos, el más reciente.
+// Las fechas son YYYY-MM-DD, así que se pueden comparar como texto.
+const eventoMasCercano = (eventos: Evento[]): Evento | null => {
+  if (eventos.length === 0) return null;
+  const hoy = hoyLocal();
+  const porInicio = [...eventos].sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
+  const enCursoOProximo = porInicio.find((e) => e.fechaFin >= hoy);
+  return enCursoOProximo ?? porInicio[porInicio.length - 1];
+};
+
 export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
@@ -40,10 +57,16 @@ export const Calendario: React.FC<CalendarioProps> = ({ onSelectEvento }) => {
         const data = await obtenerEventos();
         setEventos(data);
 
-        // Si hay eventos, seleccionar automáticamente el primero
-        if (data && data.length > 0) {
-          setEventoActivo(data[0]);
-          setDiaSeleccionado(data[0].fechaInicio);
+        // Seleccionar el evento más cercano a hoy y abrir el calendario en su mes
+        const cercano = eventoMasCercano(data ?? []);
+        if (cercano) {
+          const hoy = hoyLocal();
+          // Si el evento dura varios días y ya empezó, se marca hoy en vez del primer día
+          const dia = cercano.fechaInicio <= hoy && hoy <= cercano.fechaFin ? hoy : cercano.fechaInicio;
+          const [anioEv, mesEv] = dia.split('-').map(Number);
+          setEventoActivo(cercano);
+          setDiaSeleccionado(dia);
+          setFechaActual(new Date(anioEv, mesEv - 1, 1));
         }
       } catch (error) {
         console.error('Error al cargar eventos en el calendario:', error);

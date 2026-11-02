@@ -40,6 +40,13 @@ body {
   flex-direction: column;
 }
 
+/* #root es flex (ver index.css): sin esto el <main> de la landing toma el
+   ancho de su contenido y queda angosta (~700px) aunque la pantalla sea ancha.
+   Solo en la landing: el login se centra justamente gracias a ese ancho automático. */
+.app-container--landing {
+  width: 100%;
+}
+
 /* LOGIN */
 .login-page-wrapper {
   flex: 1;

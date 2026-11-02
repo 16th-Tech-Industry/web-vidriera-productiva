@@ -9,6 +9,9 @@ import { Mapa } from './components/mapa/mapa';
 import { Calendario } from './components/calendario/calendario';
 import { Nav, Footer } from './components';
 import { CarruselNovedades } from './components/noticias/noticias';
+import { HeroLanding } from './components/hero_landing/hero_landing';
+import { NuevasEmpresas } from './components/nuevas_empresas/nuevas_empresas';
+import { DirectorioLanding } from './components/directorio_landing/directorio_landing';
 import EventosView from './components/dash_usuario/EventosView';
 import EmpresaView from './components/dash_usuario/EmpresaView';
 import ProductosView from './components/dash_usuario/ProductosView';
@@ -68,12 +71,17 @@ function App() {
   const activeBtnBg = isDark? '#1E3A8A' : '#1e4a7a';
 
   return (
-    <main className="app-container">
+    <main className={`app-container${currentView === 'mapa' ? ' app-container--landing' : ''}`}>
       {currentView === 'mapa' && (
         <>
           <Nav label=" Iniciar Sesión" onLoginClick={() => setCurrentView('login')} onRegisterClick={() => setCurrentView('register-user')} />
+          <HeroLanding
+            onInscripcionClick={() => setCurrentView('register-user')}
+            onConocerMasClick={() => document.getElementById('seccion-mapa')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          />
+          <NuevasEmpresas />
           <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4rem', padding: '2rem 1.5rem 5rem 1.5rem', boxSizing: 'border-box' }}>
-            <div style={{ width: '100%' }}><Mapa /></div>
+            <div id="seccion-mapa" style={{ width: '100%' }}><Mapa /></div>
             <div style={{ width: '100%', maxWidth: '1100px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
               <div style={{ textAlign: 'center' }}>
                 <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', margin: 0 }}>Agenda de Eventos</h2>
@@ -88,6 +96,7 @@ function App() {
               <CarruselNovedades />
             </div>
           </div>
+          <DirectorioLanding onCompletarFormularioClick={() => setCurrentView('register-user')} />
           <Footer />
         </>
       )}
@@ -124,8 +133,10 @@ function App() {
         <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh' }}>
           <aside style={{ width: sidebarCollapsed? '72px' : '260px', backgroundColor: sidebarUsuarioBg, color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'width 0.25s ease' }}>
             <div style={{ padding: '0 16px', height: '64px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: `1px solid rgba(255,255,255,0.15)`, boxSizing: 'border-box', justifyContent: sidebarCollapsed? 'center' : 'flex-start' }}>
-              <img src={logo} alt="Logo CBA" style={{ height: '40px', width: '40px', objectFit: 'contain', borderRadius: '6px', background: '#fff', padding: '2px' }} />
-              {!sidebarCollapsed && <span style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>CBA | Vidriera</span>}
+              <button type="button" onClick={() => navegar('mapa', '/')} title="Ir a la página principal" aria-label="Ir a la página principal" style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                <img src={logo} alt="Logo CBA" style={{ height: '40px', width: '40px', objectFit: 'contain', borderRadius: '6px', background: '#fff', padding: '2px' }} />
+                {!sidebarCollapsed && <span style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>CBA | Vidriera</span>}
+              </button>
             </div>
 
             {!sidebarCollapsed && (

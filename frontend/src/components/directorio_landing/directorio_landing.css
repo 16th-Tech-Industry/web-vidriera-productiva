@@ -1,0 +1,87 @@
+.directorio-landing {
+  --dl-fondo: #ececec;
+
+  position: relative;
+  /* Ancho completo de pantalla aunque el contenedor padre sea más angosto (igual que el footer) */
+  width: 100vw;
+  left: 50%;
+  margin-left: -50vw;
+  background: var(--dl-fondo);
+  padding: 2rem 1.5rem;
+}
+
+[data-theme="dark"] .directorio-landing {
+  --dl-fondo: #253447;
+}
+
+.directorio-landing__caja {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.25rem 2rem;
+  border-radius: 24px;
+  color: #ffffff;
+  /* Azul institucional con el brillo arriba a la derecha del diseño */
+  background:
+    radial-gradient(circle at 95% 10%, rgba(255, 255, 255, 0.28), transparent 35%),
+    #0d4a8c;
+  box-shadow: 0 8px 24px rgba(13, 74, 140, 0.25);
+}
+
+.directorio-landing__titulo {
+  max-width: 340px;
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.9rem;
+}
+
+.directorio-landing__texto {
+  max-width: 460px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.5rem;
+}
+
+.directorio-landing__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.directorio-landing__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.directorio-landing__btn--principal {
+  background: #6b4310;
+  border: 1px solid #6b4310;
+}
+
+.directorio-landing__btn--principal:hover {
+  filter: brightness(1.15);
+}
+
+.directorio-landing__btn--secundario {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.directorio-landing__btn--secundario:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* En el diseño el footer va pegado a esta franja (el footer trae margin-top: 60px) */
+.directorio-landing + .footer {
+  margin-top: 0;
+}

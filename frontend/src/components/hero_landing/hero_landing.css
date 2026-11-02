@@ -1,0 +1,104 @@
+.hero-landing {
+  position: relative;
+  /* Ancho completo de pantalla aunque el contenedor padre sea más angosto (igual que el footer) */
+  width: 100vw;
+  left: 50%;
+  margin-left: -50vw;
+  min-height: 460px;
+  /* La navbar es fija (72px) y queda encima de la imagen, como en el diseño */
+  padding: calc(72px + 3rem) 1.5rem 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  /* Encuadre alto para que entren el horizonte y el cielo de la foto */
+  background-position: center 62%;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* Oscurece la foto para que el texto se lea */
+.hero-landing::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(10, 25, 45, 0.55), rgba(10, 25, 45, 0.62));
+}
+
+.hero-landing__contenido {
+  position: relative;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-landing__ministerio {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #c9f2a4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  margin-bottom: 0.6rem;
+}
+
+.hero-landing__titulo {
+  font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.hero-landing__bajada {
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 560px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
+}
+
+.hero-landing__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.hero-landing__btn {
+  min-width: 170px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.hero-landing__btn--principal {
+  background: #6b4310;
+  border: 1px solid #6b4310;
+}
+
+.hero-landing__btn--principal:hover {
+  filter: brightness(1.15);
+}
+
+.hero-landing__btn--secundario {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.hero-landing__btn--secundario:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* En celular la foto queda detrás de más texto (la franja clara del horizonte
+   cae justo bajo "Ministerio..."): se oscurece un poco más para que se lea */
+@media (max-width: 640px) {
+  .hero-landing::before {
+    background: linear-gradient(rgba(10, 25, 45, 0.66), rgba(10, 25, 45, 0.66));
+  }
+}

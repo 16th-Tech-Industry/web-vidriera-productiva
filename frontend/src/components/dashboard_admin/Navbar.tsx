@@ -1,105 +1,32 @@
-import { useState, useRef, useEffect } from "react";
 import "./navbar.css";
 import ministerioLogo from "../../assets/ministerio+cba.svg";
 
 export interface NavbarProps {
-  title: string;
-  subtitle: string;
-  userName: string;
-  userInitials: string;
   onLogout?: () => void;
 }
 
-export default function Navbar({
-  title,
-  subtitle,
-  userName,
-  userInitials,
-  onLogout,
-}: NavbarProps) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current &&!menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogoutClick = () => {
-    setOpen(false);
-    onLogout?.();
-  };
-
+// Barra superior del dashboard admin: solo los logos y el cierre de sesión.
+export default function Navbar({ onLogout }: NavbarProps) {
   return (
     <header className="navbar">
-      <div className="navbar-titles">
-        <img src={ministerioLogo} alt="Ministerio de Córdoba" className="navbar-logo" />
-        <div className="navbar-titles-text">
-          <span className="navbar-title">{title}</span>
-          <span className="navbar-subtitle">{subtitle}</span>
-        </div>
-      </div>
+      <img src={ministerioLogo} alt="Ministerio de Bioagroindustria - Córdoba" className="navbar-logo" />
 
-      <div className="navbar-user" ref={menuRef}>
-        <button
-          type="button"
-          className="navbar-user-btn"
-          onClick={() => setOpen((prev) =>!prev)}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          aria-label={`Menú de usuario de ${userName}`}
+      <button type="button" className="navbar-logout" onClick={onLogout} aria-label="Cerrar sesión">
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
         >
-          <span className="navbar-avatar" aria-hidden="true">{userInitials}</span>
-          <span className="navbar-username">{userName}</span>
-          <svg
-            aria-hidden="true"
-            className={`navbar-chevron ${open? "is-open" : ""}`}
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-          >
-            <path
-              d="M2.5 4.5L6 8L9.5 4.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-
-        {open && (
-          <div className="navbar-dropdown" role="menu">
-            <button
-              type="button"
-              className="navbar-dropdown-item navbar-logout"
-              onClick={handleLogoutClick}
-              role="menuitem"
-            >
-              <svg
-                aria-hidden="true"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              Cerrar sesión
-            </button>
-          </div>
-        )}
-      </div>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        <span className="navbar-logout-texto">Cerrar sesión</span>
+      </button>
     </header>
   );
 }

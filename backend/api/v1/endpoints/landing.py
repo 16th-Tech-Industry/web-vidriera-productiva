@@ -62,7 +62,7 @@ def _eventos() -> list[dict]:
             "lat": None,
             "lng": None,
             "descripcion": evento.descripcion,
-            "imagen": "",
+            "imagen": evento.imagen_url or "",
         }
         for evento in listar_eventos()
     ]

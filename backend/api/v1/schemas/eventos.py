@@ -17,6 +17,9 @@ class EventoUpdate(EventoBase):
 
 class EventoResponse(EventoBase):
     id: str
+    # /uploads/eventos/<archivo>, o None si el evento no tiene imagen.
+    # Todavía no se carga desde el formulario de creación (se agrega más adelante).
+    imagen_url: Optional[str] = None
 
     class Config:
         from_attributes= True

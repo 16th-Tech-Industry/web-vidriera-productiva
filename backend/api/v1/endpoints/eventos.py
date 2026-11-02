@@ -8,11 +8,11 @@ from security import require_admin
 router = APIRouter(prefix="/eventos", tags=["Eventos"])
 
 _SELECT_EVENTO= (
-    "SELECT id_evento, fecha, titulo, TO_CHAR(descripcion), hora, lugar, color FROM eventos"
+    "SELECT id_evento, fecha, titulo, TO_CHAR(descripcion), hora, lugar, color, imagen_archivo FROM eventos"
 )
 
 def _fila_a_response(fila) -> EventoResponse:
-    id_evento, fecha, titulo, descripcion, hora, lugar, color= fila
+    id_evento, fecha, titulo, descripcion, hora, lugar, color, imagen_archivo= fila
     desc_texto= descripcion.read() if hasattr(descripcion, "read") else str(descripcion or "")
 
     return EventoResponse(
@@ -22,7 +22,8 @@ def _fila_a_response(fila) -> EventoResponse:
         descripcion=str(descripcion or ""),
         hora=hora,
         lugar=lugar,
-        color=str(color or "blue")
+        color=str(color or "blue"),
+        imagen_url=f"/uploads/eventos/{imagen_archivo}" if imagen_archivo else None,
     )
 
 @router.get("/", response_model=List[EventoResponse])

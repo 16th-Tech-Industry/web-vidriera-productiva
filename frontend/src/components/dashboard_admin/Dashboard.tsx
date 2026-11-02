@@ -17,22 +17,12 @@ export interface DashboardProps {
   onNavigate?: (key: SidebarItemKey) => void;
 }
 
-const TITULOS: Record<SidebarItemKey, string> = {
-  inicio: "Dashboard Administrador",
-  empresas: "Empresas",
-  mapa: "Mapa",
-  noticias: "Noticias",
-  eventos: "Próximos Eventos",
-  permisos:"Permisos usuarios",
-};
-
 /**
- * Página del Dashboard. Pensada para conectarse con el login
- * más adelante vía las props userName / userInitials / onLogout.
+ * Página del Dashboard. userName y userInitials quedan en las props porque
+ * App.tsx los pasa, pero la barra superior ya no los muestra (solo logo y
+ * cierre de sesión).
  */
 export function Dashboard({
-  userName = "María",
-  userInitials = "MA",
   onLogout,
   onGoToLanding,
   onNavigate,
@@ -56,13 +46,7 @@ export function Dashboard({
       />
 
       <div className="dashboard-main">
-        <Navbar
-          title={TITULOS[activeItem]}
-          subtitle={`Bienvenido: ${userName}`}
-          userName={userName}
-          userInitials={userInitials}
-          onLogout={onLogout}
-        />
+        <Navbar onLogout={onLogout} />
 
         <div className="dashboard-content">
           {activeItem === "inicio" && <InicioView />}
